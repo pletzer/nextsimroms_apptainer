@@ -42,7 +42,7 @@ From: /home/pletzera/nextsimroms_apptainer/nextsim.sif
     cd netcdf-fortran-${version}
     mkdir build
     cd build
-    FC=$MPIF90 CC=$MPICC CXX=$MPICXX  CPPFLAGS="-I/opt/conda/include" LDFLAGS="-L/opt/conda/lib -lnetcdf" ../configure --prefix=$INSTALL_PREFIX
+    FC=$MPIF90 CC=$MPICC CXX=$MPICXX  CPPFLAGS="-I/opt/conda/include" LDFLAGS="-L/opt/conda/lib -lnetcdf" ../configure --prefix=$INSTALL_DIR
     make
     make install    
 
@@ -51,6 +51,15 @@ From: /home/pletzera/nextsimroms_apptainer/nextsim.sif
     version="8.7.0"
     cd $BUILD_DIR
     wget --no-check-certificate  https://github.com/esmf-org/esmf/archive/refs/tags/v${version}.tar.gz
+    tar xf v${version}.tar.gz
+    cd esmf-${version}
+
+    export ESMF_DIR=$PWD
+    export ESMF_ABI=64
+    export ESMF_BOPT=O
+    export ESMF_COMM=openmpi
+    export ESMF_COMPILER=gfortran
+    make
 
 
     # Build ROMS
