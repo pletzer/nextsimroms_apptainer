@@ -1,0 +1,57 @@
+BootStrap: localimage
+From: /home/pletzera/nextsimroms_apptainer/nextsim.sif
+
+%arguments
+    NEXTSIM_SIF=/home/pletzera/nextsimroms_apptainer/nextsim.sif
+    ROMS_SRC_DIR=/home/pletzer/ROMS
+
+
+%help
+    Build a portable version of the coupled neXtSIM-ROMS model
+
+%setup
+    # create directory to build chombo and other packages in the container
+    #mkdir -p ${APPTAINER_ROOTFS}/usr/local/build
+
+%files
+    # copy files from host to the container prior to calling %post
+    # SOURCE DESTINATION. SOURCE is always on the host. DESTINATION is by default in container
+    # ADAPT!!!!!
+    
+%environment
+    export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+
+%post
+
+    export BUILD_DIR=/usr/local/build
+    export INSTALL_DIR=/usr/local/
+
+    export MPIF90=mpif90
+    export MPICC=mpicc
+    export MPICXX=mpic++
+
+    mkdir $BUILD_DIR
+
+    apt-get update && apt-get upgrade -y
+
+    # netcdf-fortran
+    version="4.5.3"
+    cd $BUILD_DIR
+    wget --no-check-certificate https://downloads.unidata.ucar.edu/netcdf-fortran/${version}/netcdf-fortran-${version}.tar.gz
+    tar xf netcdf-fortran-${version}.tar.gz
+    cd netcdf-fortran-${version}
+    mkdir build
+    cd build
+    FC=$MPIF90 CC=$MPICC CXX=$MPICXX  CPPFLAGS="-I/opt/conda/include" LDFLAGS="-L/opt/conda/lib -lnetcdf" ../configure --prefix=$INSTALL_PREFIX
+    make
+    make install    
+
+ 
+    # Build ESMF
+    version="8.7.0"
+    cd $BUILD_DIR
+    wget --no-check-certificate  https://github.com/esmf-org/esmf/archive/refs/tags/v${version}.tar.gz
+
+
+    # Build ROMS
+
