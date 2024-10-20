@@ -57,7 +57,7 @@ ALIBS =  $(ARPACKLIB) $(LAPACKLIB) $(BLASLIB)
 
 # Libraries needed for Parallel ARPACK 
 #
-PARPACKLIB = $(home)/libparpack_$(COMMLIB)-$(PLAT).a
+PARPACKLIB = $(home)/libparpack_$(COMMLIB).a
 
 MPILIBS =  
 
@@ -92,7 +92,7 @@ PLIBS = $(PARPACKLIB) $(ALIBS) $(MPILIBS)
 #  Various compilation programs and flags.
 #  You need to make sure these are correct for your system.
 #
-FC      = gfortran
+FC      = mpif90
 FFLAGS	= -O3 
 
 # Set the parallel fortran compiler
