@@ -63,23 +63,23 @@ From: /home/pletzera/nextsimroms_apptainer/nextsim.sif
     make plib
     cp *.a $INSTALL_DIR/lib
 
-    # Build CICE-ROMS
-    cd OMS_SRC_DIR
-    wget --no-check-certificate https://raw.githubusercontent.com/pletzer/nextsimroms_apptainer/refs/heads/main/packages/iceshelf_roms/makefile
-    make realcean
-    make 
+    # # Build CICE-ROMS
+    # cd OMS_SRC_DIR
+    # wget --no-check-certificate https://raw.githubusercontent.com/pletzer/nextsimroms_apptainer/refs/heads/main/packages/iceshelf_roms/makefile
+    # make realcean
+    # make 
 
 
-    # Build ESMF
-    version="8.7.0"
-    cd $BUILD_DIR
-    wget --no-check-certificate  https://github.com/esmf-org/esmf/archive/refs/tags/v${version}.tar.gz
-    tar xf v${version}.tar.gz
-    cd esmf-${version}
+    # # Build ESMF
+    # version="8.7.0"
+    # cd $BUILD_DIR
+    # wget --no-check-certificate  https://github.com/esmf-org/esmf/archive/refs/tags/v${version}.tar.gz
+    # tar xf v${version}.tar.gz
+    # cd esmf-${version}
 
-    export ESMF_DIR=$PWD
-    export ESMF_ABI=64
-    export ESMF_BOPT=O
-    export ESMF_COMM=openmpi
-    export ESMF_COMPILER=gfortran
-    make
+    # export ESMF_DIR=$PWD
+    # export ESMF_ABI=64
+    # export ESMF_BOPT=O
+    # export ESMF_COMM=openmpi
+    # export ESMF_COMPILER=gfortran
+    # make
