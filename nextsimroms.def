@@ -23,6 +23,9 @@ From: /home/pletzera/nextsimroms_apptainer/nextsim.sif
 
 %post
 
+    apt-get update && apt-get upgrade -y
+    apt-get install -y ca-certificates openssl vim
+
     export BUILD_DIR=/usr/local/build
     export INSTALL_DIR=/usr/local/
 
@@ -46,7 +49,15 @@ From: /home/pletzera/nextsimroms_apptainer/nextsim.sif
     make
     make install    
 
- 
+    # Build Arpack
+    cd $BUILD_DIR
+    git clone https://bitbucket.org/chaoyang2013/arpack.git
+    cd arpack
+
+
+
+    # Build ROMS
+
     # Build ESMF
     version="8.7.0"
     cd $BUILD_DIR
@@ -60,7 +71,3 @@ From: /home/pletzera/nextsimroms_apptainer/nextsim.sif
     export ESMF_COMM=openmpi
     export ESMF_COMPILER=gfortran
     make
-
-
-    # Build ROMS
-
