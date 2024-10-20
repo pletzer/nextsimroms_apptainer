@@ -3,7 +3,8 @@ From: /home/pletzera/nextsimroms_apptainer/nextsim.sif
 
 %arguments
     NEXTSIM_SIF=/home/pletzera/nextsimroms_apptainer/nextsim.sif
-    ROMS_SRC_DIR=/home/pletzer/ROMS
+    ROMS_SRC_DIR=/home/pletzer/iceshelf_roms
+    
 
 
 %help
@@ -24,7 +25,7 @@ From: /home/pletzera/nextsimroms_apptainer/nextsim.sif
 %post
 
     apt-get update && apt-get upgrade -y
-    apt-get install -y ca-certificates openssl vim
+    apt-get install -y ca-certificates openssl vim libnetcdf-dev subversion
 
     export BUILD_DIR=/usr/local/build
     export INSTALL_DIR=/usr/local/
@@ -53,10 +54,20 @@ From: /home/pletzera/nextsimroms_apptainer/nextsim.sif
     cd $BUILD_DIR
     git clone https://bitbucket.org/chaoyang2013/arpack.git
     cd arpack
+    mv ARmake.inc ARmake.inc.ori
+    mv Makefile Makefile.ori
+    wget --no-check-certificate https://raw.githubusercontent.com/pletzer/nextsimroms_apptainer/refs/heads/main/packages/arpack/ARmake.inc
+    wget --no-check-certificate https://raw.githubusercontent.com/pletzer/nextsimroms_apptainer/refs/heads/main/packages/arpack/Makefile
+    make clean
+    make lib
+    make plib
+    cp *.a $INSTALL_DIR/lib
 
+    # Build CICE-ROMS
+    cd OMS_SRC_DIR
+    make realcean
+    make 
 
-
-    # Build ROMS
 
     # Build ESMF
     version="8.7.0"

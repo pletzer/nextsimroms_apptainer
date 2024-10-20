@@ -15,23 +15,15 @@
 ############################################################################
 #
 #
-#  *** If you are using a VENDOR SUPPLIED VERSION of MPI, you  ***
-#  *** must replace the mpif.h in the following directories    ***
-#  ***                                                         ***
-#  ***            ARPACK/PARPACK/SRC/MPI/mpif.h                ***
-#  ***            ARPACK/PARPACK/UTIL/MPI/mpif.h               ***
-#  ***            ARPACK/PARPACK/EXAMPLES/MPI/mpif.h           ***
-#  ***                                                         ***
-#  *** with the one for the native implementation.             ***
 #
 #  The complete path to the top level of ARPACK directory, usually
 #  $(HOME)/ARPACK
 #
-home          = /global/cscratch1/sd/cyang/ARPACK
+home          = /usr/local/build/arpack
 #
 #  The platform identifier to suffix to the end of library names
 #
-PLAT          = Cori
+PLAT          = apptainer
 #
 #  The communication library ( need for parallel library only )
 #  Current availible platforms are: BLACS or MPI
@@ -56,7 +48,7 @@ DIRS   = $(UTILdir) $(SRCdir)
 #
 #  The name of the libraries to be created/linked to
 #
-ARPACKLIB  = $(home)/libarpack_$(PLAT).a
+ARPACKLIB  = $(home)/libarpack.a
 LAPACKLIB  = 
 BLASLIB    = 
 
@@ -100,11 +92,11 @@ PLIBS = $(PARPACKLIB) $(ALIBS) $(MPILIBS)
 #  Various compilation programs and flags.
 #  You need to make sure these are correct for your system.
 #
-FC      = ftn
+FC      = gfortran
 FFLAGS	= -O3 
 
 # Set the parallel fortran compiler
-PFC      = ftn
+PFC      = mpif90
 PFFLAGS	= -O3 
 
 LDFLAGS = 
