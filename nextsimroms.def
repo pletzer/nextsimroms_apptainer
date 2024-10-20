@@ -65,6 +65,7 @@ From: /home/pletzera/nextsimroms_apptainer/nextsim.sif
 
     # Build CICE-ROMS
     cd OMS_SRC_DIR
+    wget --no-check-certificate https://raw.githubusercontent.com/pletzer/nextsimroms_apptainer/refs/heads/main/packages/iceshelf_roms/makefile
     make realcean
     make 
 
