@@ -73,7 +73,8 @@ From: /home/pletzera/nextsimroms_apptainer/nextsim.sif
     wget --no-check-certificate https://raw.githubusercontent.com/pletzer/nextsimroms_apptainer/refs/heads/main/packages/iceshelf_roms/Compilers/Linux-gfortran.mk
     cd ..
     make clean
-    make 
+    make
+    cp ./oceanM $INSTALL_DIR/bin
 
 
     # Build ESMF
