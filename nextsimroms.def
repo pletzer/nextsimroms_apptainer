@@ -64,7 +64,7 @@ From: /home/pletzera/nextsimroms_apptainer/nextsim.sif
     cp *.a $INSTALL_DIR/lib
 
     # Build CICE-ROMS. Dow er need to specify where arpack is installed?
-    cd OMS_SRC_DIR
+    cd $ROMS_SRC_DIR
     mv makefile makefile.ori
     wget --no-check-certificate https://raw.githubusercontent.com/pletzer/nextsimroms_apptainer/refs/heads/main/packages/iceshelf_roms/makefile
     cd Compilers
