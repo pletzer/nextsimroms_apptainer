@@ -3,7 +3,7 @@ From: /home/pletzera/nextsimroms_apptainer/nextsim.sif
 
 %arguments
     NEXTSIM_SIF=/home/pletzera/nextsimroms_apptainer/nextsim.sif
-    ROMS_SRC_DIR=/home/pletzer/iceshelf_roms
+    ROMS_SRC_DIR=/home/pletzera/iceshelf_roms
     
 
 
@@ -25,7 +25,7 @@ From: /home/pletzera/nextsimroms_apptainer/nextsim.sif
 %post
 
     apt-get update && apt-get upgrade -y
-    apt-get install -y ca-certificates openssl vim libnetcdf-dev subversion
+    apt-get install -y ca-certificates openssl vim subversion
 
     export BUILD_DIR=/usr/local/build
     export INSTALL_DIR=/usr/local/
@@ -46,7 +46,7 @@ From: /home/pletzera/nextsimroms_apptainer/nextsim.sif
     cd netcdf-fortran-${version}
     mkdir build
     cd build
-    FC=$MPIF90 CC=$MPICC CXX=$MPICXX  CPPFLAGS="-I/opt/conda/include" LDFLAGS="-L/opt/conda/lib -lnetcdf" ../configure --prefix=$INSTALL_DIR
+    FC=$MPIF90 CC=$MPICC CXX=$MPICXX  CPPFLAGS="-I/opt/conda/include" LDFLAGS="-L/opt/conda/lib -lnetcdf" ../configure --enable-logging --prefix=$INSTALL_DIR
     make
     make install    
 
@@ -63,11 +63,16 @@ From: /home/pletzera/nextsimroms_apptainer/nextsim.sif
     make plib
     cp *.a $INSTALL_DIR/lib
 
-    # # Build CICE-ROMS
-    # cd OMS_SRC_DIR
-    # wget --no-check-certificate https://raw.githubusercontent.com/pletzer/nextsimroms_apptainer/refs/heads/main/packages/iceshelf_roms/makefile
-    # make realcean
-    # make 
+    # Build CICE-ROMS. Dow er need to specify where arpack is installed?
+    cd OMS_SRC_DIR
+    mv makefile makefile.ori
+    wget --no-check-certificate https://raw.githubusercontent.com/pletzer/nextsimroms_apptainer/refs/heads/main/packages/iceshelf_roms/makefile
+    cd Compilers
+    mv Linux-gfortran.mk Linux-gfortran.mk.ori
+    wget --no-check-certificate https://raw.githubusercontent.com/pletzer/nextsimroms_apptainer/refs/heads/main/packages/iceshelf_roms/Compilers/Linux-gfortran.mk
+    cd ..
+    make clean
+    make 
 
 
     # # Build ESMF
