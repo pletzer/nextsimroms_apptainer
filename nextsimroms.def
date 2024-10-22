@@ -37,8 +37,6 @@ From: /home/pletzera/nextsimroms_apptainer/nextsim.sif
 
     mkdir $BUILD_DIR
 
-    apt-get update && apt-get upgrade -y
-
     # netcdf-fortran
     version="4.5.3"
     cd $BUILD_DIR
@@ -51,7 +49,7 @@ From: /home/pletzera/nextsimroms_apptainer/nextsim.sif
     make
     make install    
 
-    # Build Arpack
+    # Build Arpack, may not be required. For data assimilation
     cd $BUILD_DIR
     git clone https://bitbucket.org/chaoyang2013/arpack.git
     cd arpack
@@ -64,7 +62,7 @@ From: /home/pletzera/nextsimroms_apptainer/nextsim.sif
     make plib
     cp *.a $INSTALL_DIR/lib
 
-    # Build CICE-ROMS. Dow er need to specify where arpack is installed?
+    # Build CICE-ROMS. Dow er need to specify where arpack is installed? Need to turn on some compilation options
     cd {{ ROMS_SRC_DIR }}
     mv makefile makefile.ori
     wget --no-check-certificate https://raw.githubusercontent.com/pletzer/nextsimroms_apptainer/refs/heads/main/packages/iceshelf_roms/makefile
@@ -85,8 +83,12 @@ From: /home/pletzera/nextsimroms_apptainer/nextsim.sif
     cd esmf-${version}
 
     export ESMF_DIR=$PWD
-    export ESMF_ABI=64
-    export ESMF_BOPT=O
     export ESMF_COMM=openmpi
     export ESMF_COMPILER=gfortran
-    make
+    export ESMF_INSTALL_PREFIX=$INSTALL_DIR/esmf-${version}
+    # build optimised version
+    make clean
+    make ESMF_BOPT=O
+    # build debug version
+    make clean
+    make ESMF_BOPT=g
