@@ -22,8 +22,6 @@ ifneq ($(origin ESMFMKFILE), environment)
 $(error Environment variable ESMFMKFILE was not set.)
 endif
 
-#ESMFMKFILE = /usr/local/build/esmf-8.7.0/lib/libO/Linux.gfortran.64.openmpi.default/esmf.mk
-
 include $(ESMFMKFILE)
 
 # strip quotes around the ESMF_INTERNAL_MPIRUN value
@@ -38,7 +36,7 @@ ESMF_INTERNAL_MPIRUN := $(shell echo $(ESMF_INTERNAL_MPIRUN))
 	$(ESMF_F90COMPILER) -c $(ESMF_F90COMPILEOPTS) $(ESMF_F90COMPILEPATHS) $(ESMF_F90COMPILEFREENOCPP) $<
 
 %.o : %.F90
-	$(ESMF_F90COMPILER) -c $(ESMF_F90COMPILEOPTS) $(ESMF_F90COMPILEPATHS) $(ESMF_F90COMPILEFREECPP) $(ESMF_F90COMPILECPPFLAGS) -DESMF_VERSION_MAJOR=$(ESMF_VERSION_MAJOR) $<
+	$(ESMF_F90COMPILER) -c $(ESMF_F90COMPILEOPTS) $(ESMF_F90COMPILEPATHS) $(ESMF_F90COMPILEFREECPP) $(ESMF_F90COMPILECPPFLAGS) $<
         
 %.o : %.c
 	$(ESMF_CXXCOMPILER) -c $(ESMF_CXXCOMPILEOPTS) $(ESMF_CXXCOMPILEPATHSLOCAL) $(ESMF_CXXCOMPILEPATHS) $(ESMF_CXXCOMPILECPPFLAGS) $<
@@ -48,12 +46,12 @@ ESMF_INTERNAL_MPIRUN := $(shell echo $(ESMF_INTERNAL_MPIRUN))
 
 
 # -----------------------------------------------------------------------------
-mainApp: mainApp.o driver.o model.o
+esmApp: esmApp.o esm.o ice.o ocn.o conn.o
 	$(ESMF_F90LINKER) $(ESMF_F90LINKOPTS) $(ESMF_F90LINKPATHS) $(ESMF_F90LINKRPATHS) -o $@ $^ $(ESMF_F90ESMFLINKLIBS)
 
 # module dependencies:
-mainApp.o: driver.o
-driver.o: model.o
+esmApp.o: esm.o
+esm.o: ice.o ocn.o conn.o
 
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
@@ -61,7 +59,7 @@ driver.o: model.o
 dust:
 	rm -f PET*.ESMF_LogFile *.nc *.stdout
 clean:
-	rm -f mainApp *.o *.mod
+	rm -f esmApp *.o *.mod
 distclean: dust clean
 
 info:
@@ -72,7 +70,7 @@ info:
 	@echo ==================================================================
 
 edit:
-	nedit mainApp.F90 driver.F90 model.F90 &
+	nedit esmApp.F90 esm.F90 ice.F90 ocn.F90 conn.F90 &
 
 run:
-	$(ESMF_INTERNAL_MPIRUN) -np 4 ./mainApp
+	$(ESMF_INTERNAL_MPIRUN) -np 4 ./esmApp
