@@ -86,74 +86,38 @@ module ESM
     type(ESMF_GridComp)           :: child
     type(ESMF_CplComp)            :: conn
     integer                       :: petCount, i
-    integer, allocatable          :: petList(:)
+    integer, allocatable          :: petListIce(:), petListOcn(:)
     integer                       :: verbosity
     character(len=10)             :: attrStr
+    character(len=256)            :: msg
 
     rc = ESMF_SUCCESS
 
    ! get the petCount
     call ESMF_GridCompGet(driver, petCount=petCount, rc=rc)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
 
-    ! SetServices for ICE with petList on first half of PETs
-#ifdef WITHPETLISTS_on
-    allocate(petList(petCount/2))
-    do i=1, petCount/2
-      petList(i) = i-1 ! PET labeling goes from 0 to petCount-1
-    enddo
-#endif
-    call NUOPC_DriverAddComp(driver, "ICE", iceSS, &
-#ifdef WITHPETLISTS_on
-      petList=petList, &
-#endif
-      comp=child, rc=rc)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
-#ifdef WITHPETLISTS_on
-    deallocate(petList)
-#endif
-    verbosity = 0 ! reset
-    verbosity = ibset(verbosity,0)  ! log basic intro/extro and indentation
-    write(attrStr,"(I10)") verbosity
-    call NUOPC_CompAttributeSet(child, name="Verbosity", value=attrStr, rc=rc)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
+    write(msg, *) 'esm: running on ', petCount, ' PEs'
+    call ESMF_LogWrite(msg, ESMF_LOGMSG_INFO, rc=rc)
 
-    ! SetServices for OCN with petList on second half of PETs
-#ifdef WITHPETLISTS_on
-    allocate(petList(petCount/2))
-    do i=1, petCount/2
-      petList(i) = petCount/2 + i-1 ! PET labeling goes from 0 to petCount-1
+    ! SetServices for OCN and ICE
+    allocate(petListIce(petCount/2))
+    allocate(petListOcn(petCount - SIZE(petListIce)))
+    do i=1, size(petListIce)
+      petListIce(i) = i-1
     enddo
-#endif
-    call NUOPC_DriverAddComp(driver, "OCN", ocnSS, &
-#ifdef WITHPETLISTS_on
-      petList=petList, &
-#endif
-      comp=child, rc=rc)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
-#ifdef WITHPETLISTS_on
-    deallocate(petList)
-#endif
-    verbosity = 0 ! reset
-    verbosity = ibset(verbosity,0)  ! log basic intro/extro and indentation
-    write(attrStr,"(I10)") verbosity
-    call NUOPC_CompAttributeSet(child, name="Verbosity", value=attrStr, rc=rc)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
+    do i=1, size(petListOcn)
+      petListOcn(i) = SIZE(petListIce) + i-1
+    enddo
+
+    write(msg, *) 'esm: ICE running on ', petListIce
+    call ESMF_LogWrite(msg, ESMF_LOGMSG_INFO, rc=rc)
+
+    write(msg, *) 'esm: OCN running on ', petListOcn
+    call ESMF_LogWrite(msg, ESMF_LOGMSG_INFO, rc=rc)
+
+    call NUOPC_DriverAddComp(driver, "ICE", iceSS, petList=petListIce, comp=child, rc=rc)
+    call NUOPC_DriverAddComp(driver, "OCN", ocnSS, petList=petListOcn, comp=child, rc=rc)
+
 
     ! SetServices for ice2ocn
     call NUOPC_DriverAddComp(driver, srcCompLabel="ICE", dstCompLabel="OCN", &
