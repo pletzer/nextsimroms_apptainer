@@ -1,4 +1,4 @@
-README for ATM-OCN-CON NUOPC prototype
+README for ICE-OCN-CON NUOPC prototype
 --------------------------------------
 
 Show how a custom Connector module can be implemented, deriving from the 
@@ -8,13 +8,13 @@ instantiate multiple Connector components under the Driver.
 Description:
 
   A two-way coupled system with a single driver (ESM) and two model components
-  (ATM, OCN).
+  (ICE, OCN).
   
   The ESM driver uses explicitly constructed petLists when adding the two
   model components.
 
   The ESM driver component uses the default run sequence to implement coupling
-  between ATM and OCN components. 
+  between ICE and OCN components. 
   
   The connector components are explicitly added by the driver.
   
@@ -22,7 +22,7 @@ Description:
   customized connector implemention provided in module CON. CON derives
   from the generic NUOPC_Connector.
 
-  Both ATM and OCN components use a simple two-phase initialization,
+  Both ICE and OCN components use a simple two-phase initialization,
   consisting of advertise and realize.
   
 
@@ -41,7 +41,7 @@ Output:
 
 Code structure:
   - Makefile    - Makefile that is based on the standard esmf.mk mechanism.
-  - atm.F90     - The ATM component, specializing generic NUOPC_Model.
+  - ice.F90     - The ICE component, specializing generic NUOPC_Model.
   - ocn.F90     - The OCN component, specializing generic NUOPC_Model.
   - conn.F90    - The CON component, specializing generic NUOPC_Connector.
   - esm.F90     - The Earth System Model (ESM) component, specializing generic
