@@ -69,10 +69,7 @@ info:
 	@cat $(ESMFMKFILE)
 	@echo ==================================================================
 
-edit:
-	nedit esmApp.F90 esm.F90 ice.F90 ocn.F90 conn.F90 &
-
 run:
 	rm -f PET*.ESMF_LogFile
 	$(ESMF_INTERNAL_MPIRUN) -np 4 ./esmApp
-	-grep 'esmApp FINISHED' PET0.ESMF_LogFile
+	-grep 'esmApp FINISHED' PET*.ESMF_LogFile

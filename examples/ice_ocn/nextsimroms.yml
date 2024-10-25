@@ -1,0 +1,18 @@
+field_dictionary:
+    version_number: 0.0.1
+    last_modified:  Fri Oct 25 13:56:18 NZDT 2024
+    institution:    Victoria University, Wellington and NIWA
+    contact:        rafael.santana@niwa.co.nz and stefan.jendersie@vuw.ac.nz 
+
+    source:         https://github.com/pletzer/nextsimroms_apptaine
+    description:    Standard names for fields exchanged between ice and ocean components
+
+    entries:
+      - standard_name: sea_surface_temperature
+        canonical_units: K
+        description: sea surface temperature
+      - standard_name: downward_heat_flux_sea_ice
+        canonical_units: W/m2
+        description:
+
+

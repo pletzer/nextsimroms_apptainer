@@ -150,12 +150,12 @@ module ICE
     gridOut = gridIn ! for now out same as in
 
     ! importable field: sea_surface_temperature
-    field = ESMF_FieldCreate(name="sst", grid=gridIn, &
+    field = ESMF_FieldCreate(name="sea_surface_temperature", grid=gridIn, &
       typekind=ESMF_TYPEKIND_R8, rc=rc)
     call NUOPC_Realize(importState, field=field, rc=rc)
 
-    ! exportable field: air_pressure_at_sea_level
-    field = ESMF_FieldCreate(name="pmsl", grid=gridOut, &
+    ! exportable field: downward_heat_flux_sea_ice
+    field = ESMF_FieldCreate(name="downward_heat_flux_sea_ice", grid=gridOut, &
       typekind=ESMF_TYPEKIND_R8, rc=rc)
     call NUOPC_Realize(exportState, field=field, rc=rc)
 

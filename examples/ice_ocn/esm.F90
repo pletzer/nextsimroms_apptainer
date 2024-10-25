@@ -18,7 +18,6 @@ module ESM
   ! activate sections of code that demonstrate how
   ! the ICE and OCN components can run on exclusive sets of PETs. Turning this
   ! on/off does not affect how the Connector component is specialized.
-#define WITHPETLISTS_on
 
   use ESMF
   use NUOPC
@@ -114,6 +113,14 @@ module ESM
 
     write(msg, *) 'esm: OCN running on ', petListOcn
     call ESMF_LogWrite(msg, ESMF_LOGMSG_INFO, rc=rc)
+
+    ! Populate the list of predefined fields from YAML file
+    call NUOPC_FieldDictionarySetup('nextsimroms.yml', rc)
+    if (rc /= ESMF_SUCCESS) then
+      write(msg, *) 'esm: Could not read file "nextsimroms.yml" rc=', rc
+      call ESMF_LogWrite(msg, ESMF_LOGMSG_INFO)
+      return
+    endif
 
     call NUOPC_DriverAddComp(driver, "ICE", iceSS, petList=petListIce, comp=child, rc=rc)
     call NUOPC_DriverAddComp(driver, "OCN", ocnSS, petList=petListOcn, comp=child, rc=rc)
