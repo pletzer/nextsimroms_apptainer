@@ -61,12 +61,12 @@ module ESM
       file=__FILE__)) &
       return  ! bail out
 
-    ! set driver verbosity
-    call NUOPC_CompAttributeSet(driver, name="Verbosity", value="high", rc=rc)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
+    ! ! set driver verbosity
+    ! call NUOPC_CompAttributeSet(driver, name="Verbosity", value="high", rc=rc)
+    ! if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+    !   line=__LINE__, &
+    !   file=__FILE__)) &
+    !   return  ! bail out
 
   end subroutine
 
@@ -122,70 +122,24 @@ module ESM
     ! SetServices for ice2ocn
     call NUOPC_DriverAddComp(driver, srcCompLabel="ICE", dstCompLabel="OCN", &
       compSetServicesRoutine=cplSS, comp=conn, rc=rc)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
-    verbosity = 0 ! reset
-    verbosity = ibset(verbosity,0)  ! log basic intro/extro and indentation
-    verbosity = ibset(verbosity,12) ! log CplList loop
-    write(attrStr,"(I10)") verbosity
-    call NUOPC_CompAttributeSet(conn, name="Verbosity", value=attrStr, rc=rc)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
 
     ! SetServices for ocn2ice
     call NUOPC_DriverAddComp(driver, srcCompLabel="OCN", dstCompLabel="ICE", &
       compSetServicesRoutine=cplSS, comp=conn, rc=rc)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
-    verbosity = 0 ! reset
-    verbosity = ibset(verbosity,0)  ! log basic intro/extro and indentation
-    verbosity = ibset(verbosity,12) ! log CplList loop
-    write(attrStr,"(I10)") verbosity
-    call NUOPC_CompAttributeSet(conn, name="Verbosity", value=attrStr, rc=rc)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
 
-    ! set the driver clock
-    call ESMF_TimeIntervalSet(timeStep, m=15, rc=rc) ! 15 minute steps
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
+    ! Set the driver clock
+    call ESMF_TimeIntervalSet(timeStep, m=10, rc=rc) ! 10 minute steps
 
     call ESMF_TimeSet(startTime, yy=2010, mm=6, dd=1, h=0, m=0, &
       calkindflag=ESMF_CALKIND_GREGORIAN, rc=rc)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
 
     call ESMF_TimeSet(stopTime, yy=2010, mm=6, dd=1, h=1, m=0, &
       calkindflag=ESMF_CALKIND_GREGORIAN, rc=rc)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
 
     internalClock = ESMF_ClockCreate(name="Application Clock", &
       timeStep=timeStep, startTime=startTime, stopTime=stopTime, rc=rc)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
 
     call ESMF_GridCompSet(driver, clock=internalClock, rc=rc)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
 
   end subroutine
 
