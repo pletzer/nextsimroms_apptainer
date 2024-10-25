@@ -89,11 +89,6 @@ module OCN
       file=__FILE__)) &
       return  ! bail out
 
-    ! Disabling the following macro, e.g. renaming to WITHIMPORTFIELDS_disable,
-    ! will result in a model component that does not advertise any importable
-    ! Fields. Use this if you want to drive the model independently.
-#define WITHIMPORTFIELDS
-#ifdef WITHIMPORTFIELDS
     ! importable field: air_pressure_at_sea_level
     call NUOPC_Advertise(importState, &
       StandardName="air_pressure_at_sea_level", name="pmsl", rc=rc)
@@ -101,15 +96,6 @@ module OCN
       line=__LINE__, &
       file=__FILE__)) &
       return  ! bail out
-
-    ! importable field: surface_net_downward_shortwave_flux
-    call NUOPC_Advertise(importState, &
-      StandardName="surface_net_downward_shortwave_flux", name="rsns", rc=rc)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
-#endif
 
     ! exportable field: sea_surface_temperature
     call NUOPC_Advertise(exportState, &
