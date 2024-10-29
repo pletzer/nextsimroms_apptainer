@@ -88,14 +88,11 @@ From: /home/pletzera/nextsimroms_apptainer/nextsim.sif
     export ESMF_COMPILER=gfortran
     export ESMF_INSTALL_PREFIX=$INSTALL_DIR/esmf-${version}
     export ESMF_LAPACK="internal"
-    export ESMF_NETCDF="split"
-    export ESMF_F90LINKPATHS="-L/opt/conda/lib"
-    export ESMF_PIO="OFF"
-    export ESMF_NETCDF_INCLUDE="/usr/local/include"
-    export ESMF_NETCDF_LIBPATH="/usr/local/lib"
+    # export ESMF_NETCDF="split"
+    # export ESMF_F90LINKPATHS="-L/opt/conda/lib"
+    # export ESMF_PIO="OFF"
+    # export ESMF_NETCDF_INCLUDE="/usr/local/include"
+    # export ESMF_NETCDF_LIBPATH="/usr/local/lib"
     # build debug and optimised versions
-    for ESMF_BOPT in "g" "O"; do
-        make clean
-        make ESMF_BOPT=$ESMF_BOPT
-        #make install
-    done
+    make clean
+    make ESMF_BOPT=g
