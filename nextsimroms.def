@@ -22,6 +22,7 @@ From: /home/pletzera/nextsimroms_apptainer/nextsim.sif
     
 %environment
     export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+    export ESMFMKFILE=/usr/local/build/esmf-8.7.0/lib/libO/Linux.gfortran.64.openmpi.default/esmf.mk
 
 %post
 
