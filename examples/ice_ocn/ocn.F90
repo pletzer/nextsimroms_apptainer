@@ -89,9 +89,9 @@ module OCN
       file=__FILE__)) &
       return  ! bail out
 
-    ! importable field: air_pressure_at_sea_level
+    ! importable field: 
     call NUOPC_Advertise(importState, &
-      StandardName="air_pressure_at_sea_level", name="pmsl", rc=rc)
+      StandardName="downward_heat_flux_sea_ice", name="dwhf", rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__)) &
@@ -143,12 +143,12 @@ module OCN
     gridOut = gridIn ! for now out same as in
 
     ! importable field
-    field = ESMF_FieldCreate(name="downward_heat_flux_sea_ice", grid=gridIn, &
+    field = ESMF_FieldCreate(name="dwhf", grid=gridIn, &
       typekind=ESMF_TYPEKIND_R8, rc=rc)
     call NUOPC_Realize(importState, field=field, rc=rc)
 
     ! exportable field
-    field = ESMF_FieldCreate(name="sea_surface_temperature", grid=gridOut, &
+    field = ESMF_FieldCreate(name="sst", grid=gridOut, &
       typekind=ESMF_TYPEKIND_R8, rc=rc)
     call NUOPC_Realize(exportState, field=field, rc=rc)
 

@@ -14,5 +14,9 @@ field_dictionary:
       - standard_name: downward_heat_flux_sea_ice
         canonical_units: W/m2
         description:
+      - alias: sst
+        standard_name: sea_surface_temperature
+      - alias: dwhf
+        standard_name: downward_heat_flux_sea_ice
 
 

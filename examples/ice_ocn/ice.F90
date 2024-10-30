@@ -97,17 +97,9 @@ module ICE
       return  ! bail out
 #endif
 
-    ! exportable field: air_pressure_at_sea_level
+    ! exportable field: 
     call NUOPC_Advertise(exportState, &
-      StandardName="air_pressure_at_sea_level", name="pmsl", rc=rc)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
-
-    ! exportable field: surface_net_downward_shortwave_flux
-    call NUOPC_Advertise(exportState, &
-      StandardName="surface_net_downward_shortwave_flux", name="rsns", rc=rc)
+      StandardName="downward_heat_flux_sea_ice", name="dwhf", rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__)) &
@@ -150,12 +142,12 @@ module ICE
     gridOut = gridIn ! for now out same as in
 
     ! importable field: sea_surface_temperature
-    field = ESMF_FieldCreate(name="sea_surface_temperature", grid=gridIn, &
+    field = ESMF_FieldCreate(name="sst", grid=gridIn, &
       typekind=ESMF_TYPEKIND_R8, rc=rc)
     call NUOPC_Realize(importState, field=field, rc=rc)
 
     ! exportable field: downward_heat_flux_sea_ice
-    field = ESMF_FieldCreate(name="downward_heat_flux_sea_ice", grid=gridOut, &
+    field = ESMF_FieldCreate(name="dwhf", grid=gridOut, &
       typekind=ESMF_TYPEKIND_R8, rc=rc)
     call NUOPC_Realize(exportState, field=field, rc=rc)
 
