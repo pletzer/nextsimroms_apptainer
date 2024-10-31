@@ -46,12 +46,11 @@ ESMF_INTERNAL_MPIRUN := $(shell echo $(ESMF_INTERNAL_MPIRUN))
 
 
 # -----------------------------------------------------------------------------
-mainApp: mainApp.o #esm.o ice.o ocn.o conn.o
+mainApp: mainApp.o datetime_mod.o
 	$(ESMF_F90LINKER) $(ESMF_F90LINKOPTS) $(ESMF_F90LINKPATHS) $(ESMF_F90LINKRPATHS) -o $@ $^ $(ESMF_F90ESMFLINKLIBS)
 
 # module dependencies:
-# mainApp.o: esm.o
-# esm.o: ice.o ocn.o conn.o
+mainApp.o: datetime_mod.o
 
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
