@@ -164,9 +164,13 @@ module ICE
     type(ESMF_Clock)            :: clock
     type(ESMF_State)            :: importState, exportState
     character(len=160)          :: msgString
-    integer :: numImportStates, i
+    integer                     :: numImportStates, i, ndims, j, i1, i2, localDeCount
     character(len=128), allocatable :: importStateNames(:)
     type(ESMF_Field)            :: field
+    integer, allocatable        :: localMinIndex(:), localMaxIndex(:)
+    type(ESMF_Array)            :: array
+    type(ESMF_VM)               :: vm
+    real(ESMF_KIND_r8), pointer      :: ptr(:,:)
 
     rc = ESMF_SUCCESS
 
@@ -203,6 +207,32 @@ module ICE
       ! retrieve the field
       call ESMF_StateGet(importState, itemName=importStateNames(i), field=field, rc=rc)
 
+      ! retrive local field dimensions
+      call ESMF_FieldGet(field, dimCount=ndims, rc=rc)
+      allocate(localMinIndex(ndims), localMaxIndex(ndims))
+      call ESMF_FieldGet(field, localMinIndex=localMinIndex, localMaxIndex=localMaxIndex, rc=rc)
+
+      do j = 1, ndims
+        write(msgString, '(A, I2, A, I5, A, I5)') 'axis ', j, ' has min/max dimensions ', &
+             & localMinIndex(j), '->', localMaxIndex(j)
+        call ESMF_LogWrite(msgString, ESMF_LOGMSG_INFO, rc=rc)
+      enddo
+
+      call ESMF_FieldGet(field, array=array, rc=rc)
+      
+      call ESMF_ArrayGet(array, localDeCount=localDeCount, rc=rc)
+      write(msgString, '(A, I2, A)') 'this array has ', localDeCount, ' local DEs '
+      call ESMF_LogWrite(msgString, ESMF_LOGMSG_INFO, rc=rc)
+
+      call ESMF_ArrayGet(array, localDe=0, farrayPtr=ptr, rc=rc)
+      
+      do i2 = lbound(ptr, 2), ubound(ptr, 2)
+        do i1 = lbound(ptr, 1), ubound(ptr, 1)
+          print *, i1, i2, ptr(i1, i2)
+        enddo
+      enddo
+  
+      deallocate(localMinIndex, localMaxIndex)
     enddo
 
 
