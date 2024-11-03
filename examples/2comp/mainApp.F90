@@ -43,10 +43,24 @@ program main
     startTime = datetime_get_start(start_end)
     stopTime = datetime_get_end(start_end)
     dTime = datetime_get_dt_seconds(start_end)
+    ! call ESMF_TimeIntervalPrint(dTime)
     driverClock = ESMF_ClockCreate(timeStep=dTime, &
                   & startTime=startTime,       &
                   & stopTime=stopTime, rc=rc)
 
+    ! ! initialize the components TO DO
+    ! call ESMF_CplCompInitialize(cpl, &
+    !     & importState=importStateIce, exportState=exportStateOcn, clock=driverClock)
+
+    do while (.NOT. ESMF_ClockIsStopTime(driverClock, rc=rc))
+
+        ! TO DO 
+
+        CALL ESMF_ClockAdvance(driverClock, rc=rc)
+    enddo
+
+    ! clean up 
+    call ESMF_ClockDestroy(driverClock, rc=rc)
 
     call ESMF_StateDestroy(exportStateOcn, rc=rc)
     call ESMF_StateDestroy(exportStateIce, rc=rc)

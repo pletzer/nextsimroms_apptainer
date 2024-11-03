@@ -144,6 +144,7 @@ module ICE
     ! importable field: sea_surface_temperature
     field = ESMF_FieldCreate(name="sst", grid=gridIn, &
       typekind=ESMF_TYPEKIND_R8, rc=rc)
+    call ESMF_FieldGet(field, rc=rc)
     call NUOPC_Realize(importState, field=field, rc=rc)
 
     ! exportable field: downward_heat_flux_sea_ice
@@ -163,6 +164,9 @@ module ICE
     type(ESMF_Clock)            :: clock
     type(ESMF_State)            :: importState, exportState
     character(len=160)          :: msgString
+    integer :: numImportStates, i
+    character(len=128), allocatable :: importStateNames(:)
+    type(ESMF_Field)            :: field
 
     rc = ESMF_SUCCESS
 
@@ -173,6 +177,34 @@ module ICE
       line=__LINE__, &
       file=__FILE__)) &
       return  ! bail out
+
+    ! query for the number of import states
+    call ESMF_StateGet(importState, itemCount=numImportStates, rc=rc)
+    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, &
+      file=__FILE__)) &
+      return  ! bail out
+
+    write(msgString, '(A, I8, A)') 'There are ', numImportStates, ' import states'
+    call ESMF_LogWrite(msgString, ESMF_LOGMSG_INFO, rc=rc)
+
+    allocate(importStateNames(numImportStates))
+    call ESMF_StateGet(importState, itemNameList=importStateNames, rc=rc)
+    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, &
+      file=__FILE__)) &
+      return  ! bail out
+
+    ! query the names of the import states
+    do i = 1, numImportStates
+      write(msgString, '(I2, A, A)') i, ' import state: ', importStateNames(i)
+      call ESMF_LogWrite(msgString, ESMF_LOGMSG_INFO, rc=rc)
+
+      ! retrieve the field
+      call ESMF_StateGet(importState, itemName=importStateNames(i), field=field, rc=rc)
+
+    enddo
+
 
     ! HERE THE MODEL ADVANCES: currTime -> currTime + timeStep
 

@@ -47,7 +47,6 @@ contains
 
         dt_seconds = 0
 
-
         open(10, file=filename)
         read(10, nml=date)
         close(10)
@@ -65,6 +64,8 @@ contains
         self%end_hour = end_hour
         self%end_minute = end_minute
         self%end_second = end_second
+
+        self%dt_seconds = dt_seconds
 
     end subroutine datetime_init_from_file
 

@@ -120,6 +120,8 @@ module OCN
     type(ESMF_Grid)         :: gridIn
     type(ESMF_Grid)         :: gridOut
 
+    real(8), pointer        :: sst_ptr(:, :) 
+
     rc = ESMF_SUCCESS
 
     ! query for importState and exportState
@@ -151,6 +153,12 @@ module OCN
     field = ESMF_FieldCreate(name="sst", grid=gridOut, &
       typekind=ESMF_TYPEKIND_R8, rc=rc)
     call NUOPC_Realize(exportState, field=field, rc=rc)
+
+    call ESMF_FieldGet(field, farrayPtr=sst_ptr, rc=rc)
+    if (rc /= 0) print *,'failed to access the sst array'
+
+    ! set the pointer to som values
+    sst_ptr = 1.0_8
 
   end subroutine
 
