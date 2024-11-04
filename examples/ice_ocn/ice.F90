@@ -219,13 +219,14 @@ module ICE
       enddo
 
       call ESMF_FieldGet(field, array=array, rc=rc)
-      
+
       call ESMF_ArrayGet(array, localDeCount=localDeCount, rc=rc)
       write(msgString, '(A, I2, A)') 'this array has ', localDeCount, ' local DEs '
       call ESMF_LogWrite(msgString, ESMF_LOGMSG_INFO, rc=rc)
 
       call ESMF_ArrayGet(array, localDe=0, farrayPtr=ptr, rc=rc)
       
+      ! now we have access to the array and can modify it at our heart's content
       do i2 = lbound(ptr, 2), ubound(ptr, 2)
         do i1 = lbound(ptr, 1), ubound(ptr, 1)
           print *, i1, i2, ptr(i1, i2)
