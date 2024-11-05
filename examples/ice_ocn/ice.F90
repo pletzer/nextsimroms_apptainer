@@ -14,10 +14,13 @@ module ICE
   ! ICE Component.
   !-----------------------------------------------------------------------------
 
+  use esmfarrayptr_mod
+
   use ESMF
   use NUOPC
   use NUOPC_Model, &
     modelSS    => SetServices
+
 
   implicit none
 
@@ -182,60 +185,17 @@ module ICE
       file=__FILE__)) &
       return  ! bail out
 
-    ! query for the number of import states
-    call ESMF_StateGet(importState, itemCount=numImportStates, rc=rc)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
+    ! get a pointer to the array
+    call getImportFieldDataPtr(model, 'sst', ptr, rc)
 
-    write(msgString, '(A, I8, A)') 'There are ', numImportStates, ' import states'
-    call ESMF_LogWrite(msgString, ESMF_LOGMSG_INFO, rc=rc)
-
-    allocate(importStateNames(numImportStates))
-    call ESMF_StateGet(importState, itemNameList=importStateNames, rc=rc)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
-
-    ! query the names of the import states
-    do i = 1, numImportStates
-      write(msgString, '(I2, A, A)') i, ' import state: ', importStateNames(i)
-      call ESMF_LogWrite(msgString, ESMF_LOGMSG_INFO, rc=rc)
-
-      ! retrieve the field
-      call ESMF_StateGet(importState, itemName=importStateNames(i), field=field, rc=rc)
-
-      ! retrive local field dimensions
-      call ESMF_FieldGet(field, dimCount=ndims, rc=rc)
-      allocate(localMinIndex(ndims), localMaxIndex(ndims))
-      call ESMF_FieldGet(field, localMinIndex=localMinIndex, localMaxIndex=localMaxIndex, rc=rc)
-
-      do j = 1, ndims
-        write(msgString, '(A, I2, A, I5, A, I5)') 'axis ', j, ' has min/max dimensions ', &
-             & localMinIndex(j), '->', localMaxIndex(j)
-        call ESMF_LogWrite(msgString, ESMF_LOGMSG_INFO, rc=rc)
-      enddo
-
-      call ESMF_FieldGet(field, array=array, rc=rc)
-
-      call ESMF_ArrayGet(array, localDeCount=localDeCount, rc=rc)
-      write(msgString, '(A, I2, A)') 'this array has ', localDeCount, ' local DEs '
-      call ESMF_LogWrite(msgString, ESMF_LOGMSG_INFO, rc=rc)
-
-      call ESMF_ArrayGet(array, localDe=0, farrayPtr=ptr, rc=rc)
-      
-      ! now we have access to the array and can modify it at our heart's content
-      do i2 = lbound(ptr, 2), ubound(ptr, 2)
-        do i1 = lbound(ptr, 1), ubound(ptr, 1)
-          print *, i1, i2, ptr(i1, i2)
-        enddo
-      enddo
-  
-      deallocate(localMinIndex, localMaxIndex)
-    enddo
-
+    print *,'checksum sst array: ', sum(ptr)
+    
+    ! ! now we have access to the array and can modify it at our heart's content
+    ! do i2 = lbound(ptr, 2), ubound(ptr, 2)
+    !   do i1 = lbound(ptr, 1), ubound(ptr, 1)
+    !     print *, i1, i2, ptr(i1, i2)
+    !   enddo
+    ! enddo
 
     ! HERE THE MODEL ADVANCES: currTime -> currTime + timeStep
 

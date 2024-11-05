@@ -2,15 +2,15 @@
 
     use ESMF
     use NUOPC
-    use NUOPC_Model
+    use NUOPC_Model, only: NUOPC_ModelGet
 
 contains
 
-    subroutine getImportFieldDataPtr(model, standardName, ptr, rc)
+    subroutine getImportFieldDataPtr(model, name, ptr, rc)
 
         implicit none
         type(ESMF_GridComp)  :: model
-        character(len=128), intent(in) :: standardName
+        character(len=*), intent(in) :: name
         real(8), pointer, intent(out) :: ptr(:, :)
         integer, intent(out) :: rc
 
@@ -26,7 +26,7 @@ contains
         if (rc2 /= ESMF_SUCCESS) rc = rc + 1
 
         ! retrieve the field
-        call ESMF_StateGet(state, itemName=standardName, field=field, rc=rc2)
+        call ESMF_StateGet(state, itemName=name, field=field, rc=rc2)
         if (rc2 /= ESMF_SUCCESS) rc = rc + 1
 
         ! get the array
@@ -36,7 +36,7 @@ contains
         ! get local pointer to the data. We only have one domain per PE
         call ESMF_ArrayGet(array, localDe=0, farrayPtr=ptr, rc=rc2)
         if (rc2 /= ESMF_SUCCESS) rc = rc + 1
-  
+
     
     end subroutine getImportFieldDataPtr
 
