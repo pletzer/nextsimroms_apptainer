@@ -74,5 +74,5 @@ info:
 
 run:
 	rm -f PET*.ESMF_LogFile
-	$(ESMF_INTERNAL_MPIRUN) -np 4 ./esmApp
+	$(ESMF_INTERNAL_MPIRUN) -np 2 ./esmApp
 	-grep 'esmApp FINISHED' PET*.ESMF_LogFile

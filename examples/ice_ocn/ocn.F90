@@ -117,10 +117,10 @@ module OCN
     type(ESMF_State)        :: importState, exportState
     type(ESMF_TimeInterval) :: stabilityTimeStep
     type(ESMF_Field)        :: field
-    type(ESMF_Grid)         :: gridIn
-    type(ESMF_Grid)         :: gridOut
+    type(ESMF_Grid)         :: grid
 
-    real(8), pointer        :: sst_ptr(:, :) 
+    real(8), pointer        :: sst_ptr(:, :)
+    integer :: i1, i2 
 
     rc = ESMF_SUCCESS
 
@@ -133,32 +133,37 @@ module OCN
       return  ! bail out
 
     ! create a Grid object for Fields
-    gridIn = ESMF_GridCreateNoPeriDimUfrm(maxIndex=(/100, 10/), &
-      minCornerCoord=(/10._ESMF_KIND_R8, 20._ESMF_KIND_R8/), &
-      maxCornerCoord=(/100._ESMF_KIND_R8, 200._ESMF_KIND_R8/), &
+    grid = ESMF_GridCreateNoPeriDimUfrm(maxIndex=(/6, 4/), &
+      minCornerCoord=(/0._ESMF_KIND_R8, 0._ESMF_KIND_R8/), &
+      maxCornerCoord=(/4._ESMF_KIND_R8, 6._ESMF_KIND_R8/), &
       coordSys=ESMF_COORDSYS_CART, staggerLocList=(/ESMF_STAGGERLOC_CENTER/), &
       rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__)) &
       return  ! bail out
-    gridOut = gridIn ! for now out same as in
 
     ! importable field
-    field = ESMF_FieldCreate(name="dwhf", grid=gridIn, &
+    field = ESMF_FieldCreate(name="dwhf", grid=grid, &
       typekind=ESMF_TYPEKIND_R8, rc=rc)
     call NUOPC_Realize(importState, field=field, rc=rc)
 
     ! exportable field
-    field = ESMF_FieldCreate(name="sst", grid=gridOut, &
+    field = ESMF_FieldCreate(name="sst", grid=grid, &
       typekind=ESMF_TYPEKIND_R8, rc=rc)
     call NUOPC_Realize(exportState, field=field, rc=rc)
 
     call ESMF_FieldGet(field, farrayPtr=sst_ptr, rc=rc)
-    if (rc /= 0) print *,'failed to access the sst array'
+    if (rc /= ESMF_SUCCESS) print *,'failed to access the sst array'
 
-    ! set the pointer to som values
-    sst_ptr = 1.0_8
+    ! set the pointer to some values
+    do i2 = lbound(sst_ptr, 2), ubound(sst_ptr, 2)
+      do i1 = lbound(sst_ptr, 1), ubound(sst_ptr, 1)
+        sst_ptr(i1, i2) = 0_8
+        if (i2 == 1 .and. i1 == 1) sst_ptr(i1, i2) = 1_8
+      enddo
+    enddo
+
 
   end subroutine
 
