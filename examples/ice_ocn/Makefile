@@ -46,12 +46,15 @@ ESMF_INTERNAL_MPIRUN := $(shell echo $(ESMF_INTERNAL_MPIRUN))
 
 
 # -----------------------------------------------------------------------------
-esmApp: esmApp.o esm.o ice.o ocn.o conn.o
+esmApp: esmApp.o esm.o ice.o ocn.o conn.o esmfarrayptr.o
 	$(ESMF_F90LINKER) $(ESMF_F90LINKOPTS) $(ESMF_F90LINKPATHS) $(ESMF_F90LINKRPATHS) -o $@ $^ $(ESMF_F90ESMFLINKLIBS)
 
 # module dependencies:
 esmApp.o: esm.o
 esm.o: ice.o ocn.o conn.o
+ice.o: esmfarrayptr.o
+ocn.o: esmfarrayptr.o
+
 
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
