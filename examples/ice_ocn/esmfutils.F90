@@ -1,4 +1,4 @@
- module esmfarrayptr_mod
+ module esmfutils_mod
 
     use ESMF
     use NUOPC
@@ -6,7 +6,7 @@
 
 contains
 
-    subroutine getImportFieldDataPtr(model, name, ptr, rc)
+    subroutine esmfutils_getImportDataPtr(model, name, ptr, rc)
 
         implicit none
         type(ESMF_GridComp)  :: model
@@ -36,8 +36,7 @@ contains
         ! get local pointer to the data. We only have one domain per PE
         call ESMF_ArrayGet(array, localDe=0, farrayPtr=ptr, rc=rc2)
         if (rc2 /= ESMF_SUCCESS) rc = rc + 1
-
     
-    end subroutine getImportFieldDataPtr
+    end subroutine esmfutils_getImportDataPtr
 
- end module esmfarrayptr_mod
+ end module esmfutils_mod

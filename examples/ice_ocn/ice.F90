@@ -14,7 +14,7 @@ module ICE
   ! ICE Component.
   !-----------------------------------------------------------------------------
 
-  use esmfarrayptr_mod
+  use esmfutils_mod
 
   use ESMF
   use NUOPC
@@ -184,7 +184,7 @@ module ICE
       return  ! bail out
 
     ! get a pointer to the array
-    call getImportFieldDataPtr(model, 'sst', ptr, rc)
+    call esmfutils_getImportDataPtr(model, 'sst', ptr, rc)
 
     print *,'checksum sst array: ', sum(ptr)
     
