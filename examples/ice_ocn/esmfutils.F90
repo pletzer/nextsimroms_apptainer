@@ -48,9 +48,9 @@ contains
         type(ESMF_Grid) :: grid
         type(ESMF_StaggerLoc) :: staggerloc
         integer :: minIndex(2), maxIndex(2)
-        real(ESMF_KIND_R8), pointer :: xPtr(:), yPtr(:)
+        real(ESMF_KIND_R8), pointer :: xPtr(:), yPtr(:), dataPtr(:, :)
         character(len=128) :: fieldName
-
+        type(ESMF_Array)        :: array
 
         call ESMF_FieldGet(field, &
          & grid=grid, staggerloc=staggerloc, &
@@ -85,9 +85,22 @@ contains
                  xPtr(i), yPtr(j), ' 0.E0'
             enddo
         enddo
+
+        call ESMF_FieldGet(field, array=array, rc=rc)
+        call ESMF_ArrayGet(array, localDe=0, farrayPtr=dataPtr, rc=rc)
+
+        if (staggerloc == ESMF_STAGGERLOC_CENTER) then
+            write(iu, '(A, I6)') 'CELL_DATA', numCells
+        else
+            write(iu, '(A, I6)') 'CELL_DATA', numPoints
+        endif
         write(iu, '(A, A, A)') 'SCALARS ', trim(fieldName), ' double 1'
         write(iu, '(A)') 'LOOKUP_TABLE default'
-
+        do j = lbound(dataPtr, 2), ubound(dataPtr, 2)
+            do i = lbound(dataPtr, 1), ubound(dataPtr, 1)
+                write(iu, '(E20.8)') dataPtr(i, j)
+            enddo
+        enddo
 
         close(unit=iu)
 
