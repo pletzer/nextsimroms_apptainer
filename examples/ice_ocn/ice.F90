@@ -178,6 +178,9 @@ module ICE
     type(ESMF_VM)               :: vm
     real(ESMF_KIND_r8), pointer      :: ptr(:,:)
 
+    type(ESMF_State)        :: state
+    integer :: rc2
+
     rc = ESMF_SUCCESS
 
     ! query for clock, importState and exportState
@@ -199,6 +202,11 @@ module ICE
         print *, i1, i2, ptr(i1, i2)
       enddo
     enddo
+
+    
+    call NUOPC_ModelGet(model,  importState=state, rc=rc2)
+    call ESMF_StateGet(state, itemName='sst', field=field, rc=rc2)
+    call esmfutils_write2DStructFieldVTK(field, 'ice_sst.vtk')
 
     ! HERE THE MODEL ADVANCES: currTime -> currTime + timeStep
 
