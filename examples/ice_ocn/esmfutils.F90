@@ -34,6 +34,28 @@ contains
 
     end subroutine esmfutils_getDataPtrFromState
 
+    subroutine esmfutils_getExportDataPtr(model, name, ptr, rc)
+
+        implicit none
+        type(ESMF_GridComp)  :: model
+        character(len=*), intent(in) :: name
+        real(8), pointer, intent(out) :: ptr(:, :)
+        integer, intent(out) :: rc
+
+        type(ESMF_State)        :: state
+        integer :: rc2
+    
+        rc = ESMF_SUCCESS
+    
+        ! query for state
+        call NUOPC_ModelGet(model,  exportState=state, rc=rc2)
+        if (rc2 /= ESMF_SUCCESS) rc = rc + 1
+
+        call esmfutils_getDataPtrFromState(state, name, ptr, rc2)
+        if (rc2 /= ESMF_SUCCESS) rc = rc + 1
+    
+    end subroutine esmfutils_getExportDataPtr
+
     subroutine esmfutils_getImportDataPtr(model, name, ptr, rc)
 
         implicit none
@@ -47,7 +69,7 @@ contains
     
         rc = ESMF_SUCCESS
     
-        ! query for importState and exportState
+        ! query for state
         call NUOPC_ModelGet(model,  importState=state, rc=rc2)
         if (rc2 /= ESMF_SUCCESS) rc = rc + 1
 
