@@ -14,6 +14,8 @@ module OCN
   ! OCN Component.
   !-----------------------------------------------------------------------------
 
+  use esmfutils_mod
+  
   use ESMF
   use NUOPC
   use NUOPC_Model, &
@@ -181,6 +183,8 @@ module OCN
     ! local variables
     type(ESMF_Clock)              :: clock
     type(ESMF_TimeInterval)       :: stabilityTimeStep
+    type(ESMF_State)              :: state
+    type(ESMF_Field)              :: field
 
     rc = ESMF_SUCCESS
 
@@ -205,6 +209,10 @@ module OCN
       line=__LINE__, &
       file=__FILE__)) &
       return  ! bail out
+
+      call NUOPC_ModelGet(model,  exportState=state, rc=rc)
+      call ESMF_StateGet(state, itemName='sst', field=field, rc=rc)
+      call esmfutils_write2DStructFieldVTK(field, 'ocn_sst.vtk')
 
   end subroutine
 

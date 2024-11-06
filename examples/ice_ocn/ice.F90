@@ -194,7 +194,7 @@ module ICE
     ! get a pointer to the array
     call esmfutils_getImportDataPtr(model, 'sst', ptr, rc)
 
-    print *,'checksum sst array: ', sum(ptr)
+    print *,'ice checksum sst array: ', sum(ptr)
     
     ! now we have access to the array and can modify it at our heart's content
     do i2 = lbound(ptr, 2), ubound(ptr, 2)
