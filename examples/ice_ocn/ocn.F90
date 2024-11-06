@@ -136,12 +136,17 @@ module OCN
     grid = ESMF_GridCreateNoPeriDimUfrm(maxIndex=(/6, 4/), &
       minCornerCoord=(/0._ESMF_KIND_R8, 0._ESMF_KIND_R8/), &
       maxCornerCoord=(/4._ESMF_KIND_R8, 6._ESMF_KIND_R8/), &
-      coordSys=ESMF_COORDSYS_CART, staggerLocList=(/ESMF_STAGGERLOC_CENTER/), &
+      coordSys=ESMF_COORDSYS_CART, &
+      staggerLocList=(/ESMF_STAGGERLOC_CENTER, ESMF_STAGGERLOC_CORNER/), &
       rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__)) &
       return  ! bail out
+
+    call ESMF_GridWriteVTK(grid, &
+      & staggerloc=ESMF_STAGGERLOC_CORNER, &
+      & filename="ocn_grid", rc=rc)
 
     ! importable field
     field = ESMF_FieldCreate(name="dwhf", grid=grid, &
