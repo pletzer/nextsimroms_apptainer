@@ -56,6 +56,23 @@ contains
     
     end subroutine esmfutils_getExportDataPtr
 
+    subroutine esmfutils_getDataPtr(model, import, name, ptr, rc)
+
+        implicit none
+        type(ESMF_GridComp)  :: model
+        logical              :: import ! true if an import field
+        character(len=*), intent(in) :: name
+        real(8), pointer, intent(out) :: ptr(:, :)
+        integer, intent(out) :: rc
+
+        if (import) then
+            call esmfutils_getImportDataPtr(model, name, ptr, rc)
+        else
+            call esmfutils_getExportDataPtr(model, name, ptr, rc)
+        endif
+
+    end subroutine esmfutils_getDataPtr
+
     subroutine esmfutils_getImportDataPtr(model, name, ptr, rc)
 
         implicit none
@@ -77,6 +94,66 @@ contains
         if (rc2 /= ESMF_SUCCESS) rc = rc + 1
     
     end subroutine esmfutils_getImportDataPtr
+
+    subroutine esmfutils_getAreaIntegratedField(model, import, name, res, rc)
+
+        type(ESMF_GridComp), intent(in) :: model
+        logical, intent(in) :: import ! true for an import field
+        character(len=*), intent(in) :: name
+        real(8), intent(out) :: res
+        integer, intent(out) :: rc
+
+        integer :: rc2, i, j
+        real(8), pointer :: xPtr(:), yPtr(:), dataPtr(:, :)
+        real(8) :: area
+        type(ESMF_State) :: state
+        type(ESMF_Field) :: field
+        type(ESMF_Grid)  :: grid
+        type(ESMF_Array) :: array
+
+        rc = ESMF_SUCCESS
+
+        if (import) then
+            call NUOPC_ModelGet(model,  importState=state, rc=rc2)
+        else
+            call NUOPC_ModelGet(model,  exportState=state, rc=rc2)
+        endif
+        if (rc2 /= ESMF_SUCCESS) rc = rc + 1
+
+        ! retrieve the field
+        call ESMF_StateGet(state, itemName=name, field=field, rc=rc2)
+        if (rc2 /= ESMF_SUCCESS) rc = rc + 1
+
+        ! get the array
+        call ESMF_FieldGet(field, array=array, grid=grid, rc=rc2)
+        if (rc2 /= ESMF_SUCCESS) rc = rc + 1
+  
+        ! get local pointer to the data. We only have one domain per PE
+        call ESMF_ArrayGet(array, localDe=0, farrayPtr=dataPtr, rc=rc2)
+        if (rc2 /= ESMF_SUCCESS) rc = rc + 1
+
+        ! x coordinate
+        call ESMF_GridGetCoord(grid, &
+            staggerloc=ESMF_STAGGERLOC_CORNER, &
+            coordDim=1, farrayPtr=xPtr, rc=rc2)
+        if (rc2 /= ESMF_SUCCESS) rc = rc + 1
+
+        ! y coordinate
+        call ESMF_GridGetCoord(grid, &
+            staggerloc=ESMF_STAGGERLOC_CORNER, &
+            coordDim=2, farrayPtr=yPtr, rc=rc2)
+        if (rc2 /= ESMF_SUCCESS) rc = rc + 1
+        
+        res = 0
+        do j = 1, size(yPtr) - 1
+            do i = 1, size(xPtr) - 1
+                area = (xPtr(i + 1) - xPtr(i)) * (yPtr(j + 1) - yPtr(j))
+                ! assume cell centred
+                res = res + area*dataPtr(i, j)
+            enddo
+        enddo
+
+    end subroutine esmfutils_getAreaIntegratedField
 
     subroutine esmfutils_write2DStructFieldVTK(field, filename)
 

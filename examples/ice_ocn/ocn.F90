@@ -15,7 +15,7 @@ module OCN
   !-----------------------------------------------------------------------------
 
   use esmfutils_mod
-  
+
   use ESMF
   use NUOPC
   use NUOPC_Model, &
@@ -228,6 +228,7 @@ module OCN
     type(ESMF_Time)             :: currTime
     type(ESMF_TimeInterval)     :: timeStep
     character(len=160)          :: msgString
+    real(ESMF_KIND_r8), pointer :: ptr(:,:)
 
     rc = ESMF_SUCCESS
 
@@ -277,6 +278,9 @@ module OCN
       line=__LINE__, &
       file=__FILE__)) &
       return  ! bail out
+
+    call esmfutils_getExportDataPtr(model, 'sst', ptr, rc)
+    print *,'ocn checksum sst array: ', sum(ptr)
 
   end subroutine
 
