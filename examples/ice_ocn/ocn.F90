@@ -229,6 +229,8 @@ module OCN
     type(ESMF_TimeInterval)     :: timeStep
     character(len=160)          :: msgString
     real(ESMF_KIND_r8), pointer :: ptr(:,:)
+    real(ESMF_KIND_R8)          :: total_sst
+    logical                     :: import=.TRUE., export=.FALSE.
 
     rc = ESMF_SUCCESS
 
@@ -279,8 +281,8 @@ module OCN
       file=__FILE__)) &
       return  ! bail out
 
-    call esmfutils_getExportDataPtr(model, 'sst', ptr, rc)
-    print *,'ocn checksum sst array: ', sum(ptr)
+    call esmfutils_getAreaIntegratedField(model, export, 'sst', total_sst, rc=rc)
+    print *,'ocn integrated sst: ', total_sst
 
   end subroutine
 

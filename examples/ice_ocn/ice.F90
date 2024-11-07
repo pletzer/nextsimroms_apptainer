@@ -177,6 +177,8 @@ module ICE
     type(ESMF_Array)            :: array
     type(ESMF_VM)               :: vm
     real(ESMF_KIND_r8), pointer      :: ptr(:,:)
+    real(ESMF_KIND_R8)               :: total_sst
+    logical                          :: import = .TRUE., export = .FALSE.
 
     type(ESMF_State)        :: state
     integer :: rc2
@@ -191,17 +193,8 @@ module ICE
       file=__FILE__)) &
       return  ! bail out
 
-    ! get a pointer to the array
-    call esmfutils_getImportDataPtr(model, 'sst', ptr, rc)
-
-    print *,'ice checksum sst array: ', sum(ptr)
-    
-    ! now we have access to the array and can modify it at our heart's content
-    do i2 = lbound(ptr, 2), ubound(ptr, 2)
-      do i1 = lbound(ptr, 1), ubound(ptr, 1)
-        print *, i1, i2, ptr(i1, i2)
-      enddo
-    enddo
+    call esmfutils_getAreaIntegratedField(model, import, 'sst', total_sst, rc=rc)
+    print *,'ice integrated sst: ', total_sst
 
     
     call NUOPC_ModelGet(model,  importState=state, rc=rc2)
