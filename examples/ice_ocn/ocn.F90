@@ -125,6 +125,7 @@ module OCN
     integer :: i1, i2
     integer :: nx, ny, fu
     real(8) :: xmin, xmax, ymin, ymax
+    character(len=256) :: msg
 
     namelist /ocn/ nx, ny, xmin, xmax, ymin, ymax
 
@@ -147,6 +148,10 @@ module OCN
     open(newunit=fu, file='mainApp.nml', action='read')
     read(unit=fu, nml=ocn) 
     close(unit=fu)
+    write(msg, *) 'ocn grid ', nx, '*', ny, &
+     & ' xmin, ymin = ', xmin, ymin, ' xmax, ymax = ', xmax, ymax
+    call ESMF_LogWrite(msg, ESMF_LOGMSG_INFO, rc=rc)
+
 
     ! create a Grid object for Fields
     grid = ESMF_GridCreateNoPeriDimUfrm(maxIndex=(/nx, ny/), &
