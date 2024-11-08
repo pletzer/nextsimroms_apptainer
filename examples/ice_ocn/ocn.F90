@@ -122,7 +122,11 @@ module OCN
     type(ESMF_Grid)         :: grid
 
     real(8), pointer        :: sst_ptr(:, :)
-    integer :: i1, i2 
+    integer :: i1, i2
+    integer :: nx, ny, fu
+    real(8) :: xmin, xmax, ymin, ymax
+
+    namelist /ocn/ nx, ny, xmin, xmax, ymin, ymax
 
     rc = ESMF_SUCCESS
 
@@ -133,6 +137,11 @@ module OCN
       line=__LINE__, &
       file=__FILE__)) &
       return  ! bail out
+
+    open(newunit=fu, file='mainApp.nml', action='read')
+    read(unit=fu, nml=ocn) 
+    close(unit=fu)
+
 
     ! create a Grid object for Fields
     grid = ESMF_GridCreateNoPeriDimUfrm(maxIndex=(/6, 4/), &
