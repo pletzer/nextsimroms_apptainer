@@ -138,15 +138,20 @@ module OCN
       file=__FILE__)) &
       return  ! bail out
 
+    nx = 10
+    ny = 20
+    xmin = 0
+    xmax = 1
+    ymin = 0
+    ymax = 1
     open(newunit=fu, file='mainApp.nml', action='read')
     read(unit=fu, nml=ocn) 
     close(unit=fu)
 
-
     ! create a Grid object for Fields
-    grid = ESMF_GridCreateNoPeriDimUfrm(maxIndex=(/6, 4/), &
-      minCornerCoord=(/0._ESMF_KIND_R8, 0._ESMF_KIND_R8/), &
-      maxCornerCoord=(/4._ESMF_KIND_R8, 6._ESMF_KIND_R8/), &
+    grid = ESMF_GridCreateNoPeriDimUfrm(maxIndex=(/nx, ny/), &
+      minCornerCoord=(/xmin, ymin/), &
+      maxCornerCoord=(/xmax, ymax/), &
       coordSys=ESMF_COORDSYS_CART, &
       staggerLocList=(/ESMF_STAGGERLOC_CENTER, ESMF_STAGGERLOC_CORNER/), &
       rc=rc)

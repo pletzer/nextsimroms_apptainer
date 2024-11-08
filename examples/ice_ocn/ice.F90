@@ -121,6 +121,11 @@ module ICE
     type(ESMF_Field)        :: field
     type(ESMF_Grid)         :: grid
 
+    integer :: nx, ny, fu
+    real(8) :: xmin, xmax, ymin, ymax
+
+    namelist /ice/ nx, ny, xmin, xmax, ymin, ymax
+
     rc = ESMF_SUCCESS
 
     ! query for importState and exportState
@@ -131,10 +136,20 @@ module ICE
       file=__FILE__)) &
       return  ! bail out
 
-    ! create a Grid object for Fields
-    grid = ESMF_GridCreateNoPeriDimUfrm(maxIndex=(/4, 6/), &
-      minCornerCoord=(/0._ESMF_KIND_R8, 0._ESMF_KIND_R8/), &
-      maxCornerCoord=(/4._ESMF_KIND_R8, 6._ESMF_KIND_R8/), &
+    nx = 10
+    ny = 20
+    xmin = 0
+    xmax = 1
+    ymin = 0
+    ymax = 1
+    open(newunit=fu, file='mainApp.nml', action='read')
+    read(unit=fu, nml=ice) 
+    close(unit=fu)
+
+      ! create a Grid object for Fields
+    grid = ESMF_GridCreateNoPeriDimUfrm(maxIndex=(/nx, ny/), &
+      minCornerCoord=(/xmin, ymin/), &
+      maxCornerCoord=(/xmax, ymax/), &
       coordSys=ESMF_COORDSYS_CART, &
       staggerLocList=(/ESMF_STAGGERLOC_CENTER, ESMF_STAGGERLOC_CORNER/), &
       rc=rc)
