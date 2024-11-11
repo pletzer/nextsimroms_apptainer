@@ -158,7 +158,9 @@ module CON
       return  ! bail out
     ! compute the first RouteHandle for srcFields->interDstFields (Regrid)
     call ESMF_FieldBundleRegridStore(srcFields, interDstFields, &
-      unmappedaction=ESMF_UNMAPPEDACTION_IGNORE, routehandle=rh1, rc=rc)
+      unmappedaction=ESMF_UNMAPPEDACTION_IGNORE, &
+      regridmethod=ESMF_REGRIDMETHOD_CONSERVE, &
+      routehandle=rh1, rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__)) &

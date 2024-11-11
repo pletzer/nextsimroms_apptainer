@@ -168,13 +168,17 @@ module ICE
 
     ! importable field: sea_surface_temperature
     field = ESMF_FieldCreate(name="sst", grid=grid, &
-      typekind=ESMF_TYPEKIND_R8, rc=rc)
-    call ESMF_FieldGet(field, rc=rc)
+      typekind=ESMF_TYPEKIND_R8, &
+      staggerloc=ESMF_STAGGERLOC_CENTER, &
+      rc=rc)
+    !call ESMF_FieldGet(field, rc=rc) ! ????
     call NUOPC_Realize(importState, field=field, rc=rc)
 
     ! exportable field: downward_heat_flux_sea_ice
     field = ESMF_FieldCreate(name="dwhf", grid=grid, &
-      typekind=ESMF_TYPEKIND_R8, rc=rc)
+      typekind=ESMF_TYPEKIND_R8, &
+      staggerloc=ESMF_STAGGERLOC_CENTER, &
+      rc=rc)
     call NUOPC_Realize(exportState, field=field, rc=rc)
 
   end subroutine

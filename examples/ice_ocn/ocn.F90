@@ -171,12 +171,16 @@ module OCN
 
     ! importable field
     field = ESMF_FieldCreate(name="dwhf", grid=grid, &
-      typekind=ESMF_TYPEKIND_R8, rc=rc)
+      typekind=ESMF_TYPEKIND_R8, &
+      staggerloc=ESMF_STAGGERLOC_CENTER, &
+      rc=rc)
     call NUOPC_Realize(importState, field=field, rc=rc)
 
     ! exportable field
     field = ESMF_FieldCreate(name="sst", grid=grid, &
-      typekind=ESMF_TYPEKIND_R8, rc=rc)
+      typekind=ESMF_TYPEKIND_R8,  & 
+      staggerloc=ESMF_STAGGERLOC_CENTER, &
+      rc=rc)
     call NUOPC_Realize(exportState, field=field, rc=rc)
 
     call ESMF_FieldGet(field, farrayPtr=sst_ptr, rc=rc)
@@ -185,8 +189,9 @@ module OCN
     ! set the pointer to some values
     do i2 = lbound(sst_ptr, 2), ubound(sst_ptr, 2)
       do i1 = lbound(sst_ptr, 1), ubound(sst_ptr, 1)
-        sst_ptr(i1, i2) = 0_8
-        if (i2 == 1 .and. i1 == 1) sst_ptr(i1, i2) = 1_8
+        sst_ptr(i1, i2) = 0.0_8
+        !if (i2 == int(ny/2) .and. i1 == int(nx/2)) sst_ptr(i1, i2) = 1.0_8
+        if (i2 == lbound(sst_ptr, 2) .and. i1 == lbound(sst_ptr, 1)) sst_ptr(i1, i2) = 1.0_8
       enddo
     enddo
 
