@@ -1,17 +1,24 @@
-&date
-    start_year = 2000
-    start_month = 1
-    start_day = 1
-    start_hour = 0
-    start_minute = 0
-    start_second = 0
-
-    end_year = 2000
-    end_month = 1
-    end_day = 2
-    end_hour = 0
-    end_minute = 0
-    end_second = 0
-
-    dt_seconds = 600
+&numeric
+ nt = 50,
+ dt = 0.01,
+/
+&phys
+ u = 1,
+ v = 1
+/
+&ocn
+ nx = 10,
+ ny = 5,
+ xmin = 0,
+ ymin = 0,
+ xmax = 6.28318530717958623200,
+ ymax = 6.28318530717958623200
+/
+&ice
+ nx = 11,
+ ny = 6,
+ xmin = 0,
+ ymin = 0,
+ xmax = 6.28318530717958623200,
+ ymax = 6.28318530717958623200
 /

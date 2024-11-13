@@ -48,9 +48,10 @@ program main
                   & startTime=startTime,       &
                   & stopTime=stopTime, rc=rc)
 
-    ! ! initialize the components TO DO
-    ! call ESMF_CplCompInitialize(cpl, &
-    !     & importState=importStateIce, exportState=exportStateOcn, clock=driverClock)
+    ! initialize the components
+    call ESMF_CplCompInitialize(cpl, &
+        & importState=importStateIce, &
+        & exportState=exportStateOcn, clock=driverClock)
 
     do while (.NOT. ESMF_ClockIsStopTime(driverClock, rc=rc))
 

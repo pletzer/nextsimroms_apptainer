@@ -46,19 +46,23 @@ ESMF_INTERNAL_MPIRUN := $(shell echo $(ESMF_INTERNAL_MPIRUN))
 
 
 # -----------------------------------------------------------------------------
-mainApp: mainApp.o datetime_mod.o
+esmApp: esmApp.o esm.o ice.o ocn.o conn.o esmfutils.o
 	$(ESMF_F90LINKER) $(ESMF_F90LINKOPTS) $(ESMF_F90LINKPATHS) $(ESMF_F90LINKRPATHS) -o $@ $^ $(ESMF_F90ESMFLINKLIBS)
 
 # module dependencies:
-mainApp.o: datetime_mod.o
+esmApp.o: esm.o
+esm.o: ice.o ocn.o conn.o
+ice.o: esmfutils.o
+ocn.o: esmfutils.o
+
 
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
 .PHONY: dust clean distclean info edit
 dust:
-	rm -f PET*.ESMF_LogFile *.nc *.stdout
+	rm -f PET*.ESMF_LogFile *.nc *.stdout *.vtk
 clean:
-	rm -f mainApp *.o *.mod
+	rm -f esmApp *.o *.mod
 distclean: dust clean
 
 info:
@@ -70,5 +74,5 @@ info:
 
 run:
 	rm -f PET*.ESMF_LogFile
-	$(ESMF_INTERNAL_MPIRUN) -np 4 ./mainApp
-	-grep 'Finalizing ESMF' PET*.ESMF_LogFile
+	$(ESMF_INTERNAL_MPIRUN) -np 2 ./esmApp
+	-grep 'esmApp FINISHED' PET*.ESMF_LogFile
