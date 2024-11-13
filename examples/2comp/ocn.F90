@@ -93,7 +93,7 @@ module OCN
 
     ! importable field: 
     call NUOPC_Advertise(importState, &
-      StandardName="downward_heat_flux_sea_ice", name="dwhf", rc=rc)
+      StandardName="sea_surface_density", name="rho_ice", rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__)) &
@@ -101,7 +101,7 @@ module OCN
 
     ! exportable field: sea_surface_temperature
     call NUOPC_Advertise(exportState, &
-      StandardName="sea_surface_temperature", name="sst", rc=rc)
+      StandardName="sea_surface_density", name="rho_ocn", rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__)) &
@@ -121,10 +121,11 @@ module OCN
     type(ESMF_Field)        :: field
     type(ESMF_Grid)         :: grid
 
-    real(8), pointer        :: sst_ptr(:, :)
+    real(8), pointer        :: rho_ocn(:, :)
     integer :: i1, i2
     integer :: nx, ny, fu
-    real(8) :: xmin, xmax, ymin, ymax
+    real(8) :: xmin, xmax, ymin, ymax, x, y, dx, dy
+    real(8), parameter :: pi = 3.14159265358979311600_8
     character(len=256) :: msg
 
     namelist /ocn/ nx, ny, xmin, xmax, ymin, ymax
@@ -152,7 +153,6 @@ module OCN
      & ' xmin, ymin = ', xmin, ymin, ' xmax, ymax = ', xmax, ymax
     call ESMF_LogWrite(msg, ESMF_LOGMSG_INFO, rc=rc)
 
-
     ! create a Grid object for Fields
     grid = ESMF_GridCreateNoPeriDimUfrm(maxIndex=(/nx, ny/), &
       minCornerCoord=(/xmin, ymin/), &
@@ -170,28 +170,30 @@ module OCN
       & filename="ocn_grid", rc=rc)
 
     ! importable field
-    field = ESMF_FieldCreate(name="dwhf", grid=grid, &
+    field = ESMF_FieldCreate(name="rho_ice", grid=grid, &
       typekind=ESMF_TYPEKIND_R8, &
       staggerloc=ESMF_STAGGERLOC_CENTER, &
       rc=rc)
     call NUOPC_Realize(importState, field=field, rc=rc)
 
     ! exportable field
-    field = ESMF_FieldCreate(name="sst", grid=grid, &
+    field = ESMF_FieldCreate(name="rho_ocn", grid=grid, &
       typekind=ESMF_TYPEKIND_R8,  & 
       staggerloc=ESMF_STAGGERLOC_CENTER, &
       rc=rc)
     call NUOPC_Realize(exportState, field=field, rc=rc)
 
-    call ESMF_FieldGet(field, farrayPtr=sst_ptr, rc=rc)
-    if (rc /= ESMF_SUCCESS) print *,'failed to access the sst array'
+    call ESMF_FieldGet(field, farrayPtr=rho_ocn, rc=rc)
+    if (rc /= ESMF_SUCCESS) print *,'failed to access rho ocn array'
 
     ! set the pointer to some values
-    do i2 = lbound(sst_ptr, 2), ubound(sst_ptr, 2)
-      do i1 = lbound(sst_ptr, 1), ubound(sst_ptr, 1)
-        sst_ptr(i1, i2) = 0.0_8
-        !if (i2 == int(ny/2) .and. i1 == int(nx/2)) sst_ptr(i1, i2) = 1.0_8
-        if (i2 == lbound(sst_ptr, 2) .and. i1 == lbound(sst_ptr, 1)) sst_ptr(i1, i2) = 1.0_8
+    dx = (xmax - xmin) / real(nx, 8)
+    dy = (ymax - ymin) / real(ny, 8)
+    do i2 = lbound(rho_ocn, 2), ubound(rho_ocn, 2)
+      y = ymin + i2*dy
+      do i1 = lbound(rho_ocn, 1), ubound(rho_ocn, 1)
+        x = xmin + i1*dx
+        rho_ocn(i1, i2) = exp(-(( x - pi) ** 2 + (y - pi) ** 2) / (2.0 * (pi/4)**2))
       enddo
     enddo
 
@@ -235,8 +237,8 @@ module OCN
       return  ! bail out
 
       call NUOPC_ModelGet(model,  exportState=state, rc=rc)
-      call ESMF_StateGet(state, itemName='sst', field=field, rc=rc)
-      call esmfutils_write2DStructFieldVTK(field, 'ocn_sst.vtk')
+      call ESMF_StateGet(state, itemName='rho_ocn', field=field, rc=rc)
+      call esmfutils_write2DStructFieldVTK(field, 'ocn_rho.vtk')
 
   end subroutine
 
@@ -253,7 +255,7 @@ module OCN
     type(ESMF_TimeInterval)     :: timeStep
     character(len=160)          :: msgString
     real(ESMF_KIND_r8), pointer :: ptr(:,:)
-    real(ESMF_KIND_R8)          :: total_sst
+    real(ESMF_KIND_R8)          :: total_rho
     logical                     :: import=.TRUE., export=.FALSE.
 
     rc = ESMF_SUCCESS
@@ -305,8 +307,8 @@ module OCN
       file=__FILE__)) &
       return  ! bail out
 
-    call esmfutils_getAreaIntegratedField(model, export, 'sst', total_sst, rc=rc)
-    print *,'ocn integrated sst: ', total_sst
+    call esmfutils_getAreaIntegratedField(model, export, 'rho_ocn', total_rho, rc=rc)
+    print *,'ocn integrated rho: ', total_rho
 
   end subroutine
 

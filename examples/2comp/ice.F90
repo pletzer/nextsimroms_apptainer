@@ -93,7 +93,7 @@ module ICE
 #ifdef WITHIMPORTFIELDS
     ! importable field: sea_surface_temperature
     call NUOPC_Advertise(importState, &
-      StandardName="sea_surface_temperature", name="sst", rc=rc)
+      StandardName="sea_surface_density", name="rho_ocn", rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__)) &
@@ -102,7 +102,7 @@ module ICE
 
     ! exportable field: 
     call NUOPC_Advertise(exportState, &
-      StandardName="downward_heat_flux_sea_ice", name="dwhf", rc=rc)
+      StandardName="sea_surface_density", name="rho_ice", rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__)) &
@@ -166,16 +166,16 @@ module ICE
                         & staggerloc=ESMF_STAGGERLOC_CORNER, &
                         & filename="ice_grid", rc=rc)
 
-    ! importable field: sea_surface_temperature
-    field = ESMF_FieldCreate(name="sst", grid=grid, &
+    ! importable field: sea_surface_density from ocean
+    field = ESMF_FieldCreate(name="rho_ocn", grid=grid, &
       typekind=ESMF_TYPEKIND_R8, &
       staggerloc=ESMF_STAGGERLOC_CENTER, &
       rc=rc)
     !call ESMF_FieldGet(field, rc=rc) ! ????
     call NUOPC_Realize(importState, field=field, rc=rc)
 
-    ! exportable field: downward_heat_flux_sea_ice
-    field = ESMF_FieldCreate(name="dwhf", grid=grid, &
+    ! exportable field: sea_surface_density from ice
+    field = ESMF_FieldCreate(name="rho_ice", grid=grid, &
       typekind=ESMF_TYPEKIND_R8, &
       staggerloc=ESMF_STAGGERLOC_CENTER, &
       rc=rc)
@@ -200,7 +200,7 @@ module ICE
     type(ESMF_Array)            :: array
     type(ESMF_VM)               :: vm
     real(ESMF_KIND_r8), pointer      :: ptr(:,:)
-    real(ESMF_KIND_R8)               :: total_sst
+    real(ESMF_KIND_R8)               :: total_rho
     logical                          :: import = .TRUE., export = .FALSE.
 
     type(ESMF_State)        :: state
@@ -216,13 +216,13 @@ module ICE
       file=__FILE__)) &
       return  ! bail out
 
-    call esmfutils_getAreaIntegratedField(model, import, 'sst', total_sst, rc=rc)
-    print *,'ice integrated sst: ', total_sst
+    call esmfutils_getAreaIntegratedField(model, import, 'rho_ocn', total_rho, rc=rc)
+    print *,'ice integrated rho from ocean: ', total_rho
 
     
     call NUOPC_ModelGet(model,  importState=state, rc=rc2)
-    call ESMF_StateGet(state, itemName='sst', field=field, rc=rc2)
-    call esmfutils_write2DStructFieldVTK(field, 'ice_sst.vtk')
+    call ESMF_StateGet(state, itemName='rho_ocn', field=field, rc=rc2)
+    call esmfutils_write2DStructFieldVTK(field, 'ice_rho.vtk')
 
     ! HERE THE MODEL ADVANCES: currTime -> currTime + timeStep
 
