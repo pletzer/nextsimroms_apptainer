@@ -9,8 +9,10 @@ program dist_array
     type(ESMF_FieldBundle) :: fieldBundle
     type(ESMF_Field) :: rho
     character(len=256) :: msg
-    integer :: rc, localPet
-    integer :: localMinIndex(2), localMaxIndex(2), minIndex(2), maxIndex(2)
+    integer :: rc, localPet, i, j
+    integer :: localMinIndex(2), localMaxIndex(2), minIndex(2), maxIndex(2), &
+        excllb(2), exclub(2), complb(2), compub(2), totlb(2), totub(2)
+    real(8), pointer :: rho_data(:, :)
 
     CALL ESMF_Initialize(vm=vm, defaultCalKind=ESMF_CALKIND_GREGORIAN, &
     & logkindflag=ESMF_LOGKIND_MULTI, rc=rc)
@@ -38,11 +40,25 @@ program dist_array
     call ESMF_FieldBundleAdd(fieldBundle, (/rho/), rc=rc)
 
     ! get info about the field
-    call ESMF_FieldGet(rho, minIndex=minIndex, maxIndex=maxIndex, &
-         localMinIndex=localMinIndex, localMaxIndex=localMaxIndex, rc=rc)
+    call ESMF_FieldGet(rho, &
+         minIndex=minIndex, maxIndex=maxIndex, &
+         localMinIndex=localMinIndex, localMaxIndex=localMaxIndex, &
+         rc=rc)
     write(msg, *) '[', localPet, '] inds       min: ', minIndex, ' max: ', maxIndex
     call ESMF_LogWrite(msg, ESMF_LOGMSG_INFO, rc=rc)
     write(msg, *) '[', localPet, '] inds local min: ', localMinIndex, ' max: ', localMaxIndex
+    call ESMF_LogWrite(msg, ESMF_LOGMSG_INFO, rc=rc)
+
+    call ESMF_FieldGetBounds(rho, &
+          exclusiveLBound=excllb, exclusiveUBound=exclub, &
+          computationalLBound=complb, computationalUBound=compub, &
+          totalLBound=totlb, totalUBound=totub, &
+          rc=rc)
+    write(msg, *) '[', localPet, '] inds excls min: ', excllb, ' max: ', exclub
+    call ESMF_LogWrite(msg, ESMF_LOGMSG_INFO, rc=rc)
+    write(msg, *) '[', localPet, '] inds compt min: ', complb, ' max: ', compub
+    call ESMF_LogWrite(msg, ESMF_LOGMSG_INFO, rc=rc)
+    write(msg, *) '[', localPet, '] inds total min: ', totlb, ' max: ', totub
     call ESMF_LogWrite(msg, ESMF_LOGMSG_INFO, rc=rc)
 
     ! clean up
