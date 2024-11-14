@@ -8,10 +8,14 @@ program dist_array
     type(ESMF_ArraySpec) :: arrayspec
     type(ESMF_FieldBundle) :: fieldBundle
     type(ESMF_Field) :: rho
-    integer :: rc
+    character(len=256) :: msg
+    integer :: rc, localPet
+    integer :: localMinIndex(2), localMaxIndex(2), minIndex(2), maxIndex(2)
 
     CALL ESMF_Initialize(vm=vm, defaultCalKind=ESMF_CALKIND_GREGORIAN, &
     & logkindflag=ESMF_LOGKIND_MULTI, rc=rc)
+
+    call ESMF_VMGet(vm, localPet=localPet, rc=rc)
 
     ! create a 2x2 distributed grid
     distgrid = ESMF_DistGridCreate(minIndex=(/1,1/), &
@@ -30,7 +34,18 @@ program dist_array
                 totalUWidth=(/1, 1/), &
                 staggerloc=ESMF_STAGGERLOC_CENTER, name="rho", &
                 rc=rc)
+    
+    call ESMF_FieldBundleAdd(fieldBundle, (/rho/), rc=rc)
 
+    ! get info about the field
+    call ESMF_FieldGet(rho, minIndex=minIndex, maxIndex=maxIndex, &
+         localMinIndex=localMinIndex, localMaxIndex=localMaxIndex, rc=rc)
+    write(msg, *) '[', localPet, '] inds       min: ', minIndex, ' max: ', maxIndex
+    call ESMF_LogWrite(msg, ESMF_LOGMSG_INFO, rc=rc)
+    write(msg, *) '[', localPet, '] inds local min: ', localMinIndex, ' max: ', localMaxIndex
+    call ESMF_LogWrite(msg, ESMF_LOGMSG_INFO, rc=rc)
+
+    ! clean up
     call ESMF_GridDestroy(grid)
     call ESMF_DistGridDestroy(distgrid)
 
