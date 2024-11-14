@@ -154,7 +154,7 @@ module OCN
     call ESMF_LogWrite(msg, ESMF_LOGMSG_INFO, rc=rc)
 
     ! create a Grid object for Fields
-    grid = ESMF_GridCreateNoPeriDimUfrm(maxIndex=(/nx, ny/), &
+    grid = ESMF_GridCreate1PeriDimUfrm(maxIndex=(/nx, ny/), &
       minCornerCoord=(/xmin, ymin/), &
       maxCornerCoord=(/xmax, ymax/), &
       coordSys=ESMF_COORDSYS_CART, &

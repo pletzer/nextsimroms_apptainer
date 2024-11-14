@@ -151,12 +151,13 @@ module ICE
     call ESMF_LogWrite(msg, ESMF_LOGMSG_INFO, rc=rc)
 
       ! create a Grid object for Fields
-    grid = ESMF_GridCreateNoPeriDimUfrm(maxIndex=(/nx, ny/), &
+    grid = ESMF_GridCreate1PeriDimUfrm(maxIndex=(/nx, ny/), &
       minCornerCoord=(/xmin, ymin/), &
       maxCornerCoord=(/xmax, ymax/), &
       coordSys=ESMF_COORDSYS_CART, &
       staggerLocList=(/ESMF_STAGGERLOC_CENTER, ESMF_STAGGERLOC_CORNER/), &
       rc=rc)
+    
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__)) &
