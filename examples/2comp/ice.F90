@@ -24,7 +24,14 @@ module ICE
 
   implicit none
 
+  type ice_type
+    real(8) :: u, v, dt, dx, dy
+    integer :: nx, ny
+  end type
+
   private
+
+  type(ice_type) :: self
 
   public SetServices
 
@@ -121,11 +128,15 @@ module ICE
     type(ESMF_Field)        :: field
     type(ESMF_Grid)         :: grid
 
-    integer :: nx, ny, fu
-    real(8) :: xmin, xmax, ymin, ymax
+    integer :: fu
     character(len=256) :: msg
 
+    real(8) :: xmin, xmax, ymin, ymax, dt, u, v
+    integer :: nx, ny, nt
+
     namelist /ice/ nx, ny, xmin, xmax, ymin, ymax
+    namelist /numerics/ dt, nt
+    namelist /physics/ u, v
 
     rc = ESMF_SUCCESS
 
@@ -143,8 +154,18 @@ module ICE
     xmax = 1
     ymin = 0
     ymax = 1
+    nt = 1
+    dt = 0
+    u = 0
+    v = 0
     open(newunit=fu, file='mainApp.nml', action='read')
-    read(unit=fu, nml=ice) 
+    read(unit=fu, nml=ice)
+    close(unit=fu)
+    open(newunit=fu, file='mainApp.nml', action='read')
+    read(unit=fu, nml=numerics)
+    close(unit=fu)
+    open(newunit=fu, file='mainApp.nml', action='read')
+    read(unit=fu, nml=physics)
     close(unit=fu)
     write(msg, *) 'ice grid ', nx, '*', ny, &
      & ' xmin, ymin = ', xmin, ymin, ' xmax, ymax = ', xmax, ymax
@@ -182,6 +203,15 @@ module ICE
       rc=rc)
     call NUOPC_Realize(exportState, field=field, rc=rc)
 
+    ! store
+    self%u = u
+    self%v = v
+    self%dx = (xmax - xmin)/real(nx, 8)
+    self%dy = (ymax - ymin)/real(ny, 8)
+    self%dt = dt
+    self%nx = nx
+    self%ny = ny
+
   end subroutine
 
   !-----------------------------------------------------------------------------
@@ -199,10 +229,13 @@ module ICE
     type(ESMF_Field)            :: field
     integer, allocatable        :: localMinIndex(:), localMaxIndex(:)
     type(ESMF_Array)            :: array
+    type(ESMF_Grid)             :: grid
     type(ESMF_VM)               :: vm
-    real(ESMF_KIND_r8), pointer      :: ptr(:,:)
+    real(ESMF_KIND_r8), pointer      :: rho(:,:)
     real(ESMF_KIND_R8)               :: total_rho
     logical                          :: import = .TRUE., export = .FALSE.
+    integer :: i0, j0, im, jm, ip, jp
+    real(8) :: cx, cy
 
     type(ESMF_State)        :: state
     integer :: rc2
@@ -219,10 +252,35 @@ module ICE
 
     call esmfutils_getAreaIntegratedField(model, import, 'rho_ocn', total_rho, rc=rc)
     print *,'ice integrated rho from ocean: ', total_rho
-
     
-    call NUOPC_ModelGet(model,  importState=state, rc=rc2)
-    call ESMF_StateGet(state, itemName='rho_ocn', field=field, rc=rc2)
+    call NUOPC_ModelGet(model,  importState=state, rc=rc)
+    call ESMF_StateGet(state, itemName='rho_ocn', field=field, rc=rc)
+    call ESMF_ArrayGet(array, farrayPtr=rho, rc=rc)
+
+    cx = self%u * self%dt / self%dx
+    cy = self%v * self%dt / self%dy
+
+    do j0 = lbound(rho, 2), ubound(rho, 2)
+
+      jp = j0 + 1
+      if (jp > self%ny) jp = 1 ! periodic
+      jm = j0 - 1
+      if (jm == 0) jm = self%ny ! periodic
+
+      do i0 = lbound(rho, 1), ubound(rho, 1)
+
+        ip = i0 + 1
+        if (ip > self%nx) ip = 1 ! periodic
+        im = i0 - 1
+        if (im == 0) im = self%nx  
+
+        ! update the field
+        rho(i0, j0) = rho(i0,j0) - cx*(rho(i0, j0) - rho(im, j0)) - cy*(rho(i0, j0) - rho(i0, jm))
+        
+      enddo
+    enddo
+
+
     call esmfutils_write2DStructFieldVTK(field, 'ice_rho.vtk')
 
     ! HERE THE MODEL ADVANCES: currTime -> currTime + timeStep
