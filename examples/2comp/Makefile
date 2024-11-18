@@ -62,7 +62,7 @@ ocn.o: esmfutils.o
 dust:
 	rm -f PET*.ESMF_LogFile *.nc *.stdout *.vtk
 clean:
-	rm -f esmApp *.o *.mod
+	rm -f esmApp *.o *.mod *.vtk 
 distclean: dust clean
 
 info:

@@ -6,6 +6,26 @@
 
 contains
 
+    function esmfutils_int_to_string_with_zeros(num, n) result(str)
+        implicit none
+        integer, intent(in) :: num
+        integer, intent(in) :: n
+        character(len=n) :: str
+        character(len=32) :: temp_str
+
+        ! Convert the integer to a string
+        write(temp_str, '(I0)') num
+
+        ! Check the length of the converted string
+        if (len_trim(temp_str) > n) then
+            ! If the number is too large to fit, truncate it
+            str = temp_str(len_trim(temp_str)-n+1:len_trim(temp_str))
+        else
+            ! Otherwise, prepend zeros
+            str = repeat('0', n - len_trim(temp_str)) // temp_str(1:len_trim(temp_str))
+        end if
+    end function esmfutils_int_to_string_with_zeros
+
     subroutine esmfutils_getDataPtrFromState(state, name, ptr, rc)
 
         implicit none

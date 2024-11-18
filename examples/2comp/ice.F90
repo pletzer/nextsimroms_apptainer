@@ -26,7 +26,7 @@ module ICE
 
   type ice_type
     real(8) :: u, v, dt, dx, dy
-    integer :: nx, ny
+    integer :: nx, ny, time_iteration
   end type
 
   private
@@ -189,15 +189,16 @@ module ICE
                         & filename="ice_grid", rc=rc)
 
     ! importable field: sea_surface_density from ocean
-    field = ESMF_FieldCreate(name="rho_ocn", grid=grid, &
+    field = ESMF_FieldCreate(name="rho_ocn", &
+      grid=grid, &
       typekind=ESMF_TYPEKIND_R8, &
       staggerloc=ESMF_STAGGERLOC_CENTER, &
       rc=rc)
-    !call ESMF_FieldGet(field, rc=rc) ! ????
     call NUOPC_Realize(importState, field=field, rc=rc)
 
     ! exportable field: sea_surface_density from ice
-    field = ESMF_FieldCreate(name="rho_ice", grid=grid, &
+    field = ESMF_FieldCreate(name="rho_ice", &
+      grid=grid, &
       typekind=ESMF_TYPEKIND_R8, &
       staggerloc=ESMF_STAGGERLOC_CENTER, &
       rc=rc)
@@ -211,6 +212,7 @@ module ICE
     self%dt = dt
     self%nx = nx
     self%ny = ny
+    self%time_iteration = 0
 
   end subroutine
 
@@ -222,8 +224,8 @@ module ICE
 
     ! local variables
     type(ESMF_Clock)            :: clock
-    type(ESMF_State)            :: importState, exportState
-    character(len=160)          :: msgString
+    type(ESMF_State)            :: state
+    character(len=160)          :: msgString, filename
     integer                     :: numImportStates, i, ndims, j, i1, i2, localDeCount
     character(len=128), allocatable :: importStateNames(:)
     type(ESMF_Field)            :: field
@@ -231,57 +233,55 @@ module ICE
     type(ESMF_Array)            :: array
     type(ESMF_Grid)             :: grid
     type(ESMF_VM)               :: vm
-    real(ESMF_KIND_r8), pointer      :: rho(:,:)
-    real(ESMF_KIND_R8)               :: total_rho
-    logical                          :: import = .TRUE., export = .FALSE.
-    integer :: i0, j0, im, jm, ip, jp
+    real(ESMF_KIND_r8), pointer      :: rho_ocn(:,:), rho_ice(:, :)
+    real(ESMF_KIND_R8)               :: total_rho, drhodx, drhody, usign, vsign
+    logical, parameter               :: importFlag = .TRUE., exportFlag = .FALSE.
+    integer :: i0, j0, im, jm
     real(8) :: cx, cy
 
-    type(ESMF_State)        :: state
     integer :: rc2
 
     rc = ESMF_SUCCESS
 
-    ! query for clock, importState and exportState
-    call NUOPC_ModelGet(model, modelClock=clock, importState=importState, &
-      exportState=exportState, rc=rc)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
-      line=__LINE__, &
-      file=__FILE__)) &
-      return  ! bail out
-
-    call esmfutils_getAreaIntegratedField(model, import, 'rho_ocn', total_rho, rc=rc)
+    call esmfutils_getAreaIntegratedField(model, importFlag, 'rho_ocn', total_rho, rc=rc)
     print *,'ice integrated rho from ocean: ', total_rho
     
     call NUOPC_ModelGet(model,  importState=state, rc=rc)
     call ESMF_StateGet(state, itemName='rho_ocn', field=field, rc=rc)
-    call ESMF_ArrayGet(array, farrayPtr=rho, rc=rc)
+    call ESMF_FieldGet(field, farrayPtr=rho_ocn, rc=rc)
+
+    call NUOPC_ModelGet(model,  exportState=state, rc=rc)
+    call ESMF_StateGet(state, itemName='rho_ice', field=field, rc=rc)
+    call ESMF_FieldGet(field, farrayPtr=rho_ice, rc=rc)
+
+    usign = sign(1._8, self%u) ! 1 with the isgn of self%u
+    vsign = sign(1._8, self%v)
 
     cx = self%u * self%dt / self%dx
     cy = self%v * self%dt / self%dy
 
-    do j0 = lbound(rho, 2), ubound(rho, 2)
+    do j0 = lbound(rho_ice, 2), ubound(rho_ice, 2)
 
-      jp = j0 + 1
-      if (jp > self%ny) jp = 1 ! periodic
-      jm = j0 - 1
+      jm = j0 - int(vsign)
       if (jm == 0) jm = self%ny ! periodic
+      if (jm > self%ny) jm = self%ny ! periodic
 
-      do i0 = lbound(rho, 1), ubound(rho, 1)
+      do i0 = lbound(rho_ice, 1), ubound(rho_ice, 1)
 
-        ip = i0 + 1
-        if (ip > self%nx) ip = 1 ! periodic
-        im = i0 - 1
+        im = i0 - int(usign) ! sign(a, b) returns the value of a with the sign of b
         if (im == 0) im = self%nx  
+        if (im > self%nx) im = 1 ! periodic
 
-        ! update the field
-        rho(i0, j0) = rho(i0,j0) - cx*(rho(i0, j0) - rho(im, j0)) - cy*(rho(i0, j0) - rho(i0, jm))
+        ! upwind update of the field
+        drhodx = usign * (rho_ocn(i0, j0) - rho_ocn(im, j0))
+        drhody = vsign * (rho_ocn(i0, j0) - rho_ocn(i0, jm))
+        rho_ice(i0, j0) = rho_ocn(i0,j0) - cx*drhodx - cy*drhody
         
       enddo
     enddo
 
-
-    call esmfutils_write2DStructFieldVTK(field, 'ice_rho.vtk')
+    filename = 'ice_' // esmfutils_int_to_string_with_zeros(self%time_iteration, 4) // '.vtk'
+    call esmfutils_write2DStructFieldVTK(field, filename)
 
     ! HERE THE MODEL ADVANCES: currTime -> currTime + timeStep
 
@@ -296,6 +296,8 @@ module ICE
     call ESMF_ClockPrint(clock, options="stopTime", &
       preString="---------------------> to: ", unit=msgString, rc=rc)
     call ESMF_LogWrite(msgString, ESMF_LOGMSG_INFO, rc=rc)
+
+    self%time_iteration = self%time_iteration + 1
 
   end subroutine
 

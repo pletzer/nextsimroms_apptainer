@@ -1,5 +1,5 @@
 &numerics
- nt = 50,
+ nt = 10,
  dt = 0.01
 /
 &physics
