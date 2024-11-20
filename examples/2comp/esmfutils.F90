@@ -225,7 +225,7 @@ contains
         if (staggerloc == ESMF_STAGGERLOC_CENTER) then
             write(iu, '(A, I6)') 'CELL_DATA', numCells
         else
-            write(iu, '(A, I6)') 'CELL_DATA', numPoints
+            write(iu, '(A, I6)') 'POINT_DATA', numPoints
         endif
         write(iu, '(A, A, A)') 'SCALARS ', trim(fieldName), ' double 1'
         write(iu, '(A)') 'LOOKUP_TABLE default'

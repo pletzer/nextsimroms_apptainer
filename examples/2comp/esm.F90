@@ -31,6 +31,10 @@ module ESM
 
   implicit none
 
+  type calendar
+      integer :: year, month, day, hour, minute, second
+  end type
+
   private
 
   public SetServices
@@ -38,6 +42,54 @@ module ESM
   !-----------------------------------------------------------------------------
   contains
   !-----------------------------------------------------------------------------
+
+  function readCalendars(filename) result(cal)
+    character(len=*), intent(in) :: filename
+    type(calendar) :: cal(2)
+    integer :: year, month, day, hour, minute, second
+    integer :: fu
+    namelist /start/ year, month, day, hour, minute, second
+    namelist /end/ year, month, day, hour, minute, second
+
+    year = 2000
+    month = 1
+    day = 1
+    hour = 0
+    minute = 0
+    second = 0
+    
+    open(newunit=fu, file=filename)
+    read(fu, nml=start)
+    cal(1)%year = year
+    cal(1)%month = month
+    cal(1)%day = day
+    cal(1)%hour = hour
+    cal(1)%minute = minute
+    cal(1)%second = second
+    rewind(fu)
+    read(fu, nml=end)
+    cal(2)%year = year
+    cal(2)%month = month
+    cal(2)%day = day
+    cal(2)%hour = hour
+    cal(2)%minute = minute
+    cal(2)%second = second
+    close(fu)
+
+  end function readCalendars
+
+  function getTimeIntervalSeconds(filename) result(dt)
+    character(len=*), intent(in) :: filename
+    integer :: dt, fu
+    namelist /time_interval/ dt
+
+    dt = 0
+    open(newunit=fu, file=filename)
+    read(fu, nml=time_interval)
+    close(fu)
+
+  end function getTimeIntervalSeconds
+
 
   subroutine SetServices(driver, rc)
     type(ESMF_GridComp)  :: driver
@@ -89,6 +141,7 @@ module ESM
     integer                       :: verbosity
     character(len=10)             :: attrStr
     character(len=256)            :: msg
+    type(calendar)                :: cal(2)
 
     rc = ESMF_SUCCESS
 
@@ -135,13 +188,26 @@ module ESM
       compSetServicesRoutine=cplSS, comp=conn, rc=rc)
 
     ! Set the driver clock
-    call ESMF_TimeIntervalSet(timeStep, m=10, rc=rc) ! 10 minute steps
+    call ESMF_TimeIntervalSet(timeStep, s=getTimeIntervalSeconds("esmApp.nml"), rc=rc) ! time step in seconds
 
-    call ESMF_TimeSet(startTime, yy=2010, mm=6, dd=1, h=0, m=0, &
-      calkindflag=ESMF_CALKIND_GREGORIAN, rc=rc)
+    cal = readCalendars("esmApp.nml")
+    call ESMF_TimeSet(startTime, &
+                                 yy=cal(1)%year, &
+                                 mm=cal(1)%month, &
+                                 dd=cal(1)%day,  &
+                                 h=cal(1)%hour, &
+                                 m=cal(1)%minute, &
+                                 s=cal(1)%second, &
+                                 calkindflag=ESMF_CALKIND_GREGORIAN, rc=rc)
 
-    call ESMF_TimeSet(stopTime, yy=2010, mm=6, dd=1, h=1, m=0, &
-      calkindflag=ESMF_CALKIND_GREGORIAN, rc=rc)
+    call ESMF_TimeSet(stopTime, &
+                                 yy=cal(2)%year, &
+                                 mm=cal(2)%month, &
+                                 dd=cal(2)%day,  &
+                                 h=cal(2)%hour, &
+                                 m=cal(2)%minute, &
+                                 s=cal(2)%second, &
+                                 calkindflag=ESMF_CALKIND_GREGORIAN, rc=rc)
 
     internalClock = ESMF_ClockCreate(name="Application Clock", &
       timeStep=timeStep, startTime=startTime, stopTime=stopTime, rc=rc)

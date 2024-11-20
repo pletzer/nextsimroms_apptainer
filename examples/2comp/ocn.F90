@@ -122,10 +122,9 @@ module OCN
     type(ESMF_Grid)         :: grid
 
     real(8), pointer        :: rho_ocn(:, :)
-    integer :: i1, i2
+    integer :: i, j
     integer :: nx, ny, fu
-    real(8) :: xmin, xmax, ymin, ymax, x, y, dx, dy
-    real(8), parameter :: pi = 3.14159265358979311600_8
+    real(8) :: xmin, xmax, ymin, ymax, x, y, dx, dy, elx, ely, x0, y0
     character(len=256) :: msg
 
     namelist /ocn/ nx, ny, xmin, xmax, ymin, ymax
@@ -146,7 +145,7 @@ module OCN
     xmax = 1
     ymin = 0
     ymax = 1
-    open(newunit=fu, file='mainApp.nml', action='read')
+    open(newunit=fu, file='esmApp.nml', action='read')
     read(unit=fu, nml=ocn) 
     close(unit=fu)
     write(msg, *) 'ocn grid ', nx, '*', ny, &
@@ -154,7 +153,7 @@ module OCN
     call ESMF_LogWrite(msg, ESMF_LOGMSG_INFO, rc=rc)
 
     ! create a Grid object for Fields
-    grid = ESMF_GridCreate1PeriDimUfrm(maxIndex=(/nx, ny/), &
+    grid = ESMF_GridCreateNoPeriDimUfrm(maxIndex=(/nx, ny/), &
       minCornerCoord=(/xmin, ymin/), &
       maxCornerCoord=(/xmax, ymax/), &
       coordSys=ESMF_COORDSYS_CART, &
@@ -163,7 +162,7 @@ module OCN
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__)) &
-      return  ! bail out
+      return  ! bail out    
 
     call ESMF_GridWriteVTK(grid, &
       & staggerloc=ESMF_STAGGERLOC_CORNER, &
@@ -186,14 +185,19 @@ module OCN
     call ESMF_FieldGet(field, farrayPtr=rho_ocn, rc=rc)
     if (rc /= ESMF_SUCCESS) print *,'failed to access rho ocn array'
 
-    ! set the pointer to some values
-    dx = (xmax - xmin) / real(nx, 8)
-    dy = (ymax - ymin) / real(ny, 8)
-    do i2 = lbound(rho_ocn, 2), ubound(rho_ocn, 2)
-      y = ymin + i2*dy
-      do i1 = lbound(rho_ocn, 1), ubound(rho_ocn, 1)
-        x = xmin + i1*dx
-        rho_ocn(i1, i2) = exp(-(( x - pi) ** 2 + (y - pi) ** 2) / (2.0 * (pi/4)**2))
+    ! initial conditions
+    elx = xmax - xmin
+    ely = ymax - ymin
+    dx = elx / real(nx, 8)
+    dy = ely / real(ny, 8)
+    x0 = xmin + 0.5*elx
+    y0 = ymin + 0.5*ely
+    do j = lbound(rho_ocn, 2), ubound(rho_ocn, 2)
+      y = ymin + j*dy
+      do i = lbound(rho_ocn, 1), ubound(rho_ocn, 1)
+        x = xmin + i*dx
+        ! Gaussian bump
+        rho_ocn(i, j) = exp( -0.5 * ( (x - x0)**2 / (0.3*elx)**2  + (y - y0)**2 / (0.3*ely)**2 ) )
       enddo
     enddo
 
@@ -236,10 +240,6 @@ module OCN
       file=__FILE__)) &
       return  ! bail out
 
-      call NUOPC_ModelGet(model,  exportState=state, rc=rc)
-      call ESMF_StateGet(state, itemName='rho_ocn', field=field, rc=rc)
-      call esmfutils_write2DStructFieldVTK(field, 'ocn_rho.vtk')
-
   end subroutine
 
   !-----------------------------------------------------------------------------
@@ -249,14 +249,17 @@ module OCN
     integer, intent(out) :: rc
 
     ! local variables
+    type(ESMF_State)            :: state
+    type(ESMF_Field)            :: field
     type(ESMF_Clock)            :: clock
     type(ESMF_State)            :: importState, exportState
     type(ESMF_Time)             :: currTime
     type(ESMF_TimeInterval)     :: timeStep
     character(len=160)          :: msgString
-    real(ESMF_KIND_r8), pointer :: ptr(:,:)
+    real(ESMF_KIND_r8), pointer :: rho_ocn(:,:), rho_ice(:, :)
     real(ESMF_KIND_R8)          :: total_rho
     logical                     :: import=.TRUE., export=.FALSE.
+    integer                     :: i, j
 
     rc = ESMF_SUCCESS
 
@@ -307,8 +310,26 @@ module OCN
       file=__FILE__)) &
       return  ! bail out
 
+    call NUOPC_ModelGet(model,  exportState=state, rc=rc)
+    call ESMF_StateGet(state, itemName='rho_ocn', field=field, rc=rc)
+    call ESMF_FieldGet(field, farrayPtr=rho_ocn, rc=rc)
+
+    call NUOPC_ModelGet(model,  importState=state, rc=rc)
+    call ESMF_StateGet(state, itemName='rho_ice', field=field, rc=rc)
+    call ESMF_FieldGet(field, farrayPtr=rho_ice, rc=rc)
+
+    ! set the ocn density to be that of the ice
+    do j = lbound(rho_ice, 2), ubound(rho_ice, 2)
+      do i = lbound(rho_ice, 1), ubound(rho_ice, 1)
+        rho_ocn(i, j) = rho_ice(i, j)
+      enddo
+    enddo
+
+
+  
     call esmfutils_getAreaIntegratedField(model, export, 'rho_ocn', total_rho, rc=rc)
     print *,'ocn integrated rho: ', total_rho
+
 
   end subroutine
 

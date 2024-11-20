@@ -25,8 +25,8 @@ module ICE
   implicit none
 
   type ice_type
-    real(8) :: u, v, dt, dx, dy
-    integer :: nx, ny, time_iteration
+    real(8) :: u, v, dx, dy
+    integer :: nx, ny, dt, time_iteration
   end type
 
   private
@@ -61,6 +61,12 @@ module ICE
       return  ! bail out
     call NUOPC_CompSpecialize(model, specLabel=label_RealizeProvided, &
       specRoutine=Realize, rc=rc)
+    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, &
+      file=__FILE__)) &
+      return  ! bail out
+      call NUOPC_CompSpecialize(model, specLabel=label_SetClock, &
+      specRoutine=SetClock, rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__)) &
@@ -131,12 +137,11 @@ module ICE
     integer :: fu
     character(len=256) :: msg
 
-    real(8) :: xmin, xmax, ymin, ymax, dt, u, v
-    integer :: nx, ny, nt
+    real(8) :: xmin, xmax, ymin, ymax, u, v
+    integer :: nx, ny, dt
 
-    namelist /ice/ nx, ny, xmin, xmax, ymin, ymax
-    namelist /numerics/ dt, nt
-    namelist /physics/ u, v
+    namelist /ice/ nx, ny, xmin, xmax, ymin, ymax, u, v
+    namelist /time_interval/ dt
 
     rc = ESMF_SUCCESS
 
@@ -148,41 +153,35 @@ module ICE
       file=__FILE__)) &
       return  ! bail out
 
+    ! default values, when not specified in the namelist file
     nx = 10
     ny = 20
     xmin = 0
     xmax = 1
     ymin = 0
     ymax = 1
-    nt = 1
-    dt = 0
     u = 0
     v = 0
-    open(newunit=fu, file='mainApp.nml', action='read')
+    dt = 0
+    open(newunit=fu, file='esmApp.nml', action='read')
     read(unit=fu, nml=ice)
-    close(unit=fu)
-    open(newunit=fu, file='mainApp.nml', action='read')
-    read(unit=fu, nml=numerics)
-    close(unit=fu)
-    open(newunit=fu, file='mainApp.nml', action='read')
-    read(unit=fu, nml=physics)
+    rewind(unit=fu)
+    read(unit=fu, nml=time_interval)
     close(unit=fu)
     write(msg, *) 'ice grid ', nx, '*', ny, &
      & ' xmin, ymin = ', xmin, ymin, ' xmax, ymax = ', xmax, ymax
     call ESMF_LogWrite(msg, ESMF_LOGMSG_INFO, rc=rc)
 
       ! create a Grid object for Fields
-    grid = ESMF_GridCreate1PeriDimUfrm(maxIndex=(/nx, ny/), &
+    grid = ESMF_GridCreateNoPeriDimUfrm(maxIndex=(/nx, ny/), &
       minCornerCoord=(/xmin, ymin/), &
       maxCornerCoord=(/xmax, ymax/), &
       coordSys=ESMF_COORDSYS_CART, &
       staggerLocList=(/ESMF_STAGGERLOC_CENTER, ESMF_STAGGERLOC_CORNER/), &
       rc=rc)
-    
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__)) &
-      return  ! bail out
 
     call ESMF_GridWriteVTK(grid, &
                         & staggerloc=ESMF_STAGGERLOC_CORNER, &
@@ -213,6 +212,44 @@ module ICE
     self%nx = nx
     self%ny = ny
     self%time_iteration = 0
+
+  end subroutine
+
+    !-----------------------------------------------------------------------------
+
+  subroutine SetClock(model, rc)
+    type(ESMF_GridComp)  :: model
+    integer, intent(out) :: rc
+
+    ! local variables
+    type(ESMF_Clock)              :: clock
+    type(ESMF_TimeInterval)       :: stabilityTimeStep
+    type(ESMF_State)              :: state
+    type(ESMF_Field)              :: field
+
+    rc = ESMF_SUCCESS
+
+    ! query for clock
+    call NUOPC_ModelGet(model, modelClock=clock, rc=rc)
+    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, &
+      file=__FILE__)) &
+      return  ! bail out
+
+    ! initialize internal clock
+    ! here: parent Clock and stability timeStep determine actual model timeStep
+    !TODO: stabilityTimeStep should be read in from configuation
+    !TODO: or computed from internal Grid information
+    call ESMF_TimeIntervalSet(stabilityTimeStep, m=5, rc=rc) ! 5 minute steps
+    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, &
+      file=__FILE__)) &
+      return  ! bail out
+    call NUOPC_CompSetClock(model, clock, stabilityTimeStep, rc=rc)
+    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, &
+      file=__FILE__)) &
+      return  ! bail out
 
   end subroutine
 
@@ -257,9 +294,10 @@ module ICE
     usign = sign(1._8, self%u) ! 1 with the isgn of self%u
     vsign = sign(1._8, self%v)
 
-    cx = self%u * self%dt / self%dx
-    cy = self%v * self%dt / self%dy
+    cx = self%u * real(self%dt, 8) / self%dx
+    cy = self%v * real(self%dt, 8) / self%dy
 
+    ! advance the solution by one time step...
     do j0 = lbound(rho_ice, 2), ubound(rho_ice, 2)
 
       jm = j0 - int(vsign)

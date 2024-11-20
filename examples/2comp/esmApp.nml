@@ -1,0 +1,41 @@
+&start
+  year = 2010,
+  month = 1,
+  day = 1,
+  hour = 0,
+  minute = 0, 
+  second = 0
+/
+
+&end
+  year = 2010,
+  month = 1,
+  day = 1,
+  hour = 0,
+  minute = 0,
+  second = 10
+/
+
+&time_interval
+  dt = 1
+/
+
+&ocn
+ nx = 10,
+ ny = 11,
+ xmin = 0,
+ ymin = 0,
+ xmax = 1,
+ ymax = 1
+/
+
+&ice
+ u = 0.1,
+ v = 0,
+ nx = 11,
+ ny = 12,
+ xmin = 0,
+ ymin = 0,
+ xmax = 1,
+ ymax = 1
+/
