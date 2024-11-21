@@ -11,6 +11,9 @@ field_dictionary:
       - standard_name: sea_surface_density
         canonical_units: kg m-3
         description: Density of sea water near the surface (including the part under sea-ice, if any)
+      - standard_name: sea_surface_density_inc
+        canonical_units: kg m-3
+        description: Correction of density of sea water near the surface (including the part under sea-ice, if any)
       - standard_name: sea_surface_temperature
         canonical_units: K
         description: sea surface temperature

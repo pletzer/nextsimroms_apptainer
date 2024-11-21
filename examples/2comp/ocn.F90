@@ -91,17 +91,17 @@ module OCN
       file=__FILE__)) &
       return  ! bail out
 
-    ! importable field: 
+    ! importable field: density correction
     call NUOPC_Advertise(importState, &
-      StandardName="sea_surface_density", name="rho_ice", rc=rc)
+      StandardName="sea_surface_density_inc", name="drho", rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__)) &
       return  ! bail out
 
-    ! exportable field: sea_surface_temperature
+    ! exportable field: density
     call NUOPC_Advertise(exportState, &
-      StandardName="sea_surface_density", name="rho_ocn", rc=rc)
+      StandardName="sea_surface_density", name="rho", rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
       line=__LINE__, &
       file=__FILE__)) &
@@ -121,7 +121,7 @@ module OCN
     type(ESMF_Field)        :: field_ocn, field_ice
     type(ESMF_Grid)         :: grid
 
-    real(8), pointer        :: rho_ocn(:, :)
+    real(8), pointer        :: rho(:, :)
     integer :: i, j
     integer :: nx, ny, fu
     real(8) :: xmin, xmax, ymin, ymax, x, y, dx, dy, elx, ely, x0, y0
@@ -169,20 +169,20 @@ module OCN
       & filename="ocn_grid", rc=rc)
 
     ! importable field
-    field_ice = ESMF_FieldCreate(name="rho_ice", grid=grid, &
+    field_ice = ESMF_FieldCreate(name="drho", grid=grid, &
       typekind=ESMF_TYPEKIND_R8, &
       staggerloc=ESMF_STAGGERLOC_CENTER, &
       rc=rc)
     call NUOPC_Realize(importState, field=field_ice, rc=rc)
 
     ! exportable field
-    field_ocn = ESMF_FieldCreate(name="rho_ocn", grid=grid, &
+    field_ocn = ESMF_FieldCreate(name="rho", grid=grid, &
       typekind=ESMF_TYPEKIND_R8,  & 
       staggerloc=ESMF_STAGGERLOC_CENTER, &
       rc=rc)
     call NUOPC_Realize(exportState, field=field_ocn, rc=rc)
 
-    call ESMF_FieldGet(field_ocn, farrayPtr=rho_ocn, rc=rc)
+    call ESMF_FieldGet(field_ocn, farrayPtr=rho, rc=rc)
     if (rc /= ESMF_SUCCESS) print *,'failed to access rho ocn array'
     
     ! initial conditions
@@ -192,12 +192,12 @@ module OCN
     dy = ely / real(ny, 8)
     x0 = xmin + 0.5*elx
     y0 = ymin + 0.5*ely
-    do j = lbound(rho_ocn, 2), ubound(rho_ocn, 2)
+    do j = lbound(rho, 2), ubound(rho, 2)
       y = ymin + j*dy
-      do i = lbound(rho_ocn, 1), ubound(rho_ocn, 1)
+      do i = lbound(rho, 1), ubound(rho, 1)
         x = xmin + i*dx
         ! Gaussian bump
-        rho_ocn(i, j) = exp( -0.5 * ( (x - x0)**2 / (0.3*elx)**2  + (y - y0)**2 / (0.3*ely)**2 ) )
+        rho(i, j) = exp( -0.5 * ( (x - x0)**2 / (0.3*elx)**2  + (y - y0)**2 / (0.3*ely)**2 ) )
       enddo
     enddo
 
@@ -255,7 +255,7 @@ module OCN
     type(ESMF_Time)             :: currTime
     type(ESMF_TimeInterval)     :: timeStep
     character(len=160)          :: msgString
-    real(ESMF_KIND_r8), pointer :: rho_ocn(:,:), rho_ice(:, :)
+    real(ESMF_KIND_r8), pointer :: rho(:,:), drho(:, :)
     real(ESMF_KIND_R8)          :: total_rho
     logical                     :: import=.TRUE., export=.FALSE.
     integer                     :: i, j
@@ -310,21 +310,21 @@ module OCN
       return  ! bail out
 
     call NUOPC_ModelGet(model,  exportState=state, rc=rc)
-    call ESMF_StateGet(state, itemName='rho_ocn', field=field, rc=rc)
-    call ESMF_FieldGet(field, farrayPtr=rho_ocn, rc=rc)
+    call ESMF_StateGet(state, itemName='rho', field=field_ocn, rc=rc)
+    call ESMF_FieldGet(field_ocn, farrayPtr=rho, rc=rc)
 
     call NUOPC_ModelGet(model,  importState=state, rc=rc)
-    call ESMF_StateGet(state, itemName='rho_ice', field=field, rc=rc)
-    call ESMF_FieldGet(field, farrayPtr=rho_ice, rc=rc)
+    call ESMF_StateGet(state, itemName='drho', field=field_ice, rc=rc)
+    call ESMF_FieldGet(field_ice, farrayPtr=drho, rc=rc)
 
-    ! set the ocn density to be that coming from the ice
-    do j = lbound(rho_ice, 2), ubound(rho_ice, 2)
-      do i = lbound(rho_ice, 1), ubound(rho_ice, 1)
-        rho_ocn(i, j) = rho_ice(i, j)
+    ! add the correction coming from the ice
+    do j = lbound(rho, 2), ubound(rho, 2)
+      do i = lbound(rho, 1), ubound(rho, 1)
+        rho(i, j) = rho(i, j) + drho(i, j)
       enddo
     enddo
   
-    call esmfutils_getAreaIntegratedField(model, export, 'rho_ocn', total_rho, rc=rc)
+    call esmfutils_getAreaIntegratedField(model, export, 'rho', total_rho, rc=rc)
     print *,'ocn integrated rho after completing an ocean time step: ', total_rho
 
 
