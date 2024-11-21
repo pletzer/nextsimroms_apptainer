@@ -131,11 +131,12 @@ module ICE
 
     ! local variables
     type(ESMF_State)        :: importState, exportState
-    type(ESMF_Field)        :: field
+    type(ESMF_Field)        :: fieldOcn, field_ice
     type(ESMF_Grid)         :: grid
 
     integer :: fu
     character(len=256) :: msg
+    real(8), pointer   :: rho_ice(:, :)
 
     real(8) :: xmin, xmax, ymin, ymax, u, v
     integer :: nx, ny, dt
@@ -188,20 +189,29 @@ module ICE
                         & filename="ice_grid", rc=rc)
 
     ! importable field: sea_surface_density from ocean
-    field = ESMF_FieldCreate(name="rho_ocn", &
+    field_ocn = ESMF_FieldCreate(name="rho_ocn", &
       grid=grid, &
       typekind=ESMF_TYPEKIND_R8, &
       staggerloc=ESMF_STAGGERLOC_CENTER, &
       rc=rc)
-    call NUOPC_Realize(importState, field=field, rc=rc)
+    call NUOPC_Realize(importState, field=field_ocn, rc=rc)
 
     ! exportable field: sea_surface_density from ice
-    field = ESMF_FieldCreate(name="rho_ice", &
+    field_ice = ESMF_FieldCreate(name="rho_ice", &
       grid=grid, &
       typekind=ESMF_TYPEKIND_R8, &
       staggerloc=ESMF_STAGGERLOC_CENTER, &
       rc=rc)
-    call NUOPC_Realize(exportState, field=field, rc=rc)
+    call NUOPC_Realize(exportState, field=field_ice, rc=rc)
+
+    call ESMF_FieldGet(field_ice, farrayPtr=rho_ice, rc=rc)
+
+    do j = lbound(rho_ice, 2), ubound(rho_ice, 2)
+      do i = lbound(rho_ice, 1), ubound(rho_ice, 1)
+        ! zero initial condition
+        rho_ice(i, j) = 0
+      enddo
+    enddo
 
     ! store
     self%u = u
@@ -265,7 +275,7 @@ module ICE
     character(len=160)          :: msgString, filename
     integer                     :: numImportStates, i, ndims, j, i1, i2, localDeCount
     character(len=128), allocatable :: importStateNames(:)
-    type(ESMF_Field)            :: field
+    type(ESMF_Field)            :: field_ocn, field_ice
     integer, allocatable        :: localMinIndex(:), localMaxIndex(:)
     type(ESMF_Array)            :: array
     type(ESMF_Grid)             :: grid
@@ -284,12 +294,12 @@ module ICE
     print *,'ice integrated rho from ocean: ', total_rho
     
     call NUOPC_ModelGet(model,  importState=state, rc=rc)
-    call ESMF_StateGet(state, itemName='rho_ocn', field=field, rc=rc)
-    call ESMF_FieldGet(field, farrayPtr=rho_ocn, rc=rc)
+    call ESMF_StateGet(state, itemName='rho_ocn', field=field_ocn, rc=rc)
+    call ESMF_FieldGet(field_ocn, farrayPtr=rho_ocn, rc=rc)
 
     call NUOPC_ModelGet(model,  exportState=state, rc=rc)
-    call ESMF_StateGet(state, itemName='rho_ice', field=field, rc=rc)
-    call ESMF_FieldGet(field, farrayPtr=rho_ice, rc=rc)
+    call ESMF_StateGet(state, itemName='rho_ice', field=field_ice, rc=rc)
+    call ESMF_FieldGet(field_ice, farrayPtr=rho_ice, rc=rc)
 
     usign = sign(1._8, self%u) ! 1 with the isgn of self%u
     vsign = sign(1._8, self%v)
@@ -319,7 +329,7 @@ module ICE
     enddo
 
     filename = 'ice_' // esmfutils_int_to_string_with_zeros(self%time_iteration, 4) // '.vtk'
-    call esmfutils_write2DStructFieldVTK(field, filename)
+    call esmfutils_write2DStructFieldVTK(field_ice, filename)
 
     ! HERE THE MODEL ADVANCES: currTime -> currTime + timeStep
 
@@ -335,6 +345,7 @@ module ICE
       preString="---------------------> to: ", unit=msgString, rc=rc)
     call ESMF_LogWrite(msgString, ESMF_LOGMSG_INFO, rc=rc)
 
+    ! update the interation counter
     self%time_iteration = self%time_iteration + 1
 
   end subroutine

@@ -13,10 +13,11 @@
   day = 1,
   hour = 0,
   minute = 0,
-  second = 10
+  second = 3
 /
 
 &time_interval
+  ! in seconds
   dt = 1
 /
 

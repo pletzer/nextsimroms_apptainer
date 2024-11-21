@@ -118,7 +118,7 @@ module OCN
     ! local variables
     type(ESMF_State)        :: importState, exportState
     type(ESMF_TimeInterval) :: stabilityTimeStep
-    type(ESMF_Field)        :: field
+    type(ESMF_Field)        :: field_ocn, field_ice
     type(ESMF_Grid)         :: grid
 
     real(8), pointer        :: rho_ocn(:, :)
@@ -169,22 +169,22 @@ module OCN
       & filename="ocn_grid", rc=rc)
 
     ! importable field
-    field = ESMF_FieldCreate(name="rho_ice", grid=grid, &
+    field_ice = ESMF_FieldCreate(name="rho_ice", grid=grid, &
       typekind=ESMF_TYPEKIND_R8, &
       staggerloc=ESMF_STAGGERLOC_CENTER, &
       rc=rc)
-    call NUOPC_Realize(importState, field=field, rc=rc)
+    call NUOPC_Realize(importState, field=field_ice, rc=rc)
 
     ! exportable field
-    field = ESMF_FieldCreate(name="rho_ocn", grid=grid, &
+    field_ocn = ESMF_FieldCreate(name="rho_ocn", grid=grid, &
       typekind=ESMF_TYPEKIND_R8,  & 
       staggerloc=ESMF_STAGGERLOC_CENTER, &
       rc=rc)
-    call NUOPC_Realize(exportState, field=field, rc=rc)
+    call NUOPC_Realize(exportState, field=field_ocn, rc=rc)
 
-    call ESMF_FieldGet(field, farrayPtr=rho_ocn, rc=rc)
+    call ESMF_FieldGet(field_ocn, farrayPtr=rho_ocn, rc=rc)
     if (rc /= ESMF_SUCCESS) print *,'failed to access rho ocn array'
-
+    
     ! initial conditions
     elx = xmax - xmin
     ely = ymax - ymin
@@ -200,7 +200,6 @@ module OCN
         rho_ocn(i, j) = exp( -0.5 * ( (x - x0)**2 / (0.3*elx)**2  + (y - y0)**2 / (0.3*ely)**2 ) )
       enddo
     enddo
-
 
   end subroutine
 
@@ -250,7 +249,7 @@ module OCN
 
     ! local variables
     type(ESMF_State)            :: state
-    type(ESMF_Field)            :: field
+    type(ESMF_Field)            :: field_ice, field_ocn
     type(ESMF_Clock)            :: clock
     type(ESMF_State)            :: importState, exportState
     type(ESMF_Time)             :: currTime
@@ -318,17 +317,15 @@ module OCN
     call ESMF_StateGet(state, itemName='rho_ice', field=field, rc=rc)
     call ESMF_FieldGet(field, farrayPtr=rho_ice, rc=rc)
 
-    ! set the ocn density to be that of the ice
+    ! set the ocn density to be that coming from the ice
     do j = lbound(rho_ice, 2), ubound(rho_ice, 2)
       do i = lbound(rho_ice, 1), ubound(rho_ice, 1)
         rho_ocn(i, j) = rho_ice(i, j)
       enddo
     enddo
-
-
   
     call esmfutils_getAreaIntegratedField(model, export, 'rho_ocn', total_rho, rc=rc)
-    print *,'ocn integrated rho: ', total_rho
+    print *,'ocn integrated rho after completing an ocean time step: ', total_rho
 
 
   end subroutine
