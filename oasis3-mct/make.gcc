@@ -1,0 +1,98 @@
+#
+# Include file for OASIS3 Makefile for a Linux system using
+# Gnu compilers and OpenMPI
+# To use this,
+# module purge
+# module load mpi/openmpi/405_gcc731
+# module load python/3.7.7
+#
+###############################################################################
+#
+# CHAN	: communication technique used in OASIS3 (MPI1/MPI2)
+CHAN            = MPI1
+#
+# Paths for libraries, object files and binaries
+#
+# COUPLE	: path for oasis3-mct main directory
+COUPLE          := $(OASIS_COUPLE)
+#
+# ARCHDIR       : directory created when compiling
+#ARCHDIR         := $(OASIS_BUILD_PATH)
+#
+# ENABLE_YAC    : activate YAC based remapping libraries
+ENABLE_YAC      = YES
+#
+# MPI command (for pyoasis scripts)
+# MPI from /softs/local/openmpi405_gcc731/bin/mpirun by module load mpi/openmpi/405_gcc731
+MPIRUN      = mpirun --oversubscribe
+#
+# NETCDF library
+NETCDF_INCLUDE = -I/usr/include
+NETCDF_LIB     = /usr/lib/x86_64-linux-gnu
+NETCDF_MOD     = -I$(NETCDF_INCLUDE)
+NETCDF_LIBRARY = -L$(NETCDF_LIB) -lnetcdff -lnetcdf
+#
+# Make command
+MAKE        = gmake
+# Compilers
+F90         = mpifort # underlying gfortran from module load mpi/openmpi/405_gcc731
+F           = $(F90)
+f90         = $(F90)
+f           = $(F90)
+CC          = mpicc
+# YAC compiler and options
+YCC = $(CC)
+YFC = $(F90)
+ifeq ($(OASIS_DEBUG), )
+# optimisation safe
+YCFLAGS  = -O2
+YFCFLAGS = -O2
+else
+# optimisation debug
+YCFLAGS  = -O0 -g
+YFCFLAGS = -O0 -g
+endif
+#
+# YAC libraries options for models and toys link
+# Leave empty if YAC not enabled
+ifeq ($(ENABLE_YAC),YES)
+YAC_LIBRARY = -L$(ARCHDIR)/lib -Wl,-rpath,$(ARCHDIR)/lib \
+              -lyac_utils -lyac_core -lyaxt_c -llapack -lblas
+endif
+# Static archiver
+AR          = ar
+ARFLAGS     = -ruv
+# Linker (needed for shared libraries)
+LD          = $(F90)
+# Shared libraries options
+DYNOPT      = -fPIC
+LDDYNOPT    = -shared
+#
+# CPP keys and compiler options
+#
+CPPDEF    = -Duse_comm_$(CHAN) -D__VERBOSE -DTREAT_OVERLAY
+#
+FCBASEFLAGS  := -ffree-line-length-512
+CCBASEFLAGS  :=
+ifeq ($(OASIS_DEBUG), )
+	FCBASEFLAGS  += -O2
+	CCBASEFLAGS  += -O2
+else
+	FCBASEFLAGS  += -g -fbounds-check
+	CCBASEFLAGS  +=
+endif
+#
+# INC_DIR : includes all *mod for each library
+INC_DIR = -I$(ARCHDIR)/include
+# FLIBS : for toys when linking in local Makefile
+FLIBS = $(YAC_LIBRARY) $(NETCDF_LIBRARY)
+#
+F90FLAGS = $(FCBASEFLAGS) $(INC_DIR) $(CPPDEF) $(NETCDF_INCLUDE) $(NETCDF_MOD)
+f90FLAGS = $(FCBASEFLAGS) $(INC_DIR) $(CPPDEF) $(NETCDF_INCLUDE) $(NETCDF_MOD)
+FFLAGS   = $(FCBASEFLAGS) $(INC_DIR) $(CPPDEF) $(NETCDF_INCLUDE) $(NETCDF_MOD)
+fFLAGS   = $(FCBASEFLAGS) $(INC_DIR) $(CPPDEF) $(NETCDF_INCLUDE) $(NETCDF_MOD)
+CCFLAGS  = $(CCBASEFLAGS) $(INC_DIR) $(CPPDEF) $(NETCDF_INCLUDE) $(NETCDF_MOD)
+LDFLAGS  = $(FCBASEFLAGS)
+F2C_LDFLAGS = -lmpi_mpifh -lgfortran -lm
+#
+#############################################################################
