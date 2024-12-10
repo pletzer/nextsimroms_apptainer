@@ -6,15 +6,21 @@ From: ubuntu:latest
     
 %environment
     export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
-    export ESMFMKFILE=/usr/local/build/esmf-8.7.0/lib/libg/Linux.gfortran.64.openmpi.default/esmf.mk
+
 
 %post
 
     apt-get update && apt-get upgrade -y
-    apt-get install -y autoconf cmake vim python3 gcc gfortran
+    apt-get install -y autoconf automake cmake vim python3 gcc gfortran wget zlib1g zlib1g-dev libtool curl libcurl4-openssl-dev
 
     export BUILD_DIR=/usr/local/build
     export INSTALL_DIR=/usr/local/
+
+    # versions
+    OPENMPI_VERSION="4.1.5"
+    HDF5_VERSION="1.12.2"
+    NETCDF_C_VERSION="4.9.2"
+    NETCDF_FORTRAN_VERSION="4.6.1"
 
     export MPIF90=mpif90
     export MPICC=mpicc
@@ -23,22 +29,70 @@ From: ubuntu:latest
     mkdir $BUILD_DIR
 
     # openmpi
+    cd $BUILD_DIR
+    wget https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-${OPENMPI_VERSION}.tar.gz
+    tar xf openmpi-${OPENMPI_VERSION}.tar.gz
+    cd openmpi-${OPENMPI_VERSION}
+    mkdir build
+    cd build
+    ../configure --prefix=$INSTALL_DIR
+    make -j 4
+    make install
+    cd $BUILD_DIR
+    rm -rf openmpi-${OPENMPI_VERSION}*
 
     # hdf5
+    cd $BUILD_DIR
+    HDF5_VERSION_SHORT=$(echo $HDF5_VERSION | awk -F '.' '{print $1"."$2}')
+    wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-${HDF5_VERSION_SHORT}/hdf5-${HDF5_VERSION}/src/hdf5-${HDF5_VERSION}.tar.gz
+    tar xf hdf5-${HDF5_VERSION}.tar.gz
+    cd hdf5-${HDF5_VERSION}
+    mkdir build
+    cd build
+    CC=$MPICC FC=$MPIF90 ../configure --prefix=$HDF5 --enable-parallel --enable-fortran
+    make -j 4
+    make install
+    cd ../..
+    rm -rf hdf5-${HDF5_VERSION}*
+    ls -l ${INSTALL_DIR}/lib
+    ls -l ${INSTALL_DIR}/include
+    ls -l ${INSTALL_DIR}/bin
 
-    # netcdf
+    # netcdf-c
+    cd $BUILD_DIR
+    wget https://downloads.unidata.ucar.edu/netcdf-c/${NETCDF_C_VERSION}/netcdf-c-${NETCDF_C_VERSION}.tar.gz
+    tar xf netcdf-c-${NETCDF_C_VERSION}.tar.gz
+    cd netcdf-c-${NETCDF_C_VERSION}
+    mkdir build
+    cd build
+    CPPFLAGS="-I${INSTALL_DIR}/include" \
+    LDFLAGS="-L${INSTALL_DIR}/lib -lhdf5 -lhdf5_hl" \
+    CC=$MPICC CXX=$MPICXX FC=$MPIF90 ../configure --prefix=$NETCDF
+    make -j 4
+    make install
+    cd ../..
+    rm -rf netcdf-c-${NETCDF_C_VERSION}*
+    ls -l ${INSTALL_DIR}/lib
+    ls -l ${INSTALL_DIR}/include
+    ls -l ${INSTALL_DIR}/bin
 
-    # # netcdf-fortran
-    # version="4.5.3"
-    # cd $BUILD_DIR
-    # wget --no-check-certificate https://downloads.unidata.ucar.edu/netcdf-fortran/${version}/netcdf-fortran-${version}.tar.gz
-    # tar xf netcdf-fortran-${version}.tar.gz
-    # cd netcdf-fortran-${version}
-    # mkdir build
-    # cd build
-    # FC=$MPIF90 CC=$MPICC CXX=$MPICXX  CPPFLAGS="-I/opt/conda/include" LDFLAGS="-L/opt/conda/lib -lnetcdf" ../configure --enable-logging --prefix=$INSTALL_DIR
-    # make
-    # make install
+    # netcdf-fortran
+    cd $BUILD_DIR
+    wget https://downloads.unidata.ucar.edu/netcdf-fortran/${NETCDF_FORTRAN_VERSION}/netcdf-fortran-${NETCDF_FORTRAN_VERSION}.tar.gz
+    tar xf netcdf-fortran-${NETCDF_FORTRAN_VERSION}.tar.gz
+    cd netcdf-fortran-${NETCDF_FORTRAN_VERSION}
+    mkdir build
+    cd build
+    CPPFLAGS="$(${NETCDF}/bin/nc-config --cflags)" LDFLAGS="$(${NETCDF}/bin/nc-config --libs)" \
+    ../configure --prefix=$NETCDF
+    make
+    make install
+    cd ../..
+    rm -rf netcdf-fortran-${NETCDF_FORTRAN_VERSION}
+    ls -l ${INSTALL_DIR}/lib
+    ls -l ${INSTALL_DIR}/include
+    ls -l ${INSTALL_DIR}/bin
+
 
     # # oasis3-mct
     # cd $BUILD_DIR
