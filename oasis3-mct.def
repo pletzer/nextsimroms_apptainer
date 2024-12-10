@@ -1,5 +1,5 @@
 BootStrap: docker
-From: ubuntu:latest   
+From: ubuntu:22.04  
 
 %help
     Build a portable version of OASIS3-MCT
@@ -11,7 +11,57 @@ From: ubuntu:latest
 %post
 
     apt-get update && apt-get upgrade -y
-    apt-get install -y autoconf automake cmake vim python3 gcc gfortran wget zlib1g zlib1g-dev libtool curl libcurl4-openssl-dev
+    
+
+    # from https://github.com/nesi/openmpi-apptainer/blob/main/openmpi-4.1.5.def
+    apt-get update && apt-get install -y --no-install-recommends \
+        build-essential \
+        ca-certificates \
+        wget \
+        git \
+        tar \
+        gzip \
+        perl \
+        python3 \
+        python-is-python3 \
+        automake \
+        autoconf \
+        libtool \
+        flex \
+        hwloc \
+        pkg-config \
+        zlib1g-dev \
+        libnuma-dev \
+        libhwloc-dev \
+        libslurm-dev \
+        slurm-wlm \
+        libpmi2-0 \
+        libpmi0 \
+        libpmi2-0-dev \
+        libpmi0-dev \
+        libslurm-dev \
+        rdma-core \
+        libibverbs1 \
+        libibverbs-dev \
+        ibverbs-providers \
+        librdmacm1 \
+        librdmacm-dev \
+        perftest \
+        libevent-dev \
+        libevent-core-2.1-7 \
+        libevent-extra-2.1-7 \
+        libevent-openssl-2.1-7 \
+        libevent-pthreads-2.1-7 \
+        libev-dev \
+        libssl-dev \
+        openssl \
+        gfortran \
+        cmake \
+        vim \
+        libtool \
+        curl \
+        libcurl4-openssl-dev \
+        && rm -rf /var/lib/apt/lists/*
 
     export BUILD_DIR=/usr/local/build
     export INSTALL_DIR=/usr/local/
@@ -22,76 +72,141 @@ From: ubuntu:latest
     NETCDF_C_VERSION="4.9.2"
     NETCDF_FORTRAN_VERSION="4.6.1"
 
+    # Create IB related symlinks if they don't exist
+    mkdir -p /etc/libibverbs.d
+    ln -sf /usr/lib/x86_64-linux-gnu/libibverbs.so.1 /usr/lib/libibverbs.so
+    ln -sf /usr/lib/x86_64-linux-gnu/librdmacm.so.1 /usr/lib/librdmacm.so
+
+    # Install libevent from source to ensure all components are available
+    cd /tmp
+    wget https://github.com/libevent/libevent/releases/download/release-2.1.12-stable/libevent-2.1.12-stable.tar.gz
+    tar xzf libevent-2.1.12-stable.tar.gz
+    cd libevent-2.1.12-stable
+    ./configure --prefix=/usr
+    make -j$(nproc)
+    make install
+    ldconfig
+
+    # Create symlinks for PMI libraries
+    ln -sf /usr/lib/x86_64-linux-gnu/libpmi2.so.0 /usr/lib/libpmi2.so
+    ln -sf /usr/lib/x86_64-linux-gnu/libpmi.so.0 /usr/lib/libpmi.so
+
+    # Install UCX with proper IB support
+    export UCX_VERSION=1.14.1
+    cd /tmp
+    wget https://github.com/openucx/ucx/releases/download/v${UCX_VERSION}/ucx-${UCX_VERSION}.tar.gz
+    tar -xvf ucx-${UCX_VERSION}.tar.gz
+    cd ucx-${UCX_VERSION}
+    ./configure --prefix=/usr \
+        --enable-optimizations \
+        --enable-mt \
+        --enable-numa \
+        --with-verbs \
+        --with-rdmacm \
+        --enable-gdr \
+        --enable-mlx5-dv
+    make -j$(nproc)
+    make install
+    ldconfig
+
+    # Install PMIx
+    cd /tmp
+    wget https://github.com/openpmix/openpmix/releases/download/v4.2.7/pmix-4.2.7.tar.gz
+    tar -xvf pmix-4.2.7.tar.gz
+    cd pmix-4.2.7
+    ./configure --prefix=/usr \
+        --disable-python-bindings \
+        --with-libevent=/usr \
+        --with-libevent-libdir=/usr/lib
+    make -j$(nproc)
+    make install
+    ldconfig
+
+    # Build and install OpenMPI
+    cd /tmp
+    wget https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPENMPI_VERSION}.tar.gz
+    tar -xvf openmpi-${OPENMPI_VERSION}.tar.gz
+    cd openmpi-${OPENMPI_VERSION}
+
+    # Configure OpenMPI with updated options for IB support
+    ./configure --prefix=$INSTALL_DIR \
+        --with-ucx=/usr \
+        --with-slurm=/usr \
+        --with-pmix=/usr \
+        --with-pmi=/usr \
+        --with-verbs=/usr \
+        --with-verbs-libdir=/usr/lib/x86_64-linux-gnu \
+        --enable-mpirun-prefix-by-default \
+        --enable-orterun-prefix-by-default \
+        --with-pmi-libdir=/usr/lib/x86_64-linux-gnu \
+        --enable-mpi1-compatibility \
+        --with-hwloc=/usr \
+        --enable-builtin-atomics \
+        --with-zlib \
+        --enable-heterogeneous \
+        --enable-mpi-fortran=yes \
+        --enable-static=no
+
+    make -j$(nproc)
+    make install
+
     export MPIF90=mpif90
     export MPICC=mpicc
     export MPICXX=mpic++
 
     mkdir $BUILD_DIR
 
-    # openmpi
-    cd $BUILD_DIR
-    wget https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-${OPENMPI_VERSION}.tar.gz
-    tar xf openmpi-${OPENMPI_VERSION}.tar.gz
-    cd openmpi-${OPENMPI_VERSION}
-    mkdir build
-    cd build
-    ../configure --prefix=$INSTALL_DIR
-    make -j 4
-    make install
-    cd $BUILD_DIR
-    rm -rf openmpi-${OPENMPI_VERSION}*
+    # # hdf5
+    # cd $BUILD_DIR
+    # HDF5_VERSION_SHORT=$(echo $HDF5_VERSION | awk -F '.' '{print $1"."$2}')
+    # wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-${HDF5_VERSION_SHORT}/hdf5-${HDF5_VERSION}/src/hdf5-${HDF5_VERSION}.tar.gz
+    # tar xf hdf5-${HDF5_VERSION}.tar.gz
+    # cd hdf5-${HDF5_VERSION}
+    # mkdir build
+    # cd build
+    # CC=$MPICC FC=$MPIF90 ../configure --prefix=$INSTALL_DIR --enable-parallel --enable-fortran
+    # make -j 4
+    # make install
+    # cd ../..
+    # rm -rf hdf5-${HDF5_VERSION}*
+    # ls -l ${INSTALL_DIR}/lib
+    # ls -l ${INSTALL_DIR}/include
+    # ls -l ${INSTALL_DIR}/bin
 
-    # hdf5
-    cd $BUILD_DIR
-    HDF5_VERSION_SHORT=$(echo $HDF5_VERSION | awk -F '.' '{print $1"."$2}')
-    wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-${HDF5_VERSION_SHORT}/hdf5-${HDF5_VERSION}/src/hdf5-${HDF5_VERSION}.tar.gz
-    tar xf hdf5-${HDF5_VERSION}.tar.gz
-    cd hdf5-${HDF5_VERSION}
-    mkdir build
-    cd build
-    CC=$MPICC FC=$MPIF90 ../configure --prefix=$HDF5 --enable-parallel --enable-fortran
-    make -j 4
-    make install
-    cd ../..
-    rm -rf hdf5-${HDF5_VERSION}*
-    ls -l ${INSTALL_DIR}/lib
-    ls -l ${INSTALL_DIR}/include
-    ls -l ${INSTALL_DIR}/bin
+    # # netcdf-c
+    # cd $BUILD_DIR
+    # wget https://downloads.unidata.ucar.edu/netcdf-c/${NETCDF_C_VERSION}/netcdf-c-${NETCDF_C_VERSION}.tar.gz
+    # tar xf netcdf-c-${NETCDF_C_VERSION}.tar.gz
+    # cd netcdf-c-${NETCDF_C_VERSION}
+    # mkdir build
+    # cd build
+    # CPPFLAGS="-I${INSTALL_DIR}/include" \
+    # LDFLAGS="-L${INSTALL_DIR}/lib -lhdf5 -lhdf5_hl" \
+    # CC=$MPICC CXX=$MPICXX FC=$MPIF90 ../configure --prefix=$INSTALL_DIR
+    # make -j 4
+    # make install
+    # cd ../..
+    # rm -rf netcdf-c-${NETCDF_C_VERSION}*
+    # ls -l ${INSTALL_DIR}/lib
+    # ls -l ${INSTALL_DIR}/include
+    # ls -l ${INSTALL_DIR}/bin
 
-    # netcdf-c
-    cd $BUILD_DIR
-    wget https://downloads.unidata.ucar.edu/netcdf-c/${NETCDF_C_VERSION}/netcdf-c-${NETCDF_C_VERSION}.tar.gz
-    tar xf netcdf-c-${NETCDF_C_VERSION}.tar.gz
-    cd netcdf-c-${NETCDF_C_VERSION}
-    mkdir build
-    cd build
-    CPPFLAGS="-I${INSTALL_DIR}/include" \
-    LDFLAGS="-L${INSTALL_DIR}/lib -lhdf5 -lhdf5_hl" \
-    CC=$MPICC CXX=$MPICXX FC=$MPIF90 ../configure --prefix=$NETCDF
-    make -j 4
-    make install
-    cd ../..
-    rm -rf netcdf-c-${NETCDF_C_VERSION}*
-    ls -l ${INSTALL_DIR}/lib
-    ls -l ${INSTALL_DIR}/include
-    ls -l ${INSTALL_DIR}/bin
-
-    # netcdf-fortran
-    cd $BUILD_DIR
-    wget https://downloads.unidata.ucar.edu/netcdf-fortran/${NETCDF_FORTRAN_VERSION}/netcdf-fortran-${NETCDF_FORTRAN_VERSION}.tar.gz
-    tar xf netcdf-fortran-${NETCDF_FORTRAN_VERSION}.tar.gz
-    cd netcdf-fortran-${NETCDF_FORTRAN_VERSION}
-    mkdir build
-    cd build
-    CPPFLAGS="$(${NETCDF}/bin/nc-config --cflags)" LDFLAGS="$(${NETCDF}/bin/nc-config --libs)" \
-    ../configure --prefix=$NETCDF
-    make
-    make install
-    cd ../..
-    rm -rf netcdf-fortran-${NETCDF_FORTRAN_VERSION}
-    ls -l ${INSTALL_DIR}/lib
-    ls -l ${INSTALL_DIR}/include
-    ls -l ${INSTALL_DIR}/bin
+    # # netcdf-fortran
+    # cd $BUILD_DIR
+    # wget https://downloads.unidata.ucar.edu/netcdf-fortran/${NETCDF_FORTRAN_VERSION}/netcdf-fortran-${NETCDF_FORTRAN_VERSION}.tar.gz
+    # tar xf netcdf-fortran-${NETCDF_FORTRAN_VERSION}.tar.gz
+    # cd netcdf-fortran-${NETCDF_FORTRAN_VERSION}
+    # mkdir build
+    # cd build
+    # CPPFLAGS="$(${INSTALL_DIR}/bin/nc-config --cflags)" LDFLAGS="$(${INSTALL_DIR}/bin/nc-config --libs)" \
+    # ../configure --prefix=$INSTALL_DIR
+    # make
+    # make install
+    # cd ../..
+    # rm -rf netcdf-fortran-${NETCDF_FORTRAN_VERSION}*
+    # ls -l ${INSTALL_DIR}/lib
+    # ls -l ${INSTALL_DIR}/include
+    # ls -l ${INSTALL_DIR}/bin
 
 
     # # oasis3-mct
