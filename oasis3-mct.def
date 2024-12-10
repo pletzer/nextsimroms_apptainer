@@ -1,0 +1,57 @@
+BootStrap: docker
+From: ubuntu:latest   
+
+%help
+    Build a portable version of OASIS3-MCT
+    
+%environment
+    export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+    export ESMFMKFILE=/usr/local/build/esmf-8.7.0/lib/libg/Linux.gfortran.64.openmpi.default/esmf.mk
+
+%post
+
+    apt-get update && apt-get upgrade -y
+    apt-get install -y autoconf cmake vim python3 gcc gfortran
+
+    export BUILD_DIR=/usr/local/build
+    export INSTALL_DIR=/usr/local/
+
+    export MPIF90=mpif90
+    export MPICC=mpicc
+    export MPICXX=mpic++
+
+    mkdir $BUILD_DIR
+
+    # openmpi
+
+    # hdf5
+
+    # netcdf
+
+    # # netcdf-fortran
+    # version="4.5.3"
+    # cd $BUILD_DIR
+    # wget --no-check-certificate https://downloads.unidata.ucar.edu/netcdf-fortran/${version}/netcdf-fortran-${version}.tar.gz
+    # tar xf netcdf-fortran-${version}.tar.gz
+    # cd netcdf-fortran-${version}
+    # mkdir build
+    # cd build
+    # FC=$MPIF90 CC=$MPICC CXX=$MPICXX  CPPFLAGS="-I/opt/conda/include" LDFLAGS="-L/opt/conda/lib -lnetcdf" ../configure --enable-logging --prefix=$INSTALL_DIR
+    # make
+    # make install
+
+    # # oasis3-mct
+    # cd $BUILD_DIR
+    # git clone 
+    # git clone https://gitlab.com/cerfacs/oasis3-mct.git
+    # cd oasis3-mct
+    # git fetch --all
+    # git checkout OASIS3-MCT_5.2
+    # export COUPLE=$PWD
+    # export ARCHDIR=$PWD/install
+    # cd util/make_dir
+    # mv make.inc make.inc.ori
+    # echo "include $(COUPLE)/util/make_dir/make.gcc" > make.inc
+    # wget https://raw.githubusercontent.com/pletzer/nzesm_apptainer/refs/heads/main/packages/oasis3-mct/make.gcc
+    # make -f make -f TopMakefileOasis3 static-libs-fortran
+    
