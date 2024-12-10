@@ -215,18 +215,31 @@ From: ubuntu:22.04
     ls -l ${INSTALL_DIR}/bin
 
 
-    # # oasis3-mct
-    # cd $BUILD_DIR
-    # git clone 
-    # git clone https://gitlab.com/cerfacs/oasis3-mct.git
-    # cd oasis3-mct
-    # git fetch --all
-    # git checkout OASIS3-MCT_5.2
-    # export COUPLE=$PWD
-    # export ARCHDIR=$PWD/install
-    # cd util/make_dir
-    # mv make.inc make.inc.ori
-    # echo "include $(COUPLE)/util/make_dir/make.gcc" > make.inc
-    # wget https://raw.githubusercontent.com/pletzer/nzesm_apptainer/refs/heads/main/packages/oasis3-mct/make.gcc
-    # make -f make -f TopMakefileOasis3 static-libs-fortran
+    # oasis3-mct
+    cd $BUILD_DIR
+    git clone https://gitlab.com/cerfacs/oasis3-mct.git
+    cd oasis3-mct
+    git fetch --all
+    git checkout OASIS3-MCT_5.2
+    # absolute path where the source resides
+    export COUPLE=$PWD
+    export OASIS_COUPLE=$COUPLE
+    # directory where the mods and libs will be installed
+    export ARCHDIR=${INSTALL_DIR}/oasis3-mct
+    cd util/make_dir
+    mv make.inc make.inc.ori
+    echo 'include $(COUPLE)/util/make_dir/make.gcc' > make.inc
+    wget https://raw.githubusercontent.com/pletzer/nextsimroms_apptainer/refs/heads/main/packages/oasis3-mct/make.gcc
+    cat make.gcc
+    cat make.inc
+    make -f TopMakefileOasis3 static-libs
+    make -f TopMakefileOasis3 shared-libs
+    make -f TopMakefileOasis3 pyoasis
+    # debug version
+    export OASIS_DEBUG=1
+    export ARCHDIR=${INSTALL_DIR}/oasis3-mct/debug
+    make -f TopMakefileOasis3 static-libs
+    make -f TopMakefileOasis3 shared-libs
+     
+
     
