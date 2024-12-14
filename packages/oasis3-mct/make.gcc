@@ -1,10 +1,6 @@
 #
 # Include file for OASIS3 Makefile for a Linux system using
-# Gnu compilers and OpenMPI
-# To use this,
-# module purge
-# module load mpi/openmpi/405_gcc731
-# module load python/3.7.7
+# Gnu compilers
 #
 ###############################################################################
 #
@@ -92,7 +88,7 @@ f90FLAGS = $(FCBASEFLAGS) $(INC_DIR) $(CPPDEF) $(NETCDF_INCLUDE) $(NETCDF_MOD)
 FFLAGS   = $(FCBASEFLAGS) $(INC_DIR) $(CPPDEF) $(NETCDF_INCLUDE) $(NETCDF_MOD)
 fFLAGS   = $(FCBASEFLAGS) $(INC_DIR) $(CPPDEF) $(NETCDF_INCLUDE) $(NETCDF_MOD)
 CCFLAGS  = $(CCBASEFLAGS) $(INC_DIR) $(CPPDEF) $(NETCDF_INCLUDE) $(NETCDF_MOD)
-LDFLAGS  = $(FCBASEFLAGS)
-F2C_LDFLAGS = -lmpi_mpifh -lgfortran -lm
+LDFLAGS  = -L/usr/lib/x86_64-linux-gnu/ $(FCBASEFLAGS)
+F2C_LDFLAGS = -lmpif90 -lmpich -lgfortran -lm
 #
 #############################################################################
