@@ -5,15 +5,51 @@ From: ubuntu:22.04
     Build a portable version of OASIS3-MCT
     
 %environment
+
     export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
     export PATH=/usr/local/bin:$PATH
+
+    # Basic OpenMPI paths
+    export OMPI_DIR=/opt/ompi
+    export PATH="/opt/ompi/bin:$PATH"
+    export LD_LIBRARY_PATH="/opt/ompi/lib:$LD_LIBRARY_PATH"
+    export MANPATH="/opt/ompi/share/man:$MANPATH"
+    export PKG_CONFIG_PATH="/opt/ompi/lib/pkgconfig:$PKG_CONFIG_PATH"
+
+    # UCX/OpenMPI specific settings
+    export UCX_IB_ENABLE_CUDA_AFFINITY=n
+    export UCX_NET_DEVICES=mlx5_0:1
+    export UCX_IB_REG_METHODS=direct
+    export OMPI_MCA_btl_openib_allow_ib=1
+    export OMPI_MCA_btl_openib_if_include="mlx5_0:1"
+    export OMPI_MCA_pml=ucx
+    export OMPI_MCA_osc=ucx
+    export OMPI_MCA_btl=^openib
+
+    # PMI settings
+    export PMIX_MCA_psec=native
+    export OMPI_MCA_btl_vader_single_copy_mechanism=none
+
+    # Make sure we have reasonable default paths
+    export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH"
 
 
 %post
 
+    # versions
+    OPENMPI_VERSION="4.1.5"
+    HDF5_VERSION="1.12.2"
+    NETCDF_C_VERSION="4.9.2"
+    NETCDF_FORTRAN_VERSION="4.6.1"
+    YAXT_VERSION="0.11.3"
+    export BUILD_DIR=/usr/local/build
+    export INSTALL_DIR=/usr/local/
+    export PATH=${INSTALL_DIR}/bin:$PATH
+    export LD_LIBRARY_PATH=${INSTALL_DIR}/lib:$LD_LIBRARY_PATH
+
+
     apt-get update && apt-get upgrade -y
     
-
     # from https://github.com/nesi/openmpi-apptainer/blob/main/openmpi-4.1.5.def
     apt-get update && apt-get install -y --no-install-recommends \
         build-essential \
@@ -32,28 +68,6 @@ From: ubuntu:22.04
         hwloc \
         pkg-config \
         zlib1g-dev \
-        libnuma-dev \
-        libhwloc-dev \
-        libslurm-dev \
-        slurm-wlm \
-        libpmi2-0 \
-        libpmi0 \
-        libpmi2-0-dev \
-        libpmi0-dev \
-        libslurm-dev \
-        rdma-core \
-        libibverbs1 \
-        libibverbs-dev \
-        ibverbs-providers \
-        librdmacm1 \
-        librdmacm-dev \
-        perftest \
-        libevent-dev \
-        libevent-core-2.1-7 \
-        libevent-extra-2.1-7 \
-        libevent-openssl-2.1-7 \
-        libevent-pthreads-2.1-7 \
-        libev-dev \
         libssl-dev \
         openssl \
         gfortran \
@@ -63,96 +77,11 @@ From: ubuntu:22.04
         curl \
         libcurl4-openssl-dev \
         libxml2-dev \
-        && rm -rf /var/lib/apt/lists/*
-
-    export BUILD_DIR=/usr/local/build
-    export INSTALL_DIR=/usr/local/
-    export PATH=${INSTALL_DIR}/bin:$PATH
-    export LD_LIBRARY_PATH=${INSTALL_DIR}/lib:$LD_LIBRARY_PATH
-
-    # versions
-    OPENMPI_VERSION="4.1.5"
-    HDF5_VERSION="1.12.2"
-    NETCDF_C_VERSION="4.9.2"
-    NETCDF_FORTRAN_VERSION="4.6.1"
-
-    # Create IB related symlinks if they don't exist
-    mkdir -p /etc/libibverbs.d
-    ln -sf /usr/lib/x86_64-linux-gnu/libibverbs.so.1 /usr/lib/libibverbs.so
-    ln -sf /usr/lib/x86_64-linux-gnu/librdmacm.so.1 /usr/lib/librdmacm.so
-
-    # Install libevent from source to ensure all components are available
-    cd /tmp
-    wget https://github.com/libevent/libevent/releases/download/release-2.1.12-stable/libevent-2.1.12-stable.tar.gz
-    tar xzf libevent-2.1.12-stable.tar.gz
-    cd libevent-2.1.12-stable
-    ./configure --prefix=/usr
-    make -j$(nproc)
-    make install
-    ldconfig
-
-    # Create symlinks for PMI libraries
-    ln -sf /usr/lib/x86_64-linux-gnu/libpmi2.so.0 /usr/lib/libpmi2.so
-    ln -sf /usr/lib/x86_64-linux-gnu/libpmi.so.0 /usr/lib/libpmi.so
-
-    # Install UCX with proper IB support
-    export UCX_VERSION=1.14.1
-    cd /tmp
-    wget https://github.com/openucx/ucx/releases/download/v${UCX_VERSION}/ucx-${UCX_VERSION}.tar.gz
-    tar -xvf ucx-${UCX_VERSION}.tar.gz
-    cd ucx-${UCX_VERSION}
-    ./configure --prefix=/usr \
-        --enable-optimizations \
-        --enable-mt \
-        --enable-numa \
-        --with-verbs \
-        --with-rdmacm \
-        --enable-gdr \
-        --enable-mlx5-dv
-    make -j$(nproc)
-    make install
-    ldconfig
-
-    # Install PMIx
-    cd /tmp
-    wget https://github.com/openpmix/openpmix/releases/download/v4.2.7/pmix-4.2.7.tar.gz
-    tar -xvf pmix-4.2.7.tar.gz
-    cd pmix-4.2.7
-    ./configure --prefix=/usr \
-        --disable-python-bindings \
-        --with-libevent=/usr \
-        --with-libevent-libdir=/usr/lib
-    make -j$(nproc)
-    make install
-    ldconfig
-
-    # Build and install OpenMPI
-    cd /tmp
-    wget https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPENMPI_VERSION}.tar.gz
-    tar -xvf openmpi-${OPENMPI_VERSION}.tar.gz
-    cd openmpi-${OPENMPI_VERSION}
-
-    # Configure OpenMPI with updated options for IB support
-    ./configure --prefix=$INSTALL_DIR \
-        --with-ucx=/usr \
-        --with-slurm=/usr \
-        --with-pmix=/usr \
-        --with-pmi=/usr \
-        --with-verbs=/usr \
-        --with-verbs-libdir=/usr/lib/x86_64-linux-gnu \
-        --enable-mpirun-prefix-by-default \
-        --enable-orterun-prefix-by-default \
-        --with-pmi-libdir=/usr/lib/x86_64-linux-gnu \
-        --enable-mpi1-compatibility \
-        --with-hwloc=/usr \
-        --enable-builtin-atomics \
-        --with-zlib \
-        --enable-heterogeneous \
-        --enable-mpi-fortran=yes \
-        --enable-static=no
-
-    make -j$(nproc)
-    make install
+        gdb \
+        liblapack-dev \
+        valgrind \
+        libmpich-dev mpich  \
+         && rm -rf /var/lib/apt/lists/*
 
     export MPIF90=mpif90
     export MPICC=mpicc
@@ -214,32 +143,64 @@ From: ubuntu:22.04
     ls -l ${INSTALL_DIR}/include
     ls -l ${INSTALL_DIR}/bin
 
-
-    # oasis3-mct
+    # yaxt
     cd $BUILD_DIR
-    git clone https://gitlab.com/cerfacs/oasis3-mct.git
-    cd oasis3-mct
-    git fetch --all
-    git checkout OASIS3-MCT_5.2
-    # absolute path where the source resides
-    export COUPLE=$PWD
-    export OASIS_COUPLE=$COUPLE
-    # directory where the mods and libs will be installed
-    export ARCHDIR=${INSTALL_DIR}/oasis3-mct
-    cd util/make_dir
-    mv make.inc make.inc.ori
-    echo 'include $(COUPLE)/util/make_dir/make.gcc' > make.inc
-    wget https://raw.githubusercontent.com/pletzer/nextsimroms_apptainer/refs/heads/main/packages/oasis3-mct/make.gcc
-    cat make.gcc
-    cat make.inc
-    make -f TopMakefileOasis3 static-libs
-    make -f TopMakefileOasis3 shared-libs
-    make -f TopMakefileOasis3 pyoasis
-    # debug version
-    export OASIS_DEBUG=1
-    export ARCHDIR=${INSTALL_DIR}/oasis3-mct/debug
-    make -f TopMakefileOasis3 static-libs
-    make -f TopMakefileOasis3 shared-libs
+    wget https://swprojects.dkrz.de/redmine/attachments/download/541/yaxt-${YAXT_VERSION}.tar.gz
+    tar xf yaxt-${YAXT_VERSION}.tar.gz
+    cd yaxt-${YAXT_VERSION}
+    mkdir build
+    cd build
+    ../configure --prefix=$INSTALL_DIR --without-regard-for-quality
+    make -j 4
+    make install
+    cd ../..
+    rm -rf yaxt-${YAXT_VERSION}*
+    ls -l ${INSTALL_DIR}/lib
+    ls -l ${INSTALL_DIR}/include
+    ls -l ${INSTALL_DIR}/bin
+
+
+    # # YAC
+    # cd $BUILD_DIR
+    # git clone https://gitlab.dkrz.de/dkrz-sw/yac.git
+    # cd yac
+    # git checkout tags/v3.5.2
+    # mkdir build
+    # cd build
+    # FC=$MPIF90 CC=$MPICC MPI_LAUNCH=mpiexec ../configure --prefix=$INSTALL_DIR
+    # make -j 4
+    # make install
+    # cd ../../
+    # rm -rf yac
+    # ls -l ${INSTALL_DIR}/lib
+    # ls -l ${INSTALL_DIR}/include
+    # ls -l ${INSTALL_DIR}/bin
+
+    # # oasis3-mct
+    # cd $BUILD_DIR
+    # git clone https://gitlab.com/cerfacs/oasis3-mct.git
+    # cd oasis3-mct
+    # git fetch --all
+    # git checkout OASIS3-MCT_5.2
+    # # absolute path where the source resides
+    # export COUPLE=$PWD
+    # export OASIS_COUPLE=$COUPLE
+    # # directory where the mods and libs will be installed
+    # export ARCHDIR=${INSTALL_DIR}/oasis3-mct
+    # cd util/make_dir
+    # mv make.inc make.inc.ori
+    # echo 'include $(COUPLE)/util/make_dir/make.gcc' > make.inc
+    # wget https://raw.githubusercontent.com/pletzer/nextsimroms_apptainer/refs/heads/main/packages/oasis3-mct/make.gcc
+    # cat make.gcc
+    # cat make.inc
+    # make -f TopMakefileOasis3 static-libs
+    # make -f TopMakefileOasis3 shared-libs
+    # make -f TopMakefileOasis3 pyoasis
+    # # debug version
+    # export OASIS_DEBUG=1
+    # export ARCHDIR=${INSTALL_DIR}/oasis3-mct/debug
+    # make -f TopMakefileOasis3 static-libs
+    # make -f TopMakefileOasis3 shared-libs
      
 
     
