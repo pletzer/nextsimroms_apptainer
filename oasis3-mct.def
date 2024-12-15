@@ -41,6 +41,7 @@ From: ubuntu:22.04
     HDF5_VERSION="1.12.2"
     NETCDF_C_VERSION="4.9.2"
     NETCDF_FORTRAN_VERSION="4.6.1"
+    FYAML_VERSION="0.9"
     YAXT_VERSION="0.11.3"
     export BUILD_DIR=/usr/local/build
     export INSTALL_DIR=/usr/local/
@@ -81,6 +82,7 @@ From: ubuntu:22.04
         liblapack-dev \
         valgrind \
         libmpich-dev mpich  \
+        libltdl-dev pkg-config libyaml-dev check \
          && rm -rf /var/lib/apt/lists/*
 
     export MPIF90=mpif90
@@ -150,7 +152,7 @@ From: ubuntu:22.04
     cd yaxt-${YAXT_VERSION}
     mkdir build
     cd build
-    ../configure --prefix=$INSTALL_DIR --without-regard-for-quality
+    FC=$MPIF90 CC=$MPICC ../configure --prefix=$INSTALL_DIR --without-regard-for-quality
     make -j 4
     make install
     cd ../..
@@ -159,22 +161,36 @@ From: ubuntu:22.04
     ls -l ${INSTALL_DIR}/include
     ls -l ${INSTALL_DIR}/bin
 
+    # fyaml
+    cd $BUILD_DIR
+    wget https://github.com/pantoniou/libfyaml/archive/refs/tags/v${FYAML_VERSION}.tar.gz
+    tar xf v${FYAML_VERSION}.tar.gz
+    cd libfyaml-${FYAML_VERSION}
+    ./bootstrap.sh
+    CC=$MPICC ./configure --prefix=$INSTALL_DIR
+    make
+    make install 
+    cd ..
+    rm -rf libfyaml-${FYAML_VERSION} v${FYAML_VERSION}.tar.gz
+    ls -l ${INSTALL_DIR}/lib
+    ls -l ${INSTALL_DIR}/include
+    ls -l ${INSTALL_DIR}/bin
 
-    # # YAC
-    # cd $BUILD_DIR
-    # git clone https://gitlab.dkrz.de/dkrz-sw/yac.git
-    # cd yac
-    # git checkout tags/v3.5.2
-    # mkdir build
-    # cd build
-    # FC=$MPIF90 CC=$MPICC MPI_LAUNCH=mpiexec ../configure --prefix=$INSTALL_DIR
-    # make -j 4
-    # make install
-    # cd ../../
-    # rm -rf yac
-    # ls -l ${INSTALL_DIR}/lib
-    # ls -l ${INSTALL_DIR}/include
-    # ls -l ${INSTALL_DIR}/bin
+    # YAC
+    cd $BUILD_DIR
+    git clone https://gitlab.dkrz.de/dkrz-sw/yac.git
+    cd yac
+    git checkout tags/v3.5.2
+    mkdir build
+    cd build
+    FC=$MPIF90 CC=$MPICC MPI_LAUNCH=mpiexec ../configure --prefix=$INSTALL_DIR --disable-mpi-checks
+    make -j 4
+    make install
+    cd ../../
+    rm -rf yac
+    ls -l ${INSTALL_DIR}/lib
+    ls -l ${INSTALL_DIR}/include
+    ls -l ${INSTALL_DIR}/bin
 
     # # oasis3-mct
     # cd $BUILD_DIR
