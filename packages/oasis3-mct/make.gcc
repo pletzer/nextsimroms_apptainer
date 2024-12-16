@@ -23,8 +23,8 @@ ENABLE_YAC      = YES
 MPIRUN      = mpirun --oversubscribe
 #
 # NETCDF library
-NETCDF_INCLUDE = -I/usr/include
-NETCDF_LIB     = /usr/lib/x86_64-linux-gnu
+NETCDF_INCLUDE = -I/usr/local/include
+NETCDF_LIB     = /usr/local/lib
 NETCDF_MOD     = -I$(NETCDF_INCLUDE)
 NETCDF_LIBRARY = -L$(NETCDF_LIB) -lnetcdff -lnetcdf
 #
@@ -52,7 +52,7 @@ endif
 # YAC libraries options for models and toys link
 # Leave empty if YAC not enabled
 ifeq ($(ENABLE_YAC),YES)
-YAC_LIBRARY = -L$(ARCHDIR)/lib -Wl,-rpath,$(ARCHDIR)/lib \
+YAC_LIBRARY = -L$(ARCHDIR)/lib -L/usr/lib/x86_64-linux-gnu/ -Wl,-rpath,$(ARCHDIR)/lib \
               -lyac_utils -lyac_core -lyaxt_c -llapack -lblas
 endif
 # Static archiver
