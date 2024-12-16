@@ -13,7 +13,7 @@ modules used on many high performance computers to load in dependencies (toolcha
 
 First you need to have Apptainer or Singularity installed. If you're running Linux, you're in luck, just follow these [instructions](https://apptainer.org/docs/user/latest/). On Windows, you can use Windows Linux Subsystem (WSL) and on Mac you might have to install Apptainer within a Docker environment. 
 
-## How to build a container on your personal computer
+## How to build a container
 
 A container needs a definition file, e.g. `oasis3-mct.def`. This file lists the operating system, the compilers and the steps to build the libraries. It is a recipe for building the container.
 
