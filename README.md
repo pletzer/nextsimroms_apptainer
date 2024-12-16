@@ -73,7 +73,50 @@ Note that you may need to bind some directories to access external data inside t
 singularity shell -B/scale_wlg_nobackup/filesets/nobackup,/nesi/nobackup,$HOME,/opt/niwa /nesi/nobackup/pletzera/oasis3-mct.sif
 ```
 
-## Compiling the OASIS3-MCT examples
+## Compiling the OASIS3-MCT examples on Mahuika
+
+### Start an Apptainer shell
+```
+module purge
+module load Apptainer
+apptainer shell /nesi/nobackup/pletzera/oasis3-mct.sif
+```
+
+### Check out the oasis3-mct code
+
+On any locally mounted directory,
+```
+git clone -b OASIS3-MCT_5.2  https://gitlab.com/cerfacs/oasis3-mct.git
+```
+
+### Edit the Makefile 
+```
+cd oasis3-mct/examples/tutorial_communication
+```
+and replace the lines
+```
+include ../../util/make_dir/make.inc
+```
+```
+all: oasis3_psmile ocean atmos
+```
+
+with
+```
+include $(COUPLE)/util/make_dir/make.gcc
+```
+```
+all: ocean atmos
+```
+
+### Compile 
+
+```
+make
+```
+
+
+### Run
 
 ## Building neXTSIM with the container tools
 
