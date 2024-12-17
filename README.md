@@ -97,6 +97,7 @@ and replace the lines
 ```
 include ../../util/make_dir/make.inc
 ```
+and
 ```
 all: oasis3_psmile ocean atmos
 ```
@@ -105,9 +106,11 @@ with
 ```
 include $(COUPLE)/util/make_dir/make.gcc
 ```
+and
 ```
 all: ocean atmos
 ```
+respectively
 
 ### Compile 
 
