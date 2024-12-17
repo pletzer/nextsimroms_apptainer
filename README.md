@@ -70,11 +70,85 @@ Apptainer>
 Note that you may need to bind some directories to access external data inside the container. This is achieved with the `-B` option. For instance,
 
 ```
-singularity shell -B/scale_wlg_nobackup/filesets/nobackup,/nesi/nobackup,$HOME,/opt/niwa /nesi/nobackup/pletzera/oasis3-mct.sif
+apptainer shell -B/scale_wlg_nobackup/filesets/nobackup,/nesi/nobackup,$HOME,/opt/niwa /nesi/nobackup/pletzera/oasis3-mct.sif
 ```
 
-## Compiling the OASIS3-MCT examples
+Once you're inside the container, you can check that your compilers are there and working:
+```
+Apptainer> which mpif90
+/usr/bin/mpif90
+Apptainer> mpif90 --version
+GNU Fortran (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0
+Copyright (C) 2021 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+```
+
+## Compiling the OASIS3-MCT examples on Mahuika
+
+### Start an Apptainer shell
+```
+module purge
+module load Apptainer
+apptainer shell /nesi/nobackup/pletzera/oasis3-mct.sif
+```
+
+### Check out the oasis3-mct code
+
+On any locally mounted directory,
+```
+Apptainer>  git clone -b OASIS3-MCT_5.2  https://gitlab.com/cerfacs/oasis3-mct.git
+```
+
+### Edit the Makefile 
+```
+Apptainer> cd oasis3-mct/examples/tutorial_communication
+```
+and replace the lines
+```
+include ../../util/make_dir/make.inc
+```
+and
+```
+all: oasis3_psmile ocean atmos
+```
+
+with
+```
+include $(COUPLE)/util/make_dir/make.gcc
+```
+and
+```
+all: ocean atmos
+```
+respectively
+
+### Compile 
+
+```
+Apptainer> make
+```
+
+
+### Run
+```
+Apptainer> mkdir test_run
+Apptainer> cd test_run/
+Apptainer> cp ../data_tutorial/* .
+Apptainer> cp ../atmos .
+Apptainer> cp ../ocean .
+Apptainer> mpiexec -n 4 ./ocean : -n 4 ./atmos
+```
+
+Alternatively, you can run the code outside the container:
+```
+apptainer exec <PATH>/oasis3-mct.sif mpiexec -n 4 ./ocean : -n 4 ./atmos
+```
 
 ## Building neXTSIM with the container tools
 
+TO DO
+
 ## Building ROMS with the container tools
+
+TO DO
