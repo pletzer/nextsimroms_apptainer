@@ -140,6 +140,11 @@ Apptainer> cp ../ocean .
 Apptainer> mpiexec -n 4 ./ocean : -n 4 ./atmos
 ```
 
+Alternatively, you can run the code outside the container:
+```
+apptainer exec <PATH>/oasis3-mct.sif mpiexec -n 4 ./ocean : -n 4 ./atmos
+```
+
 ## Building neXTSIM with the container tools
 
 TO DO
