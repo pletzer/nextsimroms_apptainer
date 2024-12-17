@@ -14,7 +14,7 @@ From: ubuntu:22.04
 
     # OASIS3-MCT
     export COUPLE=/usr/local/build/oasis3-mct
-    export ARCHDIR=/usr/local/oasis3-mct/build-static
+    export ARCHDIR=/usr/local/oasis3-mct
 
 
 %post
@@ -65,6 +65,7 @@ From: ubuntu:22.04
         valgrind \
         libmpich-dev mpich  \
         libltdl-dev pkg-config libyaml-dev check \
+        libboost-all-dev gmsh libgmsh-dev \
          && rm -rf /var/lib/apt/lists/*
 
     # python packages
