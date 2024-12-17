@@ -120,7 +120,19 @@ make
 
 
 ### Run
+```
+mkdir test_run
+cd test_run/
+cp ../data_tutorial/* .
+cp ../atmos .
+cp ../ocean .
+mpiexec -n 4 ./ocean : -n 4 ./atmos
+```
 
 ## Building neXTSIM with the container tools
 
+TO DO
+
 ## Building ROMS with the container tools
+
+TO DO
