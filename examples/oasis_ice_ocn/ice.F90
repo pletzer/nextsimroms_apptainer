@@ -39,14 +39,19 @@ end subroutine ice_finalize
 end module ice_mod
 
 program ice
+    use mpi
     use ice_mod
     implicit none
 
     type(ice_type) :: ice_comp
+    integer :: ier, local_comm
+
+    call mpi_init(ier)
+    local_comm = MPI_COMM_WORLD
 
     call ice_initialize(ice_comp, 'input/ice.nml')
 
     call ice_finalize(ice_comp)
 
-
+    call mpi_finalize(ier)
 end program ice
