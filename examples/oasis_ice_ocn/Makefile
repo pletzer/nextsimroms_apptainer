@@ -21,8 +21,11 @@ ice: ice.o
 ocn: ocn.o
 	$(LD) $(LDFLAGS) -o $@ $< $(LIBPSMILE) $(FLIBS) $(NETCDF_LIBRARY)
 
-*o: *.F90
+%.o: %.F90
 	$(F90) $(F90FLAGS) -c $<
+
+run:
+	mpiexec -n 1 ./ice : -n 1 ./ocn
 #
 # Clean directory
 #
