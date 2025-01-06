@@ -68,8 +68,13 @@ program ice
 
     call mpi_init(ier)
     local_comm = MPI_COMM_WORLD
+    call mpi_comm_size(local_comm, npes, ier)
+    call mpi_comm_rank(local_comm, pe, ier)
+    if (pe == 0) print *, 'ice pe: ', pe, ' out of ', npes
 
-    ! call oasis_init_comp(compid, 'ice', ier)
+    if (pe == 0) print *, 'calling call oasis_init_comp...'
+    call oasis_init_comp(compid, 'ice', ier)
+    if (pe == 0) print *, '...done'
     ! call oasis_get_localcomm(local_comm, ier)
 
     ! call mpi_comm_size(local_comm, npes, ier)
@@ -80,6 +85,6 @@ program ice
 
     call ice_finalize(ice_comp)
 
-    ! call oasis_terminate(ier)
+    call oasis_terminate(ier)
     call mpi_finalize(ier)
 end program ice

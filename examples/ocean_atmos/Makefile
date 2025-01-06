@@ -1,7 +1,7 @@
-#
 COUPLE := /usr/local/build/oasis3-mct
 include  $(COUPLE)/util/make_dir/make.inc
 ARCHDIR :=  /usr/local/oasis3-mct
+
 LIBPSMILE = $(ARCHDIR)/lib/libpsmile.${CHAN}.a $(ARCHDIR)/lib/libmct.a $(ARCHDIR)/lib/libmpeu.a $(ARCHDIR)/lib/libscrip.a
 #
 ##### User configurable options #####
@@ -26,9 +26,6 @@ default: all
 #
 all: ocean atmos 
 #
-run: ocean atmos
-	mpiexec --verbose -n 2 ./ocean : -n 1 ./atmos
-#
 #-------------------------------------------------------------------------------
 # Rules for executables
 #-------------------------------------------------------------------------------
@@ -43,7 +40,7 @@ atmos: $(OBJ_M2) atmos.o $(LIBPSMILE) Makefile
 #-------------------------------------------------------------------------------
 #
 read_grid.o :		read_grid.F90
-				$(F90) $(F90FLAGS) -c read_grid.F90
+				$(F90) $(F90FLAGS) -D_DEBUG=1 -c read_grid.F90
 def_parallel_decomposition.o : 		def_parallel_decomposition.F90
 				$(F90) $(F90FLAGS) $(CPPLOCAL_M1) -c def_parallel_decomposition.F90
 def_parallel_decomposition_m2.o : 	def_parallel_decomposition.F90
@@ -52,6 +49,11 @@ ocean.o :	ocean.F90 Makefile
 		$(F90) $(F90FLAGS) $(CPPLOCAL_M1) -c ocean.F90
 atmos.o :	atmos.F90 Makefile
 		$(F90) $(F90FLAGS) $(CPPLOCAL_M2) -c atmos.F90
+
+run: ocean atmos
+	mpiexec --oversubscribe -n 4 ./ocean : -n 4 ./atmos
+
+
 #
 #-------------------------------------------------------------------------------
 # Utilities
@@ -66,3 +68,9 @@ clean:
 	-rm -f *.o *.mod *.MOD ocean atmos
 	-rm -f i.*.F90 *.L
 	-rm -f core core.* 
+#
+# Make sure to recompile everything
+#
+realclean: clean remove
+remove:
+	(cd ../../../util/make_dir ; $(MAKE) realclean -f TopMakefileOasis3)
