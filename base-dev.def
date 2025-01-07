@@ -43,7 +43,7 @@ From: ubuntu:24.04
         zlib1g-dev \
         libssl-dev \
         openssl \
-        gfortran \
+        make gfortran gcc g++ \
         cmake \
         vim \
         libtool \
@@ -53,7 +53,7 @@ From: ubuntu:24.04
         gdb \
         liblapack-dev \
         valgrind \
-        libopenmpi-dev \
+        libopenmpi-dev openmpi-bin \
         python3-numpy python3-mpi4py \
          && rm -rf /var/lib/apt/lists/*
  
