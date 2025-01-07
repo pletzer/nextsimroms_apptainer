@@ -14,14 +14,12 @@ From: ubuntu:22.04
 
     # OASIS3-MCT
     export COUPLE=/usr/local/build/oasis3-mct
-    export ARCHDIR=/usr/local/oasis3-mct
+    export ARCHDIR=/usr/local/oasis3-mct/build-static
 
 
 %post
 
     # versions
-    GMSH_VERSION="3.0.6"
-    BOOST_VERSION="1_87_0"
     HDF5_VERSION="1.12.2"
     NETCDF_C_VERSION="4.9.2"
     NETCDF_FORTRAN_VERSION="4.6.1"
@@ -56,7 +54,7 @@ From: ubuntu:22.04
         libssl-dev \
         openssl \
         gfortran \
-        cmake cmake-curses-gui \
+        cmake \
         vim \
         libtool \
         curl \
@@ -67,12 +65,7 @@ From: ubuntu:22.04
         valgrind \
         libmpich-dev mpich  \
         libltdl-dev pkg-config libyaml-dev check \
-        libboost1.74-tools-dev libboost1.74-dev libboost1.74-all-dev \
-        apt-file \
          && rm -rf /var/lib/apt/lists/*
-
-    # set up apt-file so we can lsit the files in a package
-    apt-file update 
 
     # python packages
     pip3 install numpy
@@ -120,27 +113,6 @@ From: ubuntu:22.04
     ls -l ${INSTALL_DIR}/lib
     ls -l ${INSTALL_DIR}/include
     ls -l ${INSTALL_DIR}/bin
-
-    # Gmsh
-    cd $BUILD_DIR
-    wget https://gmsh.info/src/gmsh-${GMSH_VERSION}-source.tgz
-    tar xf gmsh-${GMSH_VERSION}-source.tgz
-    cd gmsh-${GMSH_VERSION}-source
-    mkdir build && cd build
-    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR ..
-    make -j 4
-    make install
-    cd ../..
-    rm -rf gmsh-${GMSH_VERSION}-source*
-    ls -l ${INSTALL_DIR}/lib
-    ls -l ${INSTALL_DIR}/include
-    ls -l ${INSTALL_DIR}/bin
-
-    # # Boost, header only library
-    # cd $INSTALL_DIR
-    # wget https://boostorg.jfrog.io/artifactory/main/release/1.87.0/source/boost_${BOOST_VERSION}.tar.gz
-    # tar xf boost_${BOOST_VERSION}.tar.gz
-    # rm boost_${BOOST_VERSION}.tar.gz
 
     # netcdf-fortran
     cd $BUILD_DIR
