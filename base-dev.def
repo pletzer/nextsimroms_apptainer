@@ -27,6 +27,7 @@ From: ubuntu:24.04
 
     apt-get update && apt-get install -y --no-install-recommends \
         ca-certificates \
+        ksh \
         wget \
         git \
         tar \
