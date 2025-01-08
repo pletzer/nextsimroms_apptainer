@@ -2,6 +2,10 @@ COUPLE := /usr/local/build/oasis3-mct
 include  $(COUPLE)/util/make_dir/make.inc
 ARCHDIR :=  /usr/local/oasis3-mct
 
+# override the flags from make.inc
+F90FLAGS := -ffree-line-length-512 -fallow-argument-mismatch -Wall -fimplicit-none -Wline-truncation -fcheck=all -fbacktrace -O0 -g -I/usr/local/oasis3-mct/include -Duse_comm_MPI1 -D__VERBOSE -DTREAT_OVERLAY -I/usr/local/include
+
+
 LIBPSMILE = $(ARCHDIR)/lib/libpsmile.${CHAN}.a $(ARCHDIR)/lib/libmct.a $(ARCHDIR)/lib/libmpeu.a $(ARCHDIR)/lib/libscrip.a
 #
 ##### User configurable options #####
@@ -51,6 +55,7 @@ atmos.o :	atmos.F90 Makefile
 		$(F90) $(F90FLAGS) $(CPPLOCAL_M2) -c atmos.F90
 
 run: ocean atmos
+	rm -f *.out_* debug*
 	mpiexec --oversubscribe -n 4 ./ocean : -n 4 ./atmos
 
 

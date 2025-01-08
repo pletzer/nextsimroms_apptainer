@@ -148,7 +148,7 @@ fi
 ######################################################################
 ### 3. Model execution or batch submission
 #
-if [ $arch == training ] || [ $arch == gfortran_openmpi_openmp_linux ] || [ $arch == gnu1020_openmpi_openmp_linux ] || [ $arch == pgi_openmpi_openmp_linux ] || [ $arch == pgi20.4_openmpi_openmp_linux ]; then
+if [ $arch == apptainer ] || [ $arch == training ] || [ $arch == gfortran_openmpi_openmp_linux ] || [ $arch == gnu1020_openmpi_openmp_linux ] || [ $arch == pgi_openmpi_openmp_linux ] || [ $arch == pgi20.4_openmpi_openmp_linux ]; then
     export OMP_NUM_THREADS=1
     echo 'Executing the model using '$MPIRUN 
     $MPIRUN -oversubscribe -np $nproc_exe1 ./$exe1 : -np $nproc_exe2 ./$exe2 
