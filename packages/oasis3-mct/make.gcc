@@ -25,7 +25,7 @@ MPIRUN      = mpirun --oversubscribe
 # NETCDF library
 NETCDF_INCLUDE = -I/usr/local/include
 NETCDF_LIB     = /usr/local/lib
-NETCDF_MOD     = -I$(NETCDF_INCLUDE)
+NETCDF_MOD     = $(NETCDF_INCLUDE)
 NETCDF_LIBRARY = -L$(NETCDF_LIB) -lnetcdff -lnetcdf
 #
 # Make command
