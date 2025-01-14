@@ -16,8 +16,6 @@ CPPKEYDECOMP_M2=DECOMP_APPLE
 CPPLOCAL_M1 =  -D${CPPKEYDECOMP_M1}
 CPPLOCAL_M2 = -D${CPPKEYDECOMP_M2}
 #
-OBJ_M1 =  read_grid.o def_parallel_decomposition.o
-OBJ_M2 =  read_grid.o def_parallel_decomposition_m2.o
 #-------------------------------------------------------------------------------
 # General rules
 #-------------------------------------------------------------------------------
@@ -33,21 +31,15 @@ run: ocean atmos
 # Rules for executables
 #-------------------------------------------------------------------------------
 #
-ocean: $(OBJ_M1) ocean.o $(LIBPSMILE) Makefile
-	$(LD) $(LDFLAGS) -o $@ $(OBJ_M1) ocean.o $(LIBPSMILE) $(FLIBS) $(NETCDF_LIBRARY)
-atmos: $(OBJ_M2) atmos.o $(LIBPSMILE) Makefile
-	$(LD) $(LDFLAGS) -o $@ $(OBJ_M2) atmos.o $(LIBPSMILE) $(FLIBS) $(NETCDF_LIBRARY)
+ocean: ocean.o $(LIBPSMILE) Makefile
+	$(LD) $(LDFLAGS) -o $@ ocean.o $(LIBPSMILE) $(FLIBS) $(NETCDF_LIBRARY)
+atmos: atmos.o $(LIBPSMILE) Makefile
+	$(LD) $(LDFLAGS) -o $@ atmos.o $(LIBPSMILE) $(FLIBS) $(NETCDF_LIBRARY)
 #
 #-------------------------------------------------------------------------------
 # Rules for compilation
 #-------------------------------------------------------------------------------
 #
-read_grid.o :		read_grid.F90
-				$(F90) $(F90FLAGS) -c read_grid.F90
-def_parallel_decomposition.o : 		def_parallel_decomposition.F90
-				$(F90) $(F90FLAGS) $(CPPLOCAL_M1) -c def_parallel_decomposition.F90
-def_parallel_decomposition_m2.o : 	def_parallel_decomposition.F90
-				$(F90) $(F90FLAGS) $(CPPLOCAL_M2) -o def_parallel_decomposition_m2.o -c def_parallel_decomposition.F90
 ocean.o :	ocean.F90 Makefile
 		$(F90) $(F90FLAGS) $(CPPLOCAL_M1) -c ocean.F90
 atmos.o :	atmos.F90 Makefile
