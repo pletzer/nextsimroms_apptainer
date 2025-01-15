@@ -1,6 +1,6 @@
-= Building ROMS with using a container environment =
+# Building ROMS with using a container environment =
 
-== Launch the container ==
+## Launch the container
 
 You must have `apptainer` or `singularity` installed
 ```
@@ -10,7 +10,7 @@ Notes:
  * Replace `apptainer` with `singularity` if you have Singularity installed
  * On mahuika, type `ml purge; ml Apptainer` to access the apptainer command
 
-== Requirements ==
+## Requirements
 
 Check that the following commands are installed in the container
  * git
@@ -23,7 +23,7 @@ Check that the following commands are installed in the container
  * mpiexec
 
 
-== Compile ROMS ==
+## Compile ROMS
 
 Assume ROMS is in directory `$ROMS_SRC_DIR`:
 ```
