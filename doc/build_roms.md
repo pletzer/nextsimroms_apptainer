@@ -1,4 +1,4 @@
-# Building ROMS with using a container environment =
+# Building ROMS using a container environment =
 
 ## Launch the container
 
