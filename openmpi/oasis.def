@@ -1,0 +1,113 @@
+BootStrap: localimage
+From: netcdf-dev.sif
+
+%help
+    Build a portable version of OASIS3-MCT
+
+%environment
+
+    export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+    export PATH=/usr/local/bin:$PATH
+
+    # OASIS3-MCT
+    export COUPLE=/usr/local/build/oasis3-mct
+    export ARCHDIR=/usr/local/oasis3-mct
+
+
+%post
+
+    # versions
+    export BUILD_DIR=/usr/local/build
+    export INSTALL_DIR=/usr/local/
+    export PATH=${INSTALL_DIR}/bin:$PATH
+    export LD_LIBRARY_PATH=${INSTALL_DIR}/lib:$LD_LIBRARY_PATH
+
+ 
+    export MPIF90=mpif90
+    export MPICC=mpicc
+    export MPICXX=mpic++
+
+    mkdir -p $BUILD_DIR
+
+    # yaxt
+    YAXT_VERSION="0.11.3"
+    cd $BUILD_DIR
+    wget https://swprojects.dkrz.de/redmine/attachments/download/541/yaxt-${YAXT_VERSION}.tar.gz
+    tar xf yaxt-${YAXT_VERSION}.tar.gz
+    cd yaxt-${YAXT_VERSION}
+    mkdir build
+    cd build
+    FC=$MPIF90 CC=$MPICC ../configure --prefix=$INSTALL_DIR --without-regard-for-quality
+    make -j 4
+    make install
+    cd ../..
+    rm -rf yaxt-${YAXT_VERSION}*
+    ls -l ${INSTALL_DIR}/lib
+    ls -l ${INSTALL_DIR}/include
+    ls -l ${INSTALL_DIR}/bin
+
+    # fyaml
+    FYAML_VERSION="0.9"
+    cd $BUILD_DIR
+    wget https://github.com/pantoniou/libfyaml/archive/refs/tags/v${FYAML_VERSION}.tar.gz
+    tar xf v${FYAML_VERSION}.tar.gz
+    cd libfyaml-${FYAML_VERSION}
+    ./bootstrap.sh
+    CC=$MPICC ./configure --prefix=$INSTALL_DIR
+    make
+    make install
+    cd ..
+    rm -rf libfyaml-${FYAML_VERSION} v${FYAML_VERSION}.tar.gz
+    ls -l ${INSTALL_DIR}/lib
+    ls -l ${INSTALL_DIR}/include
+    ls -l ${INSTALL_DIR}/bin
+
+    # YAC
+    cd $BUILD_DIR
+    git clone https://gitlab.dkrz.de/dkrz-sw/yac.git
+    cd yac
+    git checkout tags/v3.5.2
+    mkdir build
+    cd build
+    FC=$MPIF90 CC=$MPICC MPI_LAUNCH=mpiexec ../configure --prefix=$INSTALL_DIR --disable-mpi-checks
+    make -j 4
+    make install
+    cd ../../
+    rm -rf yac
+    ls -l ${INSTALL_DIR}/lib
+    ls -l ${INSTALL_DIR}/include
+    ls -l ${INSTALL_DIR}/bin
+
+    # oasis3-mct
+    cd $BUILD_DIR
+    git clone https://gitlab.com/cerfacs/oasis3-mct.git
+    cd oasis3-mct
+    git fetch --all
+    git checkout OASIS3-MCT_5.2
+
+    # need to patch file lib/psmile/src/GPTLget_memusage.c, see https://cerfacs.fr/site-oasis/forum/oa_main.php?c=177
+    f="lib/psmile/src/GPTLget_memusage.c"
+    cp $f ${f}_ori
+    max_num_threads=$(cat /proc/sys/kernel/pid_max)
+    cat ${f}_ori | perl -ne "s/pid > 999999/pid > ${max_num_threads}/;print;" > $f
+    #diff $f ${f}_ori
+
+    # absolute path where the source resides
+    export COUPLE=$PWD
+    export OASIS_COUPLE=$COUPLE
+    # directory where the mods and libs will be installed
+    export ARCHDIR=${INSTALL_DIR}/oasis3-mct
+    cd util/make_dir
+    mv make.inc make.inc.ori
+    echo 'include $(COUPLE)/util/make_dir/make.gcc' > make.inc
+    wget https://raw.githubusercontent.com/pletzer/nextsimroms_apptainer/refs/heads/main/packages/oasis3-mct/make.gcc
+    cat make.gcc
+    cat make.inc
+
+    # optimised version
+    make -f TopMakefileOasis3 static-libs
+    # debug version
+    export OASIS_DEBUG=1
+    export ARCHDIR=${INSTALL_DIR}/oasis3-mct/debug
+    make -f TopMakefileOasis3 static-libs
+ 
