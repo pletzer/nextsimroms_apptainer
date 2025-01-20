@@ -28,7 +28,7 @@ From: /home/pletzera/nextsimroms_apptainer/nextsim.sif
 
     apt-get update && apt-get upgrade -y
     apt-get install -y ca-certificates openssl vim subversion
-    apt-get install -y automake autoconf libtool cmake 
+    apt-get install -y automake autoconf libtool cmake pkg-config ksh
 
 
     export BUILD_DIR=/usr/local/build
@@ -52,38 +52,37 @@ From: /home/pletzera/nextsimroms_apptainer/nextsim.sif
     make
     make install    
 
-    # Build Arpack, may not be required. For data assimilation
-    cd $BUILD_DIR
-    git clone https://bitbucket.org/chaoyang2013/arpack.git
-    cd arpack
-    mv ARmake.inc ARmake.inc.ori
-    mv Makefile Makefile.ori
-    wget --no-check-certificate https://raw.githubusercontent.com/pletzer/nextsimroms_apptainer/refs/heads/main/packages/arpack/ARmake.inc
-    wget --no-check-certificate https://raw.githubusercontent.com/pletzer/nextsimroms_apptainer/refs/heads/main/packages/arpack/Makefile
-    make clean
-    make lib
-    make plib
-    cp *.a $INSTALL_DIR/lib
+    # # Build Arpack, may not be required. For data assimilation
+    # cd $BUILD_DIR
+    # git clone https://bitbucket.org/chaoyang2013/arpack.git
+    # cd arpack
+    # mv ARmake.inc ARmake.inc.ori
+    # mv Makefile Makefile.ori
+    # wget --no-check-certificate https://raw.githubusercontent.com/pletzer/nextsimroms_apptainer/refs/heads/main/packages/arpack/ARmake.inc
+    # wget --no-check-certificate https://raw.githubusercontent.com/pletzer/nextsimroms_apptainer/refs/heads/main/packages/arpack/Makefile
+    # make clean
+    # make lib
+    # make plib
+    # cp *.a $INSTALL_DIR/lib
 
-    # Build CICE-ROMS. Dow er need to specify where arpack is installed? Need to turn on some compilation options
-    cd {{ ROMS_SRC_DIR }}
-    mv makefile makefile.ori
-    wget --no-check-certificate https://raw.githubusercontent.com/pletzer/nextsimroms_apptainer/refs/heads/main/packages/iceshelf_roms/makefile
-    cd Compilers
-    mv Linux-gfortran.mk Linux-gfortran.mk.ori
-    wget --no-check-certificate https://raw.githubusercontent.com/pletzer/nextsimroms_apptainer/refs/heads/main/packages/iceshelf_roms/Compilers/Linux-gfortran.mk
-    cd ..
-    make clean
-    make
-    cp ./oceanM $INSTALL_DIR/bin
+    # # Build CICE-ROMS. Dow er need to specify where arpack is installed? Need to turn on some compilation options
+    # cd {{ ROMS_SRC_DIR }}
+    # mv makefile makefile.ori
+    # wget --no-check-certificate https://raw.githubusercontent.com/pletzer/nextsimroms_apptainer/refs/heads/main/packages/iceshelf_roms/makefile
+    # cd Compilers
+    # mv Linux-gfortran.mk Linux-gfortran.mk.ori
+    # wget --no-check-certificate https://raw.githubusercontent.com/pletzer/nextsimroms_apptainer/refs/heads/main/packages/iceshelf_roms/Compilers/Linux-gfortran.mk
+    # cd ..
+    # make clean
+    # make
+    # cp ./oceanM $INSTALL_DIR/bin
 
     #
     # OASIS-MCT
     #
-    YAXT_VERSION="0.11.3"
-    FYAML_VERSION="0.9"
     
     # yaxt
+    YAXT_VERSION="0.11.3"
     cd $BUILD_DIR
     wget https://swprojects.dkrz.de/redmine/attachments/download/541/yaxt-${YAXT_VERSION}.tar.gz
     tar xf yaxt-${YAXT_VERSION}.tar.gz
@@ -100,6 +99,7 @@ From: /home/pletzera/nextsimroms_apptainer/nextsim.sif
     ls -l ${INSTALL_DIR}/bin
 
     # fyaml
+    FYAML_VERSION="0.9"
     cd $BUILD_DIR
     wget https://github.com/pantoniou/libfyaml/archive/refs/tags/v${FYAML_VERSION}.tar.gz
     tar xf v${FYAML_VERSION}.tar.gz
@@ -114,47 +114,47 @@ From: /home/pletzera/nextsimroms_apptainer/nextsim.sif
     ls -l ${INSTALL_DIR}/include
     ls -l ${INSTALL_DIR}/bin
 
-    # YAC
-    cd $BUILD_DIR
-    git clone https://gitlab.dkrz.de/dkrz-sw/yac.git
-    cd yac
-    git checkout tags/v3.5.2
-    mkdir build
-    cd build
-    FC=$MPIF90 CC=$MPICC MPI_LAUNCH=mpiexec ../configure --prefix=$INSTALL_DIR --disable-mpi-checks
-    make -j 4
-    make install
-    cd ../../
-    rm -rf yac
-    ls -l ${INSTALL_DIR}/lib
-    ls -l ${INSTALL_DIR}/include
-    ls -l ${INSTALL_DIR}/bin
+    # # YAC
+    # cd $BUILD_DIR
+    # git clone https://gitlab.dkrz.de/dkrz-sw/yac.git
+    # cd yac
+    # git checkout tags/v3.5.2
+    # mkdir build
+    # cd build
+    # FC=$MPIF90 CC=$MPICC MPI_LAUNCH=mpiexec ../configure --prefix=$INSTALL_DIR --disable-mpi-checks
+    # make -j 4
+    # make install
+    # cd ../../
+    # rm -rf yac
+    # ls -l ${INSTALL_DIR}/lib
+    # ls -l ${INSTALL_DIR}/include
+    # ls -l ${INSTALL_DIR}/bin
 
-    # oasis3-mct
-    cd $BUILD_DIR
-    git clone https://gitlab.com/cerfacs/oasis3-mct.git
-    cd oasis3-mct
-    git fetch --all
-    git checkout OASIS3-MCT_5.2
+    # # oasis3-mct
+    # cd $BUILD_DIR
+    # git clone https://gitlab.com/cerfacs/oasis3-mct.git
+    # cd oasis3-mct
+    # git fetch --all
+    # git checkout OASIS3-MCT_5.2
 
-    # need to patch file lib/psmile/src/GPTLget_memusage.c, see https://cerfacs.fr/site-oasis/forum/oa_main.php?c=177
-    f="lib/psmile/src/GPTLget_memusage.c"
-    cp $f ${f}_ori
-    cat ${f}_ori | perl -ne "s/pid > 999999/pid > 4194304/;print;" > $f
+    # # need to patch file lib/psmile/src/GPTLget_memusage.c, see https://cerfacs.fr/site-oasis/forum/oa_main.php?c=177
+    # f="lib/psmile/src/GPTLget_memusage.c"
+    # cp $f ${f}_ori
+    # cat ${f}_ori | perl -ne "s/pid > 999999/pid > 4194304/;print;" > $f
 
 
-    # absolute path where the source resides
-    export COUPLE=$PWD
-    export OASIS_COUPLE=$COUPLE
-    # directory where the mods and libs will be installed
-    export ARCHDIR=${INSTALL_DIR}/oasis3-mct
-    cd util/make_dir
-    mv make.inc make.inc.ori
-    echo 'include $(COUPLE)/util/make_dir/make.gcc' > make.inc
-    wget https://raw.githubusercontent.com/pletzer/nextsimroms_apptainer/refs/heads/main/packages/oasis3-mct/make.gcc
-    cat make.gcc
-    cat make.inc
-    make -f TopMakefileOasis3 static-libs
+    # # absolute path where the source resides
+    # export COUPLE=$PWD
+    # export OASIS_COUPLE=$COUPLE
+    # # directory where the mods and libs will be installed
+    # export ARCHDIR=${INSTALL_DIR}/oasis3-mct
+    # cd util/make_dir
+    # mv make.inc make.inc.ori
+    # echo 'include $(COUPLE)/util/make_dir/make.gcc' > make.inc
+    # wget https://raw.githubusercontent.com/pletzer/nextsimroms_apptainer/refs/heads/main/packages/oasis3-mct/make.gcc
+    # cat make.gcc
+    # cat make.inc
+    # make -f TopMakefileOasis3 static-libs
 
     # # Build ESMF
     # version="8.7.0"
