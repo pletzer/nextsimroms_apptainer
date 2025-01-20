@@ -1,0 +1,60 @@
+BootStrap: docker
+From: intel/oneapi-hpckit:devel-ubuntu22.04 
+
+%help
+    Build a portable version of the development tools, including MPI
+
+%environment
+
+    export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+    export PATH=/usr/local/bin:$PATH
+
+    # OASIS3-MCT
+    export COUPLE=/usr/local/build/oasis3-mct
+    export ARCHDIR=/usr/local/oasis3-mct/build-static
+
+
+%post
+
+    # versions
+    export BUILD_DIR=/usr/local/build
+    export INSTALL_DIR=/usr/local/
+    export PATH=${INSTALL_DIR}/bin:$PATH
+    export LD_LIBRARY_PATH=${INSTALL_DIR}/lib:$LD_LIBRARY_PATH
+
+
+    apt-get update && apt-get upgrade -y
+
+    apt-get update && apt-get install -y --no-install-recommends \
+        ca-certificates \
+        ksh \
+        wget \
+        git \
+        tar \
+        gzip \
+        perl \
+        python3 libpython3-dev python3-pip python3-venv \
+        python-is-python3 \
+        automake \
+        autoconf \
+        libtool \
+        flex \
+        hwloc \
+        pkg-config \
+        zlib1g-dev \
+        libssl-dev \
+        openssl \
+        make gfortran gcc g++ \
+        cmake \
+        vim \
+        libtool \
+        curl \
+        libcurl4-openssl-dev \
+        libxml2-dev \
+        gdb \
+        liblapack-dev \
+        valgrind \
+        zip nano \
+        python3-numpy python3-mpi4py \
+         && rm -rf /var/lib/apt/lists/*
+ 
