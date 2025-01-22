@@ -19,16 +19,8 @@ From: base-dev.sif
     NETCDF_C_VERSION="4.9.2"
     NETCDF_CXX_VERSION="4.3.1"
     NETCDF_FORTRAN_VERSION="4.6.1"
-
-    # Boost
     BOOST_VERSION="1.67.0"
-    cd /usr/local
-    boost_version_underscore=$(echo $BOOST_VERSION | perl -ne "s/\./_/g;print;")
-    wget https://sourceforge.net/projects/boost/files/boost/${BOOST_VERSION}/boost_${boost_version_underscore}.tar.gz
-    # Boost is a header only library, so just untar 
-    tar xf boost_${boost_version_underscore}.tar.gz
-    # clean up
-    rm -f boost_${boost_version_underscore}.tar.gz
+
 
     # for compiler in "ifort" "gfortran"; do
     # gmsh does not compile with the g++ (multiple defintitions)
@@ -41,10 +33,12 @@ From: base-dev.sif
             export MPIF90=mpif90
             export MPICC=mpicc
             export MPICXX=mpicxx
-     elif [ $compiler = "ifort" ]; then
+            export BOOST_TOOLSET=gcc
+        elif [ $compiler = "ifort" ]; then
             export MPIF90=mpiifort
             export MPICC=mpiicc
             export MPICXX=mpiicc
+            export BOOST_TOOLSET=intel-linux
         else
             exit 1
         fi
@@ -53,6 +47,19 @@ From: base-dev.sif
         export LD_LIBRARY_PATH=${INSTALL_DIR}/lib:$LD_LIBRARY_PATH
 
         mkdir -p $BUILD_DIR
+
+        # Boost
+        cd $BUILD_DIR
+        boost_version_underscore=$(echo $BOOST_VERSION | perl -ne "s/\./_/g;print;")
+        wget https://sourceforge.net/projects/boost/files/boost/${BOOST_VERSION}/boost_${boost_version_underscore}.tar.gz
+        tar xf boost_${boost_version_underscore}.tar.gz
+        cd boost_${boost_version_underscore}
+        ./bootstrap.sh --with-toolset=$BOOST_TOOLSET --without-libraries=python --prefix=$INSTALL_PREFIX
+        ./b2
+        # clean up
+        cd ..
+        rm -f boost_${boost_version_underscore}.tar.gz
+
 
         # GMSH
         GMSH_VERSION="3.0.6"
