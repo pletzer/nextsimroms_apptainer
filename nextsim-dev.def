@@ -54,8 +54,9 @@ From: base-dev.sif
         wget https://sourceforge.net/projects/boost/files/boost/${BOOST_VERSION}/boost_${boost_version_underscore}.tar.gz
         tar xf boost_${boost_version_underscore}.tar.gz
         cd boost_${boost_version_underscore}
-        ./bootstrap.sh --with-toolset=$BOOST_TOOLSET --without-libraries=python --prefix=$INSTALL_PREFIX
+        ./bootstrap.sh --with-toolset=$BOOST_TOOLSET --without-libraries=python --prefix=$INSTALL_DIR
         ./b2
+        ./b2 --prefix=${DST_DIR} install
         # clean up
         cd ..
         rm -f boost_${boost_version_underscore}.tar.gz
