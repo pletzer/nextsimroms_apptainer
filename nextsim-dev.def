@@ -55,11 +55,11 @@ From: base-dev.sif
         tar xf boost_${boost_version_underscore}.tar.gz
         cd boost_${boost_version_underscore}
         ./bootstrap.sh --with-toolset=$BOOST_TOOLSET --without-libraries=python --prefix=$INSTALL_DIR
-        ./b2
-        ./b2 --prefix=${DST_DIR} install
+        ./b2 -j 4
+        ./b2 --prefix=${INSTALL_DIR} install -j 4
         # clean up
         cd ..
-        rm -f boost_${boost_version_underscore}.tar.gz
+        rm -rf boost_${boost_version_underscore}*
 
 
         # GMSH
