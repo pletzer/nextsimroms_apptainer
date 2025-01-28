@@ -150,7 +150,20 @@ From: base-dev.sif
         ls -l ${INSTALL_DIR}/include
         ls -l ${INSTALL_DIR}/bin
 
-
+        # Aerobulk
+        cd $BUILD_DIR
+        git clone https://github.com/brodeau/aerobulk.git
+        cd aerobulk
+        wget https://raw.githubusercontent.com/pletzer/nextsimroms_apptainer/refs/heads/main/packages/aerobulk/make.macro
+        make
+        cp mod/*.mod $INSTALL_DIR/include
+        cp lib/*.a $INSTALL_DIR/lib
+        cp include/*.hpp $INSTALL_DIR/include
+        cd ..
+        rm -rf aerobulk
+        ls -l ${INSTALL_DIR}/lib
+        ls -l ${INSTALL_DIR}/include
+        ls -l ${INSTALL_DIR}/bin
 
     done
 
