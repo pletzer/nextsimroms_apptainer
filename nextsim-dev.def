@@ -54,13 +54,16 @@ From: base-dev.sif
         wget https://sourceforge.net/projects/boost/files/boost/${BOOST_VERSION}/boost_${boost_version_underscore}.tar.gz
         tar xf boost_${boost_version_underscore}.tar.gz
         cd boost_${boost_version_underscore}
-        ./bootstrap.sh --with-toolset=$BOOST_TOOLSET --without-libraries=python --prefix=$INSTALL_DIR
+        #./bootstrap.sh --with-toolset=$BOOST_TOOLSET --without-libraries=python --prefix=$INSTALL_DIR
+        # building boost with  mpi: https://www.boost.org/doc/libs/1_62_0/doc/html/mpi/getting_started.html
+        ./bootstrap.sh --with-toolset=$BOOST_TOOLSET \
+            --with-libraries=program_options,filesystem,system,mpi,serialization,date_time
+        echo "using mpi : mpiicc ;" >> project-config.jam
         ./b2 -j 4
         ./b2 --prefix=${INSTALL_DIR} install -j 4
         # clean up
         cd ..
         rm -rf boost_${boost_version_underscore}*
-
 
         # GMSH
         GMSH_VERSION="3.0.6"
