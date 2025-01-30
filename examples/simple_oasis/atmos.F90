@@ -7,11 +7,14 @@ PROGRAM ocean
 
   integer :: ier, local_comm, coupl_comm, npes, mype
   integer :: comp_id, partition_id, paral(3), flag
+  integer :: var_id(1) ! number of coupling fields
+  integer :: var_nodims(2)
+  integer :: var_actual_shape(2)
   integer, parameter :: nlon = 2, nlat = 3
   integer :: i, j
   real(8) :: lon_min = 0, lon_max = 10, lat_min = -80, lat_max = -70, dlon, dlat
   real(8) :: lons(nlon, nlat), lats(nlon, nlat)
-  
+
   character(len=32) :: comp_name = 'atmos'
 
   call MPI_Init(ier)
@@ -21,7 +24,8 @@ PROGRAM ocean
   print *, comp_name, ' [', mype, '] out of ', npes
   !
   ! coupled = .FALSE. to start with
-  call oasis_init_comp(comp_id, comp_name, ier, .FALSE., local_comm)
+  ! call oasis_init_comp(comp_id, comp_name, ier, .FALSE., local_comm)
+  call oasis_init_comp(comp_id, comp_name, ier, .TRUE., local_comm)
 
   call oasis_get_localcomm(local_comm, ier)
 
@@ -48,7 +52,15 @@ PROGRAM ocean
   call oasis_write_grid(comp_name, nlon, nlat, lons, lats, partition_id)
   call oasis_terminate_grids_writing()
 
-  call oasis_enddef(ier)
+  ! variables
+  var_nodims(1) = 2 ! 2d array
+  var_nodims(2) = 1 ! not used
+  var_actual_shape(1) = 0 ! not used anymore
+  var_actual_shape(2) = 0 ! not used anymore
+  call oasis_def_var(var_id(1), 'FIELD_RECV_ATMOS', partition_id, var_nodims, OASIS_In, &
+                   & var_actual_shape, OASIS_Real, ier)
+
+                   call oasis_enddef(ier)
 
   call oasis_terminate(ier)
 

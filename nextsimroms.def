@@ -114,47 +114,47 @@ From: /home/pletzera/nextsimroms_apptainer/nextsim.sif
     ls -l ${INSTALL_DIR}/include
     ls -l ${INSTALL_DIR}/bin
 
-    # # YAC
-    # cd $BUILD_DIR
-    # git clone https://gitlab.dkrz.de/dkrz-sw/yac.git
-    # cd yac
-    # git checkout tags/v3.5.2
-    # mkdir build
-    # cd build
-    # FC=$MPIF90 CC=$MPICC MPI_LAUNCH=mpiexec ../configure --prefix=$INSTALL_DIR --disable-mpi-checks
-    # make -j 4
-    # make install
-    # cd ../../
-    # rm -rf yac
-    # ls -l ${INSTALL_DIR}/lib
-    # ls -l ${INSTALL_DIR}/include
-    # ls -l ${INSTALL_DIR}/bin
+    # YAC
+    cd $BUILD_DIR
+    git clone https://gitlab.dkrz.de/dkrz-sw/yac.git
+    cd yac
+    git checkout tags/v3.5.2
+    mkdir build
+    cd build
+    FC=$MPIF90 CC=$MPICC MPI_LAUNCH=mpiexec ../configure --prefix=$INSTALL_DIR --disable-mpi-checks
+    make -j 4
+    make install
+    cd ../../
+    rm -rf yac
+    ls -l ${INSTALL_DIR}/lib
+    ls -l ${INSTALL_DIR}/include
+    ls -l ${INSTALL_DIR}/bin
 
-    # # oasis3-mct
-    # cd $BUILD_DIR
-    # git clone https://gitlab.com/cerfacs/oasis3-mct.git
-    # cd oasis3-mct
-    # git fetch --all
-    # git checkout OASIS3-MCT_5.2
+    # oasis3-mct
+    cd $BUILD_DIR
+    git clone https://gitlab.com/cerfacs/oasis3-mct.git
+    cd oasis3-mct
+    git fetch --all
+    git checkout OASIS3-MCT_5.2
 
-    # # need to patch file lib/psmile/src/GPTLget_memusage.c, see https://cerfacs.fr/site-oasis/forum/oa_main.php?c=177
-    # f="lib/psmile/src/GPTLget_memusage.c"
-    # cp $f ${f}_ori
-    # cat ${f}_ori | perl -ne "s/pid > 999999/pid > 4194304/;print;" > $f
+    # need to patch file lib/psmile/src/GPTLget_memusage.c, see https://cerfacs.fr/site-oasis/forum/oa_main.php?c=177
+    f="lib/psmile/src/GPTLget_memusage.c"
+    cp $f ${f}_ori
+    max_num_threads=$(cat /proc/sys/kernel/pid_max)
+    cat ${f}_ori | perl -ne "s/pid > 999999/pid > ${max_num_threads}/;print;" > $f
 
-
-    # # absolute path where the source resides
-    # export COUPLE=$PWD
-    # export OASIS_COUPLE=$COUPLE
-    # # directory where the mods and libs will be installed
-    # export ARCHDIR=${INSTALL_DIR}/oasis3-mct
-    # cd util/make_dir
-    # mv make.inc make.inc.ori
-    # echo 'include $(COUPLE)/util/make_dir/make.gcc' > make.inc
-    # wget https://raw.githubusercontent.com/pletzer/nextsimroms_apptainer/refs/heads/main/packages/oasis3-mct/make.gcc
-    # cat make.gcc
-    # cat make.inc
-    # make -f TopMakefileOasis3 static-libs
+    # absolute path where the source resides
+    export COUPLE=$PWD
+    export OASIS_COUPLE=$COUPLE
+    # directory where the mods and libs will be installed
+    export ARCHDIR=${INSTALL_DIR}/oasis3-mct
+    cd util/make_dir
+    mv make.inc make.inc.ori
+    echo 'include $(COUPLE)/util/make_dir/make.gcc' > make.inc
+    wget https://raw.githubusercontent.com/pletzer/nextsimroms_apptainer/refs/heads/main/packages/oasis3-mct/make.gcc
+    cat make.gcc
+    cat make.inc
+    make -f TopMakefileOasis3 static-libs
 
     # # Build ESMF
     # version="8.7.0"

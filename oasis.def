@@ -11,7 +11,7 @@ From: netcdf-dev.sif
 
     # OASIS3-MCT
     export COUPLE=/usr/local/build/oasis3-mct
-    export ARCHDIR=/usr/local/oasis3-mct/build-static
+    export ARCHDIR=/usr/local/oasis3-mct
 
 
 %post
@@ -85,12 +85,12 @@ From: netcdf-dev.sif
     git fetch --all
     git checkout OASIS3-MCT_5.2
 
-    # # need to patch file lib/psmile/src/GPTLget_memusage.c, see https://cerfacs.fr/site-oasis/forum/oa_main.php?c=177
-    # f="lib/psmile/src/GPTLget_memusage.c"
-    # cp $f ${f}_ori
-    # max_num_threads=$(cat /proc/sys/kernel/pid_max)
-    # cat ${f}_ori | perl -ne "s/pid > 999999/pid > ${max_num_threads}/;print;" > $f
-    # #diff $f ${f}_ori
+    # need to patch file lib/psmile/src/GPTLget_memusage.c, see https://cerfacs.fr/site-oasis/forum/oa_main.php?c=177
+    f="lib/psmile/src/GPTLget_memusage.c"
+    cp $f ${f}_ori
+    max_num_threads=$(cat /proc/sys/kernel/pid_max)
+    cat ${f}_ori | perl -ne "s/pid > 999999/pid > ${max_num_threads}/;print;" > $f
+    #diff $f ${f}_ori
 
     # absolute path where the source resides
     export COUPLE=$PWD

@@ -25,7 +25,8 @@ default: all
 all: ocean atmos 
 #
 run: ocean atmos
-	mpiexec --verbose -n 2 ./ocean : -n 1 ./atmos
+	-make clean
+	mpiexec -n 1 ./ocean : -n 1 ./atmos
 #
 #-------------------------------------------------------------------------------
 # Rules for executables
@@ -55,6 +56,8 @@ help:
 # Clean directory
 #
 clean:
-	-rm -f *.o *.mod *.MOD ocean atmos
+	-rm -f *.o *.mod *.MOD
 	-rm -f i.*.F90 *.L
 	-rm -f core core.* 
+	-rm -f debug.??.*
+	-rm nout.*

@@ -84,6 +84,26 @@ This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 ```
 
+## Compiling NeXTSim
+
+```
+apptainer shell nextsim-dev.sif
+git clone git@github.com:nansencenter/nextsim.git
+cd nextsim
+git checkout apptainer 
+source env_compile_intel_linux.bash
+
+cd contrib/mapx/src
+make -j 4
+
+cd ../../bamg/src
+make -j 4
+
+cd ../../../core/src
+make -j 4
+
+```
+
 ## Compiling the OASIS3-MCT examples on Mahuika
 
 ### Start an Apptainer shell

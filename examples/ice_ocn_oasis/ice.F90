@@ -88,7 +88,7 @@ PROGRAM ice
   !
   ! Definition of the local partition
   call def_local_partition(nlon_ice, nlat_ice, npes, mype, &
-  	     		 il_extentx, il_extenty, il_size, il_offsetx, il_offsety, il_offset)
+      &  il_extentx, il_extenty, il_size, il_offsetx, il_offsety, il_offset)
   WRITE(w_unit,*) 'Local partition definition'
   WRITE(w_unit,*) 'il_extentx, il_extenty, il_size, il_offsetx, il_offsety, il_offset = ', &
                    il_extentx, il_extenty, il_size, il_offsetx, il_offsety, il_offset

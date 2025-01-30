@@ -168,6 +168,42 @@ From: base-dev.sif
         ls -l ${INSTALL_DIR}/include
         ls -l ${INSTALL_DIR}/bin
 
+
+
+        # oasis3-mct
+        cd $BUILD_DIR
+        git clone https://gitlab.com/cerfacs/oasis3-mct.git
+        cd oasis3-mct
+        git fetch --all
+        git checkout OASIS3-MCT_5.2
+
+        # need to patch file lib/psmile/src/GPTLget_memusage.c, see https://cerfacs.fr/site-oasis/forum/oa_main.php?c=177
+        f="lib/psmile/src/GPTLget_memusage.c"
+        cp $f ${f}_ori
+        max_num_threads=$(cat /proc/sys/kernel/pid_max)
+        cat ${f}_ori | perl -ne "s/pid > 999999/pid > ${max_num_threads}/;print;" > $f
+        #diff $f ${f}_ori
+
+        # absolute path where the source resides
+        export COUPLE=$PWD
+        export OASIS_COUPLE=$COUPLE
+        # directory where the mods and libs will be installed
+        export ARCHDIR=${INSTALL_DIR}/oasis3-mct
+        cd util/make_dir
+        mv make.inc make.inc.ori
+        #echo "include \$(COUPLE)/util/make_dir/make.${compiler}" > make.inc
+        echo "include \$(COUPLE)/util/make_dir/make-debug.${compiler}" > make.inc
+        #wget https://raw.githubusercontent.com/pletzer/nextsimroms_apptainer/refs/heads/main/packages/oasis3-mct/make.${compiler}
+        wget https://raw.githubusercontent.com/pletzer/nextsimroms_apptainer/refs/heads/main/packages/oasis3-mct/make-debug.${compiler}
+        cat make-debug.${compiler}
+        cat make.inc
+
+        # debug version
+        export OASIS_DEBUG=1
+        export ARCHDIR=${INSTALL_DIR}/oasis3-mct/
+        make -f TopMakefileOasis3 static-libs
+
+
     done
 
      
