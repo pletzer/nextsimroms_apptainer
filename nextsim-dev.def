@@ -168,7 +168,55 @@ From: base-dev.sif
         ls -l ${INSTALL_DIR}/include
         ls -l ${INSTALL_DIR}/bin
 
+        # yaxt
+        YAXT_VERSION="0.11.3"
+        cd $BUILD_DIR
+        wget https://swprojects.dkrz.de/redmine/attachments/download/541/yaxt-${YAXT_VERSION}.tar.gz
+        tar xf yaxt-${YAXT_VERSION}.tar.gz
+        cd yaxt-${YAXT_VERSION}
+        mkdir build
+        cd build
+        FC=$MPIF90 CC=$MPICC ../configure --prefix=$INSTALL_DIR --without-regard-for-quality
+        make -j 4
+        make install
+        cd ../..
+        rm -rf yaxt-${YAXT_VERSION}*
+        ls -l ${INSTALL_DIR}/lib
+        ls -l ${INSTALL_DIR}/include
+        ls -l ${INSTALL_DIR}/bin
 
+        # fyaml
+        FYAML_VERSION="0.9"
+        cd $BUILD_DIR
+        wget https://github.com/pantoniou/libfyaml/archive/refs/tags/v${FYAML_VERSION}.tar.gz
+        tar xf v${FYAML_VERSION}.tar.gz
+        cd libfyaml-${FYAML_VERSION}
+        ./bootstrap.sh
+        CC=$MPICC ./configure --prefix=$INSTALL_DIR
+        make
+        make install
+        cd ..
+        rm -rf libfyaml-${FYAML_VERSION} v${FYAML_VERSION}.tar.gz
+        ls -l ${INSTALL_DIR}/lib
+        ls -l ${INSTALL_DIR}/include
+        ls -l ${INSTALL_DIR}/bin
+
+        # YAC
+        cd $BUILD_DIR
+        git clone https://gitlab.dkrz.de/dkrz-sw/yac.git
+        cd yac
+        git checkout tags/v3.5.2
+        mkdir build
+        cd build
+        FC=$MPIF90 CC=$MPICC MPI_LAUNCH=mpiexec ../configure --prefix=$INSTALL_DIR --disable-mpi-checks \
+           --with-yaxt-root=$INSTALL_DIR --with-netcdf-root=$INSTALL_DIR --with-fyaml-root=$INSTALL_DIR
+        make -j 4
+        make install
+        cd ../../
+        rm -rf yac
+        ls -l ${INSTALL_DIR}/lib
+        ls -l ${INSTALL_DIR}/include
+        ls -l ${INSTALL_DIR}/bin
 
         # oasis3-mct
         cd $BUILD_DIR
@@ -200,8 +248,14 @@ From: base-dev.sif
 
         # debug version
         export OASIS_DEBUG=1
-        export ARCHDIR=${INSTALL_DIR}/oasis3-mct/
+        export ARCHDIR=${INSTALL_DIR}/oasis3-mct/debug
         make -f TopMakefileOasis3 static-libs
+
+        # optimised version
+        export OASIS_DEBUG=0
+        export ARCHDIR=${INSTALL_DIR}/oasis3-mct/opt
+        make -f TopMakefileOasis3 static-libs
+
 
 
     done
