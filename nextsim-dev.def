@@ -6,8 +6,8 @@ From: base-dev.sif
     
 %environment
 
-    #export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
-    #export PATH=/usr/local/bin:$PATH
+    export LD_LIBRARY_PATH=/usr/local/ifort/lib:$LD_LIBRARY_PATH
+    export PATH=/usr/local/ifort/bin:$PATH
 
     # Make sure we have reasonable default paths
     export PATH="./:$PATH"

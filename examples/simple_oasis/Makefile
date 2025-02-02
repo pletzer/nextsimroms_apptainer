@@ -1,8 +1,9 @@
 #
-COUPLE := /usr/local/build/oasis3-mct
+COUPLE := /usr/local/ifort/build/oasis3-mct
 include  $(COUPLE)/util/make_dir/make.inc
-ARCHDIR :=  /usr/local/oasis3-mct
+ARCHDIR :=  /usr/local/ifort/oasis3-mct/debug
 LIBPSMILE = $(ARCHDIR)/lib/libpsmile.${CHAN}.a $(ARCHDIR)/lib/libmct.a $(ARCHDIR)/lib/libmpeu.a $(ARCHDIR)/lib/libscrip.a
+
 #
 ##### User configurable options #####
 #
@@ -33,18 +34,24 @@ run: ocean atmos
 #-------------------------------------------------------------------------------
 #
 ocean: ocean.o $(LIBPSMILE) Makefile
-	$(LD) $(LDFLAGS) -o $@ ocean.o $(LIBPSMILE) $(FLIBS) $(NETCDF_LIBRARY)
+	$(LD) $(LDFLAGS) -o $@ ocean.o def_parallel_decomposition.o read_grid.o $(LIBPSMILE) $(FLIBS) $(NETCDF_LIBRARY)
 atmos: atmos.o $(LIBPSMILE) Makefile
-	$(LD) $(LDFLAGS) -o $@ atmos.o $(LIBPSMILE) $(FLIBS) $(NETCDF_LIBRARY)
+	$(LD) $(LDFLAGS) -o $@ atmos.o def_parallel_decomposition.o read_grid.o $(LIBPSMILE) $(FLIBS) $(NETCDF_LIBRARY)
 #
 #-------------------------------------------------------------------------------
 # Rules for compilation
 #-------------------------------------------------------------------------------
 #
-ocean.o :	ocean.F90 Makefile
+ocean.o :	ocean.F90 def_parallel_decomposition.o read_grid.o
 		$(F90) $(F90FLAGS) $(CPPLOCAL_M1) -c ocean.F90
-atmos.o :	atmos.F90 Makefile
+atmos.o :	atmos.F90 def_parallel_decomposition.o read_grid.o
 		$(F90) $(F90FLAGS) $(CPPLOCAL_M2) -c atmos.F90
+
+def_parallel_decomposition.o: def_parallel_decomposition.F90
+	$(F90) $(F90FLAGS) $(CPPLOCAL_M2) -c $<
+
+read_grid.o: read_grid.F90
+	$(F90) $(F90FLAGS) $(CPPLOCAL_M2) -c $<
 #
 #-------------------------------------------------------------------------------
 # Utilities
