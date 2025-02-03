@@ -32,11 +32,11 @@ NETCDF_LIBRARY = -L$(NETCDF_LIB) -lnetcdff -lnetcdf
 # Make command
 MAKE        = gmake
 # Compilers
-F90         = mpif90 -fallow-argument-mismatch # underlying gfortran from module load mpi/openmpi/405_gcc731
+F90         = mpiifort
 F           = $(F90)
 f90         = $(F90)
 f           = $(F90)
-CC          = mpicc
+CC          = mpiicc
 # YAC compiler and options
 YCC = $(CC)
 YFC = $(F90)
