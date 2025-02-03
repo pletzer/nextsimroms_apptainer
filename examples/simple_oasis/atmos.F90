@@ -4,6 +4,9 @@ PROGRAM atmos
   USE netcdf
   !
   USE def_parallel_decomposition
+
+  use tovtk_mod
+
   !!!!!!!!!!!!!!!!! USE mod_oasis !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   USE mod_oasis
   !
@@ -52,6 +55,7 @@ PROGRAM atmos
   INTEGER               :: var_nodims(2)
   INTEGER               :: var_actual_shape(1) ! not used anymore in OASIS3-MCT
   INTEGER               :: var_type
+  character(len=128)    :: fname, ib_str, mype_str
   !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   !  INITIALISATION 
   !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -182,6 +186,10 @@ PROGRAM atmos
     field_send_atmos(:,:) =  ib*(2.-COS(dp_pi*(ACOS(COS(grid_lat_atmos(:,:)*dp_pi/90.)* &
                            COS(grid_lon_atmos(:,:)*dp_pi/90.))/dp_length)))
     !write(w_unit,*) itap_sec,minval(field_send_atmos),maxval(field_send_atmos)
+    call zero_fill(mype, 3, mype_str)
+    call zero_fill(ib, 6, ib_str)
+    fname = 'field_send_atmos_pe' // trim(mype_str) //'_ib' // trim(ib_str) // '.vtk'
+    call vtk_write_data(grid_lon_atmos, grid_lat_atmos, field_send_atmos, 'field_send_atmos', trim(fname))
     !
     !!!!!!!!!!!!!!!!!!!!!!!! OASIS_PUT !!!!!!!!!!!!!!!!!!!!!!
     CALL oasis_put(var_id(2),itap_sec, field_send_atmos, info) 

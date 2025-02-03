@@ -34,24 +34,28 @@ run: ocean atmos
 #-------------------------------------------------------------------------------
 #
 ocean: ocean.o $(LIBPSMILE) Makefile
-	$(LD) $(LDFLAGS) -o $@ ocean.o def_parallel_decomposition.o read_grid.o $(LIBPSMILE) $(FLIBS) $(NETCDF_LIBRARY)
+	$(LD) $(LDFLAGS) -o $@ ocean.o def_parallel_decomposition.o read_grid.o tovtk.o $(LIBPSMILE) $(FLIBS) $(NETCDF_LIBRARY)
 atmos: atmos.o $(LIBPSMILE) Makefile
-	$(LD) $(LDFLAGS) -o $@ atmos.o def_parallel_decomposition.o read_grid.o $(LIBPSMILE) $(FLIBS) $(NETCDF_LIBRARY)
+	$(LD) $(LDFLAGS) -o $@ atmos.o def_parallel_decomposition.o read_grid.o tovtk.o $(LIBPSMILE) $(FLIBS) $(NETCDF_LIBRARY)
 #
 #-------------------------------------------------------------------------------
 # Rules for compilation
 #-------------------------------------------------------------------------------
 #
-ocean.o :	ocean.F90 def_parallel_decomposition.o read_grid.o
+ocean.o :	ocean.F90 def_parallel_decomposition.o read_grid.o tovtk.o
 		$(F90) $(F90FLAGS) $(CPPLOCAL_M1) -c ocean.F90
-atmos.o :	atmos.F90 def_parallel_decomposition.o read_grid.o
+atmos.o :	atmos.F90 def_parallel_decomposition.o read_grid.o  tovtk.o
 		$(F90) $(F90FLAGS) $(CPPLOCAL_M2) -c atmos.F90
 
 def_parallel_decomposition.o: def_parallel_decomposition.F90
-	$(F90) $(F90FLAGS) $(CPPLOCAL_M2) -c $<
+	$(F90) $(F90FLAGS) -c $<
 
 read_grid.o: read_grid.F90
-	$(F90) $(F90FLAGS) $(CPPLOCAL_M2) -c $<
+	$(F90) $(F90FLAGS) -c $<
+
+tovtk.o: tovtk.F90
+	$(F90) $(F90FLAGS) -c $<
+
 #
 #-------------------------------------------------------------------------------
 # Utilities
