@@ -126,7 +126,7 @@ From: base-dev.sif
         cd netcdf-cxx4-${NETCDF_CXX_VERSION}
         mkdir build
         cd build
-        CPPFLAGS="$(${INSTALL_DIR}/bin/nc-config --cflags)" LDFLAGS="$(${INSTALL_DIR}/bin/nc-config --libs)" \
+        FC=$MPIF90 CC=$MPICC CXX=$MPICXX CPPFLAGS="$(${INSTALL_DIR}/bin/nc-config --cflags)" LDFLAGS="$(${INSTALL_DIR}/bin/nc-config --libs)" \
         ../configure --prefix=$INSTALL_DIR
         make
         make install
@@ -143,7 +143,7 @@ From: base-dev.sif
         cd netcdf-fortran-${NETCDF_FORTRAN_VERSION}
         mkdir build
         cd build
-        CPPFLAGS="$(${INSTALL_DIR}/bin/nc-config --cflags)" LDFLAGS="$(${INSTALL_DIR}/bin/nc-config --libs)" \
+        FC=$MPIF90 CC=$MPICC CXX=$MPICXX CPPFLAGS="$(${INSTALL_DIR}/bin/nc-config --cflags)" LDFLAGS="$(${INSTALL_DIR}/bin/nc-config --libs)" \
         ../configure --prefix=$INSTALL_DIR
         make
         make install
