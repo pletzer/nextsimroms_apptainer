@@ -19,8 +19,7 @@ COUPLE          := $(OASIS_COUPLE)
 ENABLE_YAC      = YES
 #
 # MPI command (for pyoasis scripts)
-# MPI from /softs/local/openmpi405_gcc731/bin/mpirun by module load mpi/openmpi/405_gcc731
-MPIRUN      = mpirun --oversubscribe
+MPIRUN      = mpiexec
 #
 # NETCDF library
 NETCDF_DIR = /usr/local/ifort
@@ -42,8 +41,8 @@ YCC = $(CC)
 YFC = $(F90)
 ifeq ($(OASIS_DEBUG), )
 # optimisation safe
-YCFLAGS  = -O2
-YFCFLAGS = -O2
+YCFLAGS  = -g -O2
+YFCFLAGS = -g -O2
 else
 # optimisation debug
 YCFLAGS  = -O0 -g
@@ -53,7 +52,7 @@ endif
 # YAC libraries options for models and toys link
 # Leave empty if YAC not enabled
 ifeq ($(ENABLE_YAC),YES)
-YAC_LIBRARY = -L$(ARCHDIR)/lib -L/usr/lib/x86_64-linux-gnu/ -Wl,-rpath,$(ARCHDIR)/lib \
+YAC_LIBRARY = -L/usr/local/ifort/lib \
               -lyac_utils -lyac_core -lyaxt_c -llapack -lblas
 endif
 # Static archiver
@@ -69,14 +68,14 @@ LDDYNOPT    = -shared
 #
 CPPDEF    = -Duse_comm_$(CHAN) -D__VERBOSE -DTREAT_OVERLAY
 #
-FCBASEFLAGS  := -ffree-line-length-512
+FCBASEFLAGS  :=
 CCBASEFLAGS  :=
 ifeq ($(OASIS_DEBUG), )
-	FCBASEFLAGS  += -g  -O0 -fcheck=all -fbacktrace
-	CCBASEFLAGS  += -g -O0 -fbacktrace
+	FCBASEFLAGS  += -g  -O0 -check all -traceback
+	CCBASEFLAGS  += -g -O0 -backtrace
 else
-	FCBASEFLAGS  += -g  -O0 -fcheck=all -fbacktrace
-	CCBASEFLAGS  += -g -O0 -fbacktrace
+	FCBASEFLAGS  += -g -O2
+	CCBASEFLAGS  += -g -O2
 endif
 #
 # INC_DIR : includes all *mod for each library
