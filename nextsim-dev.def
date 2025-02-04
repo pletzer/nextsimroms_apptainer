@@ -6,8 +6,13 @@ From: base-dev.sif
     
 %environment
 
+    # these are for Intel Build
     export LD_LIBRARY_PATH=/usr/local/ifort/lib:$LD_LIBRARY_PATH
     export PATH=/usr/local/ifort/bin:$PATH
+    export COUPLE=/usr/local/ifort/build/oasis3-mct
+    export OASIS_COUPLE=$COUPLE
+    export ARCHDIR=/usr/local/ifort/oasis3-mct/opt/
+
 
     # Make sure we have reasonable default paths
     export PATH="./:$PATH"
