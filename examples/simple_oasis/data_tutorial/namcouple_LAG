@@ -62,5 +62,6 @@ P  0  P  2
 SCRIPR
 #
 # Specific parameters for SCRIPR, here specifying the parameter of the BLINEAR interpolation to be used
-CONSERV LR SCALAR LATLON 1 DESTAREA FIRST
+#CONSERV LR SCALAR LATLON 1 DESTAREA FIRST
+BILINEAR LR SCALAR LATLON 1
 #
