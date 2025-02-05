@@ -200,6 +200,7 @@ From: intel/oneapi-hpckit:devel-ubuntu22.04
         cd aerobulk
         wget https://raw.githubusercontent.com/pletzer/nextsimroms_apptainer/refs/heads/main/packages/aerobulk/make.macro
         make
+        make lib/libaerobulk_cxx.a
         cp mod/*.mod $INSTALL_DIR/include
         cp lib/*.a $INSTALL_DIR/lib
         cp include/*.hpp $INSTALL_DIR/include
