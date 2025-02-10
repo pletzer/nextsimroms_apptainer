@@ -1,0 +1,329 @@
+BootStrap: docker
+From: intel/oneapi-hpckit:devel-ubuntu22.04
+
+%help
+    Build a portable version of a netcdf development environment
+    
+%environment
+
+    # these are for Intel Build
+    export LD_LIBRARY_PATH=/usr/local/ifort/lib:$LD_LIBRARY_PATH
+    export PATH=/usr/local/ifort/bin:$PATH
+    export COUPLE=/usr/local/ifort/build/oasis3-mct
+    export OASIS_COUPLE=$COUPLE
+    export ARCHDIR=/usr/local/ifort/oasis3-mct/opt/
+
+
+    # Make sure we have reasonable default paths
+    export PATH="./:$PATH"
+
+%post -c /bin/bash
+
+    apt-get update && apt-get upgrade -y
+
+    apt-get update && apt-get install -y --no-install-recommends \
+        ca-certificates \
+        ksh \
+        wget \
+        git \
+        tar \
+        gzip \
+        perl \
+        python3 libpython3-dev python3-pip python3-venv \
+        python-is-python3 \
+        automake \
+        autoconf \
+        libtool \
+        flex \
+        hwloc \
+        pkg-config \
+        zlib1g-dev \
+        libssl-dev \
+        openssl \
+        make gfortran gcc g++ \
+        cmake \
+        vim \
+        libtool \
+        curl \
+        libcurl4-openssl-dev \
+        libxml2-dev \
+        gdb \
+        liblapack-dev \
+        valgrind \
+        zip nano \
+        python3-numpy python3-mpi4py \
+         && rm -rf /var/lib/apt/lists/*
+
+
+    # versions
+    HDF5_VERSION="1.12.2"
+    NETCDF_C_VERSION="4.9.2"
+    NETCDF_CXX_VERSION="4.3.1"
+    NETCDF_FORTRAN_VERSION="4.6.1"
+    BOOST_VERSION="1.67.0"
+
+
+    # for compiler in "ifort" "gfortran"; do
+    # gmsh does not compile with the g++ (multiple defintitions)
+    for compiler in "ifort"; do
+
+        export BUILD_DIR=/usr/local/${compiler}/build
+        export INSTALL_DIR=/usr/local/${compiler}
+
+        if [ $compiler = "gfortran" ]; then
+            export MPIF90=mpif90
+            export MPICC=mpicc
+            export MPICXX=mpicxx
+            export BOOST_TOOLSET=gcc
+        elif [ $compiler = "ifort" ]; then
+            export MPIF90=mpiifort
+            export MPICC=mpiicc
+            export MPICXX=mpiicc
+            export BOOST_TOOLSET=intel-linux
+        else
+            exit 1
+        fi
+
+        export PATH=${INSTALL_DIR}/bin:$PATH
+        export LD_LIBRARY_PATH=${INSTALL_DIR}/lib:$LD_LIBRARY_PATH
+
+        mkdir -p $BUILD_DIR
+
+        # Boost
+        cd $BUILD_DIR
+        boost_version_underscore=$(echo $BOOST_VERSION | perl -ne "s/\./_/g;print;")
+        wget https://sourceforge.net/projects/boost/files/boost/${BOOST_VERSION}/boost_${boost_version_underscore}.tar.gz
+        tar xf boost_${boost_version_underscore}.tar.gz
+        cd boost_${boost_version_underscore}
+        #./bootstrap.sh --with-toolset=$BOOST_TOOLSET --without-libraries=python --prefix=$INSTALL_DIR
+        # building boost with  mpi: https://www.boost.org/doc/libs/1_62_0/doc/html/mpi/getting_started.html
+        ./bootstrap.sh --with-toolset=$BOOST_TOOLSET \
+            --with-libraries=program_options,filesystem,system,mpi,serialization,date_time
+        echo "using mpi : mpiicc ;" >> project-config.jam
+        ./b2 -j 4
+        ./b2 --prefix=${INSTALL_DIR} install -j 4
+        # clean up
+        cd ..
+        rm -rf boost_${boost_version_underscore}*
+
+        # GMSH
+        GMSH_VERSION="3.0.6"
+        cd $BUILD_DIR
+        wget https://gmsh.info/src/gmsh-${GMSH_VERSION}-source.tgz
+        tar xf gmsh-${GMSH_VERSION}-source.tgz
+        cd gmsh-${GMSH_VERSION}-source
+        mkdir build
+        cd build
+        CC=$MPICC CXX=$MPICXX cmake -DENABLE_BUILD_DYNAMIC=1 -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR ..
+        make -j 8
+        make install
+        cd ../..
+        rm -rf gmsh-${GMSH_VERSION}-source
+        ls -l ${INSTALL_DIR}/lib
+        ls -l ${INSTALL_DIR}/include
+        ls -l ${INSTALL_DIR}/bin
+
+        # hdf5
+        cd $BUILD_DIR
+        HDF5_VERSION_SHORT=$(echo $HDF5_VERSION | awk -F '.' '{print $1"."$2}')
+        wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-${HDF5_VERSION_SHORT}/hdf5-${HDF5_VERSION}/src/hdf5-${HDF5_VERSION}.tar.gz
+        tar xf hdf5-${HDF5_VERSION}.tar.gz
+        cd hdf5-${HDF5_VERSION}
+        mkdir build
+        cd build
+        which $MPICC
+        $MPICC --version
+        CC=$MPICC FC=$MPIF90 ../configure --prefix=$INSTALL_DIR --enable-parallel --enable-fortran
+        make -j 8
+        make install
+        cd ../..
+        rm -rf hdf5-${HDF5_VERSION}*
+        ls -l ${INSTALL_DIR}/lib
+        ls -l ${INSTALL_DIR}/include
+        ls -l ${INSTALL_DIR}/bin
+
+        # netcdf-c
+        cd $BUILD_DIR
+        wget https://downloads.unidata.ucar.edu/netcdf-c/${NETCDF_C_VERSION}/netcdf-c-${NETCDF_C_VERSION}.tar.gz
+        tar xf netcdf-c-${NETCDF_C_VERSION}.tar.gz
+        cd netcdf-c-${NETCDF_C_VERSION}
+        mkdir build
+        cd build
+        CPPFLAGS="-I${INSTALL_DIR}/include" \
+        LDFLAGS="-L${INSTALL_DIR}/lib -lhdf5 -lhdf5_hl" \
+        CC=$MPICC CXX=$MPICXX FC=$MPIF90 ../configure --prefix=$INSTALL_DIR
+        make -j 4
+        make install
+        cd ../..
+        rm -rf netcdf-c-${NETCDF_C_VERSION}*
+        ls -l ${INSTALL_DIR}/lib
+        ls -l ${INSTALL_DIR}/include
+        ls -l ${INSTALL_DIR}/bin
+
+        # netcdf-c++
+        cd $BUILD_DIR
+        wget https://downloads.unidata.ucar.edu/netcdf-cxx/${NETCDF_CXX_VERSION}/netcdf-cxx4-${NETCDF_CXX_VERSION}.tar.gz
+        tar xf netcdf-cxx4-${NETCDF_CXX_VERSION}.tar.gz
+        cd netcdf-cxx4-${NETCDF_CXX_VERSION}
+        mkdir build
+        cd build
+        FC=$MPIF90 CC=$MPICC CXX=$MPICXX CPPFLAGS="$(${INSTALL_DIR}/bin/nc-config --cflags)" LDFLAGS="$(${INSTALL_DIR}/bin/nc-config --libs)" \
+        ../configure --prefix=$INSTALL_DIR
+        make
+        make install
+        cd ../..
+        rm -rf netcdf-cxx4-${NETCDF_FORTRAN_VERSION}
+        ls -l ${INSTALL_DIR}/lib
+        ls -l ${INSTALL_DIR}/include
+        ls -l ${INSTALL_DIR}/bin
+
+        # netcdf-fortran
+        cd $BUILD_DIR
+        wget https://downloads.unidata.ucar.edu/netcdf-fortran/${NETCDF_FORTRAN_VERSION}/netcdf-fortran-${NETCDF_FORTRAN_VERSION}.tar.gz
+        tar xf netcdf-fortran-${NETCDF_FORTRAN_VERSION}.tar.gz
+        cd netcdf-fortran-${NETCDF_FORTRAN_VERSION}
+        mkdir build
+        cd build
+        FC=$MPIF90 CC=$MPICC CXX=$MPICXX CPPFLAGS="$(${INSTALL_DIR}/bin/nc-config --cflags)" LDFLAGS="$(${INSTALL_DIR}/bin/nc-config --libs)" \
+        ../configure --prefix=$INSTALL_DIR
+        make
+        make install
+        cd ../..
+        rm -rf netcdf-fortran-${NETCDF_FORTRAN_VERSION}*
+        ls -l ${INSTALL_DIR}/lib
+        ls -l ${INSTALL_DIR}/include
+        ls -l ${INSTALL_DIR}/bin
+
+        # Aerobulk
+        cd $BUILD_DIR
+        git clone https://github.com/brodeau/aerobulk.git
+        cd aerobulk
+        wget https://raw.githubusercontent.com/pletzer/nextsimroms_apptainer/refs/heads/main/packages/aerobulk/make.macro
+        make
+        make lib/libaerobulk_cxx.a
+        cp mod/*.mod $INSTALL_DIR/include
+        cp lib/*.a $INSTALL_DIR/lib
+        cp include/*.hpp $INSTALL_DIR/include
+        cd ..
+        rm -rf aerobulk
+        ls -l ${INSTALL_DIR}/lib
+        ls -l ${INSTALL_DIR}/include
+        ls -l ${INSTALL_DIR}/bin
+
+        # yaxt
+        YAXT_VERSION="0.11.3"
+        cd $BUILD_DIR
+        wget https://swprojects.dkrz.de/redmine/attachments/download/541/yaxt-${YAXT_VERSION}.tar.gz
+        tar xf yaxt-${YAXT_VERSION}.tar.gz
+        cd yaxt-${YAXT_VERSION}
+        mkdir build
+        cd build
+        FC=$MPIF90 CC=$MPICC ../configure --prefix=$INSTALL_DIR --without-regard-for-quality
+        make -j 4
+        make install
+        cd ../..
+        rm -rf yaxt-${YAXT_VERSION}*
+        ls -l ${INSTALL_DIR}/lib
+        ls -l ${INSTALL_DIR}/include
+        ls -l ${INSTALL_DIR}/bin
+
+        # fyaml
+        FYAML_VERSION="0.9"
+        cd $BUILD_DIR
+        wget https://github.com/pantoniou/libfyaml/archive/refs/tags/v${FYAML_VERSION}.tar.gz
+        tar xf v${FYAML_VERSION}.tar.gz
+        cd libfyaml-${FYAML_VERSION}
+        ./bootstrap.sh
+        CC=$MPICC ./configure --prefix=$INSTALL_DIR
+        make
+        make install
+        cd ..
+        rm -rf libfyaml-${FYAML_VERSION} v${FYAML_VERSION}.tar.gz
+        ls -l ${INSTALL_DIR}/lib
+        ls -l ${INSTALL_DIR}/include
+        ls -l ${INSTALL_DIR}/bin
+
+        # YAC
+        cd $BUILD_DIR
+        git clone https://gitlab.dkrz.de/dkrz-sw/yac.git
+        cd yac
+        git checkout tags/v3.5.2
+        mkdir build
+        cd build
+        FC=$MPIF90 CC=$MPICC MPI_LAUNCH=mpiexec ../configure --prefix=$INSTALL_DIR --disable-mpi-checks \
+           --with-yaxt-root=$INSTALL_DIR --with-netcdf-root=$INSTALL_DIR --with-fyaml-root=$INSTALL_DIR
+        make -j 4
+        make install
+        cd ../../
+        rm -rf yac
+        ls -l ${INSTALL_DIR}/lib
+        ls -l ${INSTALL_DIR}/include
+        ls -l ${INSTALL_DIR}/bin
+
+        # oasis3-mct
+        cd $BUILD_DIR
+        git clone https://gitlab.com/cerfacs/oasis3-mct.git
+        cd oasis3-mct
+        git fetch --all
+        git checkout OASIS3-MCT_5.2
+
+        # need to patch file lib/psmile/src/GPTLget_memusage.c, see https://cerfacs.fr/site-oasis/forum/oa_main.php?c=177
+        f="lib/psmile/src/GPTLget_memusage.c"
+        cp $f ${f}_ori
+        max_num_threads=$(cat /proc/sys/kernel/pid_max)
+        cat ${f}_ori | perl -ne "s/pid > 999999/pid > ${max_num_threads}/;print;" > $f
+        #diff $f ${f}_ori
+
+        # absolute path where the source resides
+        export COUPLE=$PWD
+        export OASIS_COUPLE=$COUPLE
+        # directory where the mods and libs will be installed
+        export ARCHDIR=${INSTALL_DIR}/oasis3-mct
+        cd util/make_dir
+        mv make.inc make.inc.ori
+        #echo "include \$(COUPLE)/util/make_dir/make.${compiler}" > make.inc
+        echo "include \$(COUPLE)/util/make_dir/make-debug.${compiler}" > make.inc
+        #wget https://raw.githubusercontent.com/pletzer/nextsimroms_apptainer/refs/heads/main/packages/oasis3-mct/make.${compiler}
+        wget https://raw.githubusercontent.com/pletzer/nextsimroms_apptainer/refs/heads/main/packages/oasis3-mct/make-debug.${compiler}
+        cat make-debug.${compiler}
+        cat make.inc
+
+        # debug version
+        export OASIS_DEBUG=1
+        export ARCHDIR=${INSTALL_DIR}/oasis3-mct/debug
+        make -f TopMakefileOasis3 static-libs
+
+        # optimised version
+        export OASIS_DEBUG=0
+        export ARCHDIR=${INSTALL_DIR}/oasis3-mct/opt
+        make -f TopMakefileOasis3 static-libs
+
+        #
+        # nextsim
+        #
+        cd $BUILD_DIR
+        git clone https://github.com/nansencenter/nextsim.git
+        cd nextsim
+        git fetch --all
+        git checkout apptainer
+        . env_compile_intel_linux.bash
+
+        # mapx
+        cd contrib/mapx/src
+        make -j 4
+
+        # bamg
+        cd ../../bamg/src
+        make -j 4
+
+        # oasis coupling module
+        cd ../../../modules/oasis/src
+        make
+
+        # nextsim
+        cd ../../../core/src
+        make -j 4
+
+    done
+
+     
