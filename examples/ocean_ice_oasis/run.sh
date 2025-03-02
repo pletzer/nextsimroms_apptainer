@@ -12,7 +12,7 @@ casename=`basename $srcdir`
 #
 ## - Name of the executables
     exe1=ocean
-    exe2=atmos
+    exe2=ice
 #
 ############### User's section #######################################
 #
