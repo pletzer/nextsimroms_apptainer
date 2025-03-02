@@ -7,7 +7,7 @@ user=`whoami`
 #
 ## - Define paths
 srcdir=`pwd`
-datadir=$srcdir/data_tutorial
+datadir=$srcdir/data
 casename=`basename $srcdir`
 #
 ## - Name of the executables
@@ -54,115 +54,11 @@ cp -f $srcdir/$exe2 $rundir/.
 cp -f $datadir/namcouple_LAG $rundir/namcouple
 cd $rundir
 ######################################################################
-### 2. Definition of mpirun command and batch script
+### 2. Model execution or batch submission
 #
-if [ $arch == training ]; then
-    MPIRUN=/usr/local/intel/impi/2018.1.163/bin64/mpirun
-elif [ $arch == gfortran_openmpi_openmp_linux ]; then
-    MPIRUN=/usr/lib64/openmpi/bin/mpirun
-elif [ $arch == pgi_openmpi_openmp_linux ]; then
-    MPIRUN=/usr/local/pgi/linux86-64/18.7/mpi/openmpi-2.1.2/bin/mpirun
-elif [ $arch == gnu1020_openmpi_openmp_linux ]; then
-    MPIRUN=/usr/local/openmpi/4.1.0_gcc1020/bin/mpirun
-elif [ $arch == pgi20.4_openmpi_openmp_linux ]; then
-    MPIRUN=/usr/local/pgi/linux86-64/20.4/mpi/openmpi-3.1.3/bin/mpirun
-elif [ $arch == belenos ] ; then
-   (( nproc = $nproc_exe1 + $nproc_exe2 ))
-  cat <<EOF > $rundir/run_$casename.$arch
-#!/bin/bash
-#SBATCH --exclusive
-#SBATCH --partition=normal256
-#SBATCH --time=00:10:00
-#SBATCH --job-name=spoc     # job name
-#SBATCH -N 1                # number of nodes
-#SBATCH -n $nproc                # number of procs
-#SBATCH -o $rundir/$casename.o
-#SBATCH -e $rundir/$casename.e
+echo 'Executing the model using mpirun'
 ulimit -s unlimited
-cd $rundir
-module load intelmpi/2018.5.274
-module load intel/2018.5.274
-module load netcdf-fortran/4.5.2_V2
-#
-export KMP_STACKSIZE=1GB
-export I_MPI_WAIT_MODE=enable
-#
-time mpirun -np $nproc_exe1 ./$exe1 : -np $nproc_exe2 ./$exe2
-#
-EOF
-#
-elif [ ${arch} == nemo_lenovo ] ; then
-  MPIRUN=mpirun
-  (( nproc = $nproc_exe1 + $nproc_exe2 ))
-  cat <<EOF > $rundir/run_$casename.$arch
-#!/bin/bash -l
-# Nom du job
-#SBATCH --job-name spoc
-# Temps limite du job
-#SBATCH --time=00:10:00
-#SBATCH --partition debug
-#SBATCH --output=$rundir/$casename.o
-#SBATCH --error=$rundir/$casename.e
-# Nombre de noeuds et de processus
-#SBATCH --nodes=1 --ntasks-per-node=$nproc
-#SBATCH --distribution cyclic
-cd $rundir
-ulimit -s unlimited
-#SPOC module purge
-#SPOC module -s load compiler/intel/2015.2.164 mkl/2015.2.164 mpi/intelmpi/5.0.3.048
-#
-time $MPIRUN -np $nproc_exe1 ./$exe1 : -np $nproc_exe2 ./$exe2
-#
-EOF
-elif [ ${arch} == kraken ] ; then
-  (( nproc = $nproc_exe1 + $nproc_exe2 ))
-  cat <<EOF > $rundir/run_$casename.$arch
-#!/bin/bash -l
-#SBATCH --partition prod
-# Nom du job
-#SBATCH --job-name spoc
-# Temps limite du job
-#SBATCH --time=00:10:00
-#SBATCH --output=$rundir/$casename.o
-#SBATCH --error=$rundir/$casename.e
-# Nombre de noeuds et de processus
-#SBATCH --nodes=1 --ntasks-per-node=$nproc
-#SBATCH --distribution cyclic
-
-cd $rundir
-
-ulimit -s unlimited
-module purge
-module load compiler/intel/18.0.1.163
-module load mpi/intelmpi/2018.1.163
-module load lib/netcdf-fortran/4.4.4_impi
-module load lib/phdf5/1.8.20_impi
-
-time mpirun -np $nproc_exe1 ./$exe1 : -np $nproc_exe2 ./$exe2
-EOF
-
-fi 
-  
-######################################################################
-### 3. Model execution or batch submission
-#
-if [ $arch == training ] || [ $arch == gfortran_openmpi_openmp_linux ] || [ $arch == gnu1020_openmpi_openmp_linux ] || [ $arch == pgi_openmpi_openmp_linux ] || [ $arch == pgi20.4_openmpi_openmp_linux ]; then
-    export OMP_NUM_THREADS=1
-    echo 'Executing the model using '$MPIRUN 
-    $MPIRUN -oversubscribe -np $nproc_exe1 ./$exe1 : -np $nproc_exe2 ./$exe2 
-elif [ $arch == belenos ]; then
-    echo 'Submitting the job to queue using sbatch'
-    sbatch $rundir/run_$casename.$arch
-    squeue -u $user
-elif [ ${arch} == nemo_lenovo ] || [ ${arch} == kraken ]; then
-    echo 'Submitting the job to queue using sbatch'
-    sbatch $rundir/run_$casename.$arch
-    squeue -u $user
-elif [ ${arch} == mac ]; then
-    echo 'Executing the model using mpirun'
-    ulimit -s unlimited
-    mpirun -np $nproc_exe1 ./$exe1 : -np $nproc_exe2 ./$exe2
-fi
+mpirun -np $nproc_exe1 ./$exe1 : -np $nproc_exe2 ./$exe2
 echo $casename 'is executed or submitted to queue.'
 echo 'Results are found in rundir : '$rundir 
 #
