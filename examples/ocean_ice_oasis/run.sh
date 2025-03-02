@@ -7,30 +7,30 @@ user=`whoami`
 #
 ## - Define paths
 srcdir=`pwd`
-datadir=$srcdir/data_spoc
+datadir=$srcdir/data_tutorial
 casename=`basename $srcdir`
 #
 ## - Name of the executables
     exe1=ocean
-    exe2=ice
+    exe2=atmos
 #
 ############### User's section #######################################
 #
 ## - Define architecture and coupler 
-arch=apptainer #pgi_openmpi_openmp_linux  # training, belenos, nemo_lenovo, mac 
+arch=mac  # training, belenos, nemo_lenovo, mac 
               # kraken, gfortran_openmpi_openmp_linux
 	      # pgi_openmpi_openmp_linux, 
 	      # pgi20.4_openmpi_openmp_linux (not work with 4.0)
 	      # gnu1020_openmpi_openmp_linux (not work with 4.0)
 #
 # - Define number of processes to run each executable
-    nproc_exe1=2
-    nproc_exe2=1
+    nproc_exe1=4
+    nproc_exe2=4
 #
 ############### End of user's section ################################
 #
 # - Define rundir
-    rundir=${srcdir}/work_${casename}_${nproc_exe1}_${nproc_exe2}
+    rundir=${srcdir}/work_${casename}_${nproc_exe1}_${nproc_exe2}_oa
 #
 echo '*****************************************************************'
 echo '*** '$casename' : '$run
@@ -51,15 +51,13 @@ mkdir -p $rundir
 cp -f $datadir/*nc  $rundir/.
 cp -f $srcdir/$exe1 $rundir/.
 cp -f $srcdir/$exe2 $rundir/.
-cp -f $datadir/namcouple $rundir/.
+cp -f $datadir/namcouple_LAG $rundir/namcouple
 cd $rundir
 ######################################################################
 ### 2. Definition of mpirun command and batch script
 #
 if [ $arch == training ]; then
     MPIRUN=/usr/local/intel/impi/2018.1.163/bin64/mpirun
-elif [ $arch == apptainer ]; then
-    MPIRUN=mpiexec
 elif [ $arch == gfortran_openmpi_openmp_linux ]; then
     MPIRUN=/usr/lib64/openmpi/bin/mpirun
 elif [ $arch == pgi_openmpi_openmp_linux ]; then
@@ -148,7 +146,7 @@ fi
 ######################################################################
 ### 3. Model execution or batch submission
 #
-if [ $arch == apptainer ] || [ $arch == training ] || [ $arch == gfortran_openmpi_openmp_linux ] || [ $arch == gnu1020_openmpi_openmp_linux ] || [ $arch == pgi_openmpi_openmp_linux ] || [ $arch == pgi20.4_openmpi_openmp_linux ]; then
+if [ $arch == training ] || [ $arch == gfortran_openmpi_openmp_linux ] || [ $arch == gnu1020_openmpi_openmp_linux ] || [ $arch == pgi_openmpi_openmp_linux ] || [ $arch == pgi20.4_openmpi_openmp_linux ]; then
     export OMP_NUM_THREADS=1
     echo 'Executing the model using '$MPIRUN 
     $MPIRUN -oversubscribe -np $nproc_exe1 ./$exe1 : -np $nproc_exe2 ./$exe2 
@@ -163,7 +161,7 @@ elif [ ${arch} == nemo_lenovo ] || [ ${arch} == kraken ]; then
 elif [ ${arch} == mac ]; then
     echo 'Executing the model using mpirun'
     ulimit -s unlimited
-    mpirun --oversubscribe -np $nproc_exe1 ./$exe1 : -np $nproc_exe2 ./$exe2
+    mpirun -np $nproc_exe1 ./$exe1 : -np $nproc_exe2 ./$exe2
 fi
 echo $casename 'is executed or submitted to queue.'
 echo 'Results are found in rundir : '$rundir 

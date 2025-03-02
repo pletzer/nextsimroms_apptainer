@@ -274,7 +274,10 @@ From: intel/oneapi-hpckit:devel-ubuntu22.04
         cat ${f}_ori | perl -ne "s/pid > 999999/pid > ${max_num_threads}/;print;" > $f
         #diff $f ${f}_ori
 
-        
+        # remove lines (https://cerfacs.fr/site-oasis/forum/oa_main.php?c=79)
+        # causes error MCT::m_AttrVectComms::GSM_gather_: Input GlobalSegMap haloed--not allowed error, stat =1
+        cp ./lib/mct/mct/m_AttrVectComms.F90 ./lib/mct/mct/m_AttrVectComms.F90.ori
+        sed -i '693,696d' ./lib/mct/mct/m_AttrVectComms.F90
 
         # absolute path where the source resides
         export COUPLE=$PWD
