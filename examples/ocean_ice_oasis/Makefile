@@ -14,8 +14,8 @@ CPPKEYDECOMP_M2=DECOMP_APPLE
 CPPLOCAL_M1 =  -D${CPPKEYDECOMP_M1}
 CPPLOCAL_M2 = -D${CPPKEYDECOMP_M2}
 #
-OBJ_M1 =  read_grid.o def_parallel_decomposition.o
-OBJ_M2 =  read_grid.o def_parallel_decomposition_m2.o
+OBJ_M1 =  read_grid.o tovtk.o def_parallel_decomposition.o
+OBJ_M2 =  read_grid.o tovtk.o def_parallel_decomposition_m2.o
 #-------------------------------------------------------------------------------
 # General rules
 #-------------------------------------------------------------------------------
@@ -38,23 +38,19 @@ ice: $(OBJ_M2) ice.o $(LIBPSMILE) Makefile
 # Rules for compilation
 #-------------------------------------------------------------------------------
 #
-read_grid.o :		read_grid.F90
-				$(F90) $(F90FLAGS) -c $<
+%.o :		%.F90
+		$(F90) $(F90FLAGS) -c $<
+
 def_parallel_decomposition.o : 		def_parallel_decomposition.F90
-				$(F90) $(F90FLAGS) $(CPPLOCAL_M1) -c $<
+		$(F90) $(F90FLAGS) $(CPPLOCAL_M1) -c $<
 def_parallel_decomposition_m2.o : 	def_parallel_decomposition.F90
 				$(F90) $(F90FLAGS) $(CPPLOCAL_M2) -o def_parallel_decomposition_m2.o -c $<
-ocean.o :	ocean.F90 Makefile
+
+ocean.o :	ocean.F90 tovtk.o
 		$(F90) $(F90FLAGS) $(CPPLOCAL_M1) -c $<
-ice.o :	ice.F90 Makefile
+ice.o :	ice.F90 Makefile tovtk.o
 		$(F90) $(F90FLAGS) $(CPPLOCAL_M2) -c $<
 #
-#-------------------------------------------------------------------------------
-# Utilities
-#-------------------------------------------------------------------------------
-#
-help:
-	more Make.help
 #
 # Clean directory
 #
@@ -62,9 +58,3 @@ clean:
 	-rm -f *.o *.mod *.MOD ocean atmos
 	-rm -f i.*.F90 *.L
 	-rm -f core core.* 
-#
-# Make sure to recompile everything
-#
-realclean: clean remove
-remove:
-	(cd ../../util/make_dir ; $(MAKE) realclean -f TopMakefileOasis3)

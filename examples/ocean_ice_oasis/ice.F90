@@ -2,6 +2,7 @@ PROGRAM ice
   !
   ! Use for netCDF library
   USE netcdf
+  use tovtk_mod, only : vtk_write_data, zero_fill
   !
   USE def_parallel_decomposition
   !!!!!!!!!!!!!!!!! USE mod_oasis !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -169,14 +170,16 @@ PROGRAM ice
   !
   write(w_unit,*) 'Timestep, field min and max value'
   call flush(w_unit)
-  DO ib = 1,il_nb_time_steps
+  DO ib = 1, il_nb_time_steps
     !
     itap_sec = delta_t * (ib-1) ! time in seconds
     field_recv_ice=-1.0
     !
     !!!!!!!!!!!!!!!!!!!!!!!! OASIS_GET !!!!!!!!!!!!!!!!!!!!!!
-    CALL oasis_get(var_id(1),itap_sec, field_recv_ice, info)
-    write(w_unit,*) itap_sec,minval(field_recv_ice),maxval(field_recv_ice)
+    CALL oasis_get(var_id(1), itap_sec, field_recv_ice, info)
+    call vtk_write_data(grid_clo_ice, grid_cla_ice, &
+       & field_recv_ice, 'field_recv_ice', &
+       & 'field_recv_ice' // trim(zero_fill(ib, 5)) // '.vtk')
     ! 
     ! Definition of field produced by the component
     field_send_ice(:,:) =  ib*(2.-COS(dp_pi*(ACOS(COS(grid_lat_ice(:,:)*dp_pi/90.)* &
@@ -184,7 +187,7 @@ PROGRAM ice
     !write(w_unit,*) itap_sec,minval(field_send_ice),maxval(field_send_ice)
     !
     !!!!!!!!!!!!!!!!!!!!!!!! OASIS_PUT !!!!!!!!!!!!!!!!!!!!!!
-    CALL oasis_put(var_id(2),itap_sec, field_send_ice, info) 
+    CALL oasis_put(var_id(2), itap_sec, field_send_ice, info) 
     !
   ENDDO
   !
