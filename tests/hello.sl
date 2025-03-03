@@ -1,22 +1,23 @@
-#!/bin/bash -e
-#SBATCH --job-name=test      # job name (shows up in the queue)
-#SBATCH --time=00:05:00      # Walltime (HH:MM:SS)
-#SBATCH --ntasks=10
+#!/bin/bash
+#SBATCH --job-name=sendrecv_test
+#SBATCH --cpus-per-task=1
+#SBATCH --account=niwap99999
+#SBATCH --partition=niwa_work
+#SBATCH --cluster=maui_ancil
+#SBATCH --gpus-per-node=nvidia_a100_1g.10gb:1
+##SBATCH --gpus-per-node=A100:1
+#SBATCH --time=00:02:00
+echo "Date              = $(date)"
+echo "Hostname          = $(hostname -s)"
+echo "Working Directory = $(pwd)"
+echo ""
+echo "Number of Nodes Allocated      = $SLURM_JOB_NUM_NODES"
+echo "Number of Tasks Allocated      = $SLURM_NTASKS"
+echo "Number of Cores/Task Allocated = $SLURM_CPUS_PER_TASK"
 
-ml purge
-ml Apptainer
-
-#export I_MPI_FABRICS=ofi
-#export I_MPI_FABRICS=shm
-export I_MPI_DEBUG=2
-echo "communication fabric: $I_MPI_FABRICS"
-
-SIF=/nesi/nobackup/nesi99999/pletzera/sifs/nextsim.sif
-PROG=hello
-COMPILER=mpiifort
-
-# compile
-apptainer exec $SIF $COMPILER ${PROG}.f90 -o ${PROG}.exe
-
-# run
-srun apptainer exec $SIF ./${PROG}.exe
+sif=/nesi/nobackup/nesi99999/pletzera/ngarch/ngarch_apptainer/ngarch_nvhpc.sif
+module load Singularity CUDA
+#srun singularity exec --nv \
+singularity exec --nv \
+  -B/opt/niwa/um_sys/,/nesi/nobackup/nesi99999/pletzera/,/opt/nesi,/nesi/project/uoo03538/um/ \
+  $sif ./hello_nvgpu 
