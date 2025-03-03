@@ -173,6 +173,8 @@ PROGRAM ice
   DO ib = 1, il_nb_time_steps
     !
     itap_sec = delta_t * (ib-1) ! time in seconds
+
+    ! initialize
     field_recv_ice=-1.0
     !
     !!!!!!!!!!!!!!!!!!!!!!!! OASIS_GET !!!!!!!!!!!!!!!!!!!!!!
@@ -180,7 +182,7 @@ PROGRAM ice
   
     call vtk_write_data(grid_clo_ice, grid_cla_ice, &
        & field_recv_ice, 'field_recv_ice', &
-       & 'field_recv_ice' // trim(zero_fill(ib, 5)) // '.vtk')
+       & 'field_recv_ice' // trim(zero_fill(ib, 3)) // 'pe' // trim(zero_fill(mype, 2)) // '.vtk')
 
     write(w_unit,*) 'Done writing field_recv_ice in file ', 'field_recv_ice' // trim(zero_fill(ib, 5)) // '.vtk'
     ! 

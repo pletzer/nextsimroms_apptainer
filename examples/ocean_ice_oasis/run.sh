@@ -32,7 +32,7 @@ arch=mac  # training, belenos, nemo_lenovo, mac
 ############### End of user's section ################################
 #
 # - Define rundir
-    rundir=${srcdir}/work_${casename}_${nproc_exe1}_${nproc_exe2}_oa
+    rundir=${srcdir}/work_${casename}_${nproc_exe1}_${nproc_exe2}
 #
 echo '*****************************************************************'
 echo '*** '$casename' : '$run

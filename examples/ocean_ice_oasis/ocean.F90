@@ -2,6 +2,8 @@ PROGRAM ocean
   !
   ! Use for netCDF library
   USE netcdf
+  use tovtk_mod, only : vtk_write_data, zero_fill
+
   !
   USE def_parallel_decomposition
   !!!!!!!!!!!!!!!!! USE mod_oasis !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -169,14 +171,21 @@ PROGRAM ocean
   !
   write(w_unit,*) 'Timestep, field min and max value'
   call flush(w_unit)
-  DO ib = 1,il_nb_time_steps
+  DO ib = 1, il_nb_time_steps
     !
     itap_sec = delta_t * (ib-1) ! time in seconds
-    field_recv_ocean=-1.0
+
+    ! initialize
+    field_recv_ocean =  -1
+
     !
     !!!!!!!!!!!!!!!!!!!!!!!! OASIS_GET !!!!!!!!!!!!!!!!!!!!!!
     CALL oasis_get(var_id(1),itap_sec, field_recv_ocean, info)
-    write(w_unit,*) itap_sec,minval(field_recv_ocean),maxval(field_recv_ocean)
+    
+    call vtk_write_data(grid_clo_ocean, grid_cla_ocean, &
+      & field_recv_ocean, 'field_recv_ocean', &
+      & 'field_recv_ocean' // trim(zero_fill(ib, 3)) // 'pe' // trim(zero_fill(mype, 2)) // '.vtk')
+
     !
     ! Definition of field produced by the component
     field_send_ocean(:,:) =  ib*(2.-COS(dp_pi*(ACOS(COS(grid_lat_ocean(:,:)*dp_pi/180.)* &
