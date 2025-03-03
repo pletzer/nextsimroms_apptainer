@@ -1,4 +1,4 @@
-PROGRAM atmos
+PROGRAM ice
   !
   ! Use for netCDF library
   USE netcdf
@@ -12,23 +12,23 @@ PROGRAM atmos
   INCLUDE 'mpif.h'   ! Include for MPI
   !
   INTEGER :: mype, npes ! rank and number of pe
-  INTEGER :: local_comm  ! local communicator for atmos processes
-  CHARACTER(len=128) :: comp_out_atmos ! name of the output log file 
+  INTEGER :: local_comm  ! local communicator for ice processes
+  CHARACTER(len=128) :: comp_out_ice ! name of the output log file 
   CHARACTER(len=3)   :: chout
   INTEGER :: ierror, w_unit
   INTEGER :: info
   !
   ! Global grid parameters
-  INTEGER, PARAMETER :: nlon_atmos = 96, nlat_atmos = 72    ! dimensions in the 2 spatial directions
-  INTEGER, PARAMETER :: nc_atmos = 4 ! number of grid cell vertices in the (i,j) plan
+  INTEGER, PARAMETER :: nlon_ice = 96, nlat_ice = 72    ! dimensions in the 2 spatial directions
+  INTEGER, PARAMETER :: nc_ice = 4 ! number of grid cell vertices in the (i,j) plan
   !
   ! Local grid dimensions and arrays
   INTEGER :: il_extentx, il_extenty, il_offsetx, il_offsety
   INTEGER :: il_size, il_offset
-  DOUBLE PRECISION, DIMENSION(:,:),   POINTER   :: grid_lon_atmos, grid_lat_atmos ! lon, lat of the cell centers
-  DOUBLE PRECISION, DIMENSION(:,:,:), POINTER   :: grid_clo_atmos, grid_cla_atmos ! lon, lat of the cell corners
-  DOUBLE PRECISION, DIMENSION(:,:),   POINTER   :: grid_srf_atmos ! surface of the grid meshes
-  INTEGER, DIMENSION(:,:),            POINTER   :: grid_msk_atmos ! mask, 0 == valid point, 1 == masked point
+  DOUBLE PRECISION, DIMENSION(:,:),   POINTER   :: grid_lon_ice, grid_lat_ice ! lon, lat of the cell centers
+  DOUBLE PRECISION, DIMENSION(:,:,:), POINTER   :: grid_clo_ice, grid_cla_ice ! lon, lat of the cell corners
+  DOUBLE PRECISION, DIMENSION(:,:),   POINTER   :: grid_srf_ice ! surface of the grid meshes
+  INTEGER, DIMENSION(:,:),            POINTER   :: grid_msk_ice ! mask, 0 == valid point, 1 == masked point
   !
   ! For time step loop
   INTEGER               ::  ib
@@ -39,8 +39,8 @@ PROGRAM atmos
   DOUBLE PRECISION, PARAMETER    :: dp_length= 1.2*dp_pi
   !
   ! Local coupling fields arrays exchanged via oasis_get and oasis_put
-  DOUBLE PRECISION, POINTER :: field_recv_atmos(:,:)
-  DOUBLE PRECISION, POINTER :: field_send_atmos(:,:)
+  DOUBLE PRECISION, POINTER :: field_recv_ice(:,:)
+  DOUBLE PRECISION, POINTER :: field_send_ice(:,:)
   !
   ! Used in OASIS3-MCT definition calls
   INTEGER               :: compid 
@@ -61,7 +61,7 @@ PROGRAM atmos
   local_comm =  MPI_COMM_WORLD
   !
   !!!!!!!!!!!!!!!!! OASIS_INIT_COMP !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  CALL oasis_init_comp (compid,'atmos_component',ierror)
+  CALL oasis_init_comp (compid,'ice_component',ierror)
   !
   !!!!!!!!!!!!!!!!! OASIS_GET_LOCALCOMM !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   CALL oasis_get_localcomm ( local_comm, ierror )
@@ -73,11 +73,11 @@ PROGRAM atmos
   ! Unit for output messages : one file for each process
   w_unit = 100 + mype
   WRITE(chout,'(I3)') w_unit
-  comp_out_atmos='atmos.out_'//chout
+  comp_out_ice='ice.out_'//chout
   !
-  OPEN(w_unit,file=TRIM(comp_out_atmos),form='formatted')
+  OPEN(w_unit,file=TRIM(comp_out_ice),form='formatted')
   WRITE (w_unit,*) '-----------------------------------------------------------'
-  WRITE (w_unit,*) 'I am atmos process with rank :', mype
+  WRITE (w_unit,*) 'I am ice process with rank :', mype
   WRITE (w_unit,*) 'in my local communicator gathering ', npes, 'processes'
   WRITE (w_unit,*) '----------------------------------------------------------'
   CALL flush(w_unit)
@@ -87,7 +87,7 @@ PROGRAM atmos
   !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ !
   !
   ! Definition of the local partition
-  call def_local_partition(nlon_atmos, nlat_atmos, npes, mype, &
+  call def_local_partition(nlon_ice, nlat_ice, npes, mype, &
   	     		 il_extentx, il_extenty, il_size, il_offsetx, il_offsety, il_offset)
   WRITE(w_unit,*) 'Local partition definition'
   WRITE(w_unit,*) 'il_extentx, il_extenty, il_size, il_offsetx, il_offsety, il_offset = ', &
@@ -96,7 +96,7 @@ PROGRAM atmos
   !!!!!!!!!!!!!!!!! OASIS_DEF_PARTITION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   call def_paral_size (ig_paral_size)
   ALLOCATE(ig_paral(ig_paral_size))
-  call def_paral (il_offset, il_size, il_extentx, il_extenty, nlon_atmos, ig_paral_size, ig_paral)
+  call def_paral (il_offset, il_size, il_extentx, il_extenty, nlon_ice, ig_paral_size, ig_paral)
   WRITE(w_unit,*) 'ig_paral = ', ig_paral(:)
   call flush(w_unit)
   CALL oasis_def_partition (il_part_id, ig_paral, ierror)
@@ -107,25 +107,25 @@ PROGRAM atmos
   !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   !
   ! Allocation of local grid arrays
-  ALLOCATE(grid_lon_atmos(il_extentx, il_extenty), STAT=ierror )
-  ALLOCATE(grid_lat_atmos(il_extentx, il_extenty), STAT=ierror )
-  ALLOCATE(grid_clo_atmos(il_extentx, il_extenty, nc_atmos), STAT=ierror )
-  ALLOCATE(grid_cla_atmos(il_extentx, il_extenty, nc_atmos), STAT=ierror )
-  ALLOCATE(grid_srf_atmos(il_extentx, il_extenty), STAT=ierror )
-  ALLOCATE(grid_msk_atmos(il_extentx, il_extenty), STAT=ierror )
+  ALLOCATE(grid_lon_ice(il_extentx, il_extenty), STAT=ierror )
+  ALLOCATE(grid_lat_ice(il_extentx, il_extenty), STAT=ierror )
+  ALLOCATE(grid_clo_ice(il_extentx, il_extenty, nc_ice), STAT=ierror )
+  ALLOCATE(grid_cla_ice(il_extentx, il_extenty, nc_ice), STAT=ierror )
+  ALLOCATE(grid_srf_ice(il_extentx, il_extenty), STAT=ierror )
+  ALLOCATE(grid_msk_ice(il_extentx, il_extenty), STAT=ierror )
   !
   ! Reading local grid arrays from input file ocean_mesh.nc
-  CALL read_grid(nlon_atmos, nlat_atmos, nc_atmos, il_offsetx+1, il_offsety+1, il_extentx, il_extenty, &
-                'atmos_mesh.nc', w_unit, grid_lon_atmos, grid_lat_atmos, grid_clo_atmos, &
-                grid_cla_atmos, grid_srf_atmos, grid_msk_atmos)
+  CALL read_grid(nlon_ice, nlat_ice, nc_ice, il_offsetx+1, il_offsety+1, il_extentx, il_extenty, &
+                'ice_mesh.nc', w_unit, grid_lon_ice, grid_lat_ice, grid_clo_ice, &
+                grid_cla_ice, grid_srf_ice, grid_msk_ice)
   !
   !!!!!!!!!!!!!!!!! OASIS_WRITE_GRID  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   CALL oasis_start_grids_writing(flag)
-  CALL oasis_write_grid('lmdz', nlon_atmos, nlat_atmos, grid_lon_atmos, grid_lat_atmos, il_part_id)
-  CALL oasis_write_corner('lmdz', nlon_atmos, nlat_atmos, 4, grid_clo_atmos, grid_cla_atmos, il_part_id)
-  CALL oasis_write_mask('lmdz', nlon_atmos, nlat_atmos, grid_msk_atmos(:,:), il_part_id)
+  CALL oasis_write_grid('lmdz', nlon_ice, nlat_ice, grid_lon_ice, grid_lat_ice, il_part_id)
+  CALL oasis_write_corner('lmdz', nlon_ice, nlat_ice, 4, grid_clo_ice, grid_cla_ice, il_part_id)
+  CALL oasis_write_mask('lmdz', nlon_ice, nlat_ice, grid_msk_ice(:,:), il_part_id)
   CALL oasis_terminate_grids_writing()
-  WRITE(w_unit,*) 'grid_lat_atmos maximum and minimum', MAXVAL(grid_lat_atmos), MINVAL(grid_lat_atmos)
+  WRITE(w_unit,*) 'grid_lat_ice maximum and minimum', MAXVAL(grid_lat_ice), MINVAL(grid_lat_ice)
   call flush(w_unit)
   !
   !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -133,8 +133,8 @@ PROGRAM atmos
   !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   !
   ! Allocate local coupling fields
-  ALLOCATE(field_send_atmos(il_extentx, il_extenty), STAT=ierror )
-  ALLOCATE(field_recv_atmos(il_extentx, il_extenty), STAT=ierror )
+  ALLOCATE(field_send_ice(il_extentx, il_extenty), STAT=ierror )
+  ALLOCATE(field_recv_ice(il_extentx, il_extenty), STAT=ierror )
   !
   !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   !  DECLARATION OF THE COUPLING FIELDS  
@@ -172,19 +172,19 @@ PROGRAM atmos
   DO ib = 1,il_nb_time_steps
     !
     itap_sec = delta_t * (ib-1) ! time in seconds
-    field_recv_atmos=-1.0
+    field_recv_ice=-1.0
     !
     !!!!!!!!!!!!!!!!!!!!!!!! OASIS_GET !!!!!!!!!!!!!!!!!!!!!!
-    CALL oasis_get(var_id(1),itap_sec, field_recv_atmos, info)
-    write(w_unit,*) itap_sec,minval(field_recv_atmos),maxval(field_recv_atmos)
+    CALL oasis_get(var_id(1),itap_sec, field_recv_ice, info)
+    write(w_unit,*) itap_sec,minval(field_recv_ice),maxval(field_recv_ice)
     ! 
     ! Definition of field produced by the component
-    field_send_atmos(:,:) =  ib*(2.-COS(dp_pi*(ACOS(COS(grid_lat_atmos(:,:)*dp_pi/90.)* &
-                           COS(grid_lon_atmos(:,:)*dp_pi/90.))/dp_length)))
-    !write(w_unit,*) itap_sec,minval(field_send_atmos),maxval(field_send_atmos)
+    field_send_ice(:,:) =  ib*(2.-COS(dp_pi*(ACOS(COS(grid_lat_ice(:,:)*dp_pi/90.)* &
+                           COS(grid_lon_ice(:,:)*dp_pi/90.))/dp_length)))
+    !write(w_unit,*) itap_sec,minval(field_send_ice),maxval(field_send_ice)
     !
     !!!!!!!!!!!!!!!!!!!!!!!! OASIS_PUT !!!!!!!!!!!!!!!!!!!!!!
-    CALL oasis_put(var_id(2),itap_sec, field_send_atmos, info) 
+    CALL oasis_put(var_id(2),itap_sec, field_send_ice, info) 
     !
   ENDDO
   !
@@ -201,5 +201,5 @@ PROGRAM atmos
   !
   CALL MPI_Finalize(ierror)
   !
-END PROGRAM atmos
+END PROGRAM ice
 !
