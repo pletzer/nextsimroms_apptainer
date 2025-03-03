@@ -1,3 +1,20 @@
+  subroutine read_dims(data_filename, varname, nlon, nlat)
+    use netcdf
+    implicit none
+    CHARACTER(len=*), INTENT(in)   :: data_filename, varname
+    integer, intent(out) :: nlon, nlat
+    integer :: il_file_id, varid, dimids(2), dims(2)
+
+    CALL hdlerr (NF90_OPEN(data_filename, NF90_NOWRITE, il_file_id), __LINE__ )
+    CALL hdlerr( NF90_INQ_VARID(il_file_id, varname , varid), __LINE__ )
+    call hdlerr( nf90_inquire_variable(il_file_id, varid, dimids=dimids) )
+    call hdlerr( nf90_inquire_dimension(il_file_id, dimids(1), len=nlon) )
+    call hdlerr( nf90_inquire_dimension(il_file_id, dimids(2), len=nlat) )
+
+    CALL hdlerr( NF90_CLOSE(il_file_id), __LINE__ )
+  end subroutine read_dims
+  
+  
   !****************************************************************************************
   SUBROUTINE read_grid (nlon, nlat, nc, id_begi, id_begj, id_lon, id_lat, &
                               data_filename, w_unit,                       &

@@ -21,7 +21,7 @@ PROGRAM ocean
   INTEGER :: info
   !
   ! Global grid parameters
-  INTEGER, PARAMETER :: nlon_ocean = 182, nlat_ocean = 149    ! dimensions in the 2 spatial directions
+  INTEGER :: nlon_ocean, nlat_ocean   ! dimensions in the 2 spatial directions
   INTEGER, PARAMETER :: nc_ocean = 4 ! number of grid cell vertices in the (i,j) plan
   !
   ! Local grid dimensions and arrays
@@ -84,6 +84,10 @@ PROGRAM ocean
   WRITE (w_unit,*) 'in my local communicator gathering ', npes, 'processes'
   WRITE (w_unit,*) '----------------------------------------------------------'
   CALL flush(w_unit)
+
+  call read_dims('ocean_mesh.nc', 'lon', nlon_ocean, nlat_ocean)
+  WRITE(w_unit,'(A, I10, A, I10)') 'nlon_ocean = ', nlon_ocean, ' nlat_ocean = ', nlat_ocean
+
   !
   !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   !  PARTITION DEFINITION

@@ -20,7 +20,7 @@ PROGRAM ice
   INTEGER :: info
   !
   ! Global grid parameters
-  INTEGER, PARAMETER :: nlon_ice = 96, nlat_ice = 72    ! dimensions in the 2 spatial directions
+  INTEGER :: nlon_ice, nlat_ice    ! dimensions in the 2 spatial directions
   INTEGER, PARAMETER :: nc_ice = 4 ! number of grid cell vertices in the (i,j) plan
   !
   ! Local grid dimensions and arrays
@@ -82,6 +82,10 @@ PROGRAM ice
   WRITE (w_unit,*) 'in my local communicator gathering ', npes, 'processes'
   WRITE (w_unit,*) '----------------------------------------------------------'
   CALL flush(w_unit)
+
+  call read_dims('ice_mesh.nc', 'lon', nlon_ice, nlat_ice)
+  WRITE(w_unit,'(A, I10, A, I10)') 'nlon_ice = ', nlon_ice, ' nlat_ice = ', nlat_ice
+  
   !
   !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   !  PARTITION DEFINITION

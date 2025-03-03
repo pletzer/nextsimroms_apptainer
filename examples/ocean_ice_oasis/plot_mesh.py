@@ -3,33 +3,38 @@ import netCDF4
 import defopt
 import matplotlib.pyplot as plt
 
-def main(filename: str='ice_mesh.nc'):
+def main(filename: str='ice_mesh.nc', *, lonname: str='lon', latname: str='lat'):
     """
     :param filename: netcdf file name
+    :param lonname: name of the longitude corners variable
+    :param latname: name of the latitude coners variable
     """
     rootgrp = netCDF4.Dataset(filename, 'r')
     
-    clo = rootgrp.variables['clo'][:]
-    cla = rootgrp.variables['cla'][:]
+    # clo = rootgrp.variables[lonname][:]
+    # cla = rootgrp.variables[latname][:]
+    vert_lon = rootgrp.variables[lonname][:]
+    vert_lat = rootgrp.variables[latname][:]
     
     rootgrp.close()
+
     
-    ny, nx = clo.shape[:2]
-    nx1, ny1 = nx + 1, ny + 1
-    vert_lon = numpy.empty((ny1, nx1), float)
-    vert_lat = numpy.empty((ny1, nx1), float)
+    # ny, nx = clo.shape[:2]
+    # nx1, ny1 = nx + 1, ny + 1
+    # vert_lon = numpy.empty((ny1, nx1), float)
+    # vert_lat = numpy.empty((ny1, nx1), float)
     
-    for j in range(ny):
-        for i in range(nx):
-            vert_lon[j+0, i+0] = clo[j, i, 0]
-            vert_lon[j+0, i+1] = clo[j, i, 1]
-            vert_lon[j+1, i+1] = clo[j, i, 2]
-            vert_lon[j+1, i+0] = clo[j, i, 3]
+    # for j in range(ny):
+    #     for i in range(nx):
+    #         vert_lon[j+0, i+0] = clo[j, i, 0]
+    #         vert_lon[j+0, i+1] = clo[j, i, 1]
+    #         vert_lon[j+1, i+1] = clo[j, i, 2]
+    #         vert_lon[j+1, i+0] = clo[j, i, 3]
             
-            vert_lat[j+0, i+0] = cla[j, i, 0]
-            vert_lat[j+0, i+1] = cla[j, i, 1]
-            vert_lat[j+1, i+1] = cla[j, i, 2]
-            vert_lat[j+1, i+0] = cla[j, i, 3]
+    #         vert_lat[j+0, i+0] = cla[j, i, 0]
+    #         vert_lat[j+0, i+1] = cla[j, i, 1]
+    #         vert_lat[j+1, i+1] = cla[j, i, 2]
+    #         vert_lat[j+1, i+0] = cla[j, i, 3]
     
     # # store the lower left corner
     # vert_lon[:-1, :-1] = clo[:, :, 0]
