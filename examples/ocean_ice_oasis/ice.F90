@@ -177,6 +177,7 @@ PROGRAM ice
     !
     !!!!!!!!!!!!!!!!!!!!!!!! OASIS_GET !!!!!!!!!!!!!!!!!!!!!!
     CALL oasis_get(var_id(1), itap_sec, field_recv_ice, info)
+  
     call vtk_write_data(grid_clo_ice, grid_cla_ice, &
        & field_recv_ice, 'field_recv_ice', &
        & 'field_recv_ice' // trim(zero_fill(ib, 5)) // '.vtk')
