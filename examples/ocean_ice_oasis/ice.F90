@@ -181,6 +181,8 @@ PROGRAM ice
     call vtk_write_data(grid_clo_ice, grid_cla_ice, &
        & field_recv_ice, 'field_recv_ice', &
        & 'field_recv_ice' // trim(zero_fill(ib, 5)) // '.vtk')
+
+    write(w_unit,*) 'Done writing field_recv_ice in file ', 'field_recv_ice' // trim(zero_fill(ib, 5)) // '.vtk'
     ! 
     ! Definition of field produced by the component
     field_send_ice(:,:) =  ib*(2.-COS(dp_pi*(ACOS(COS(grid_lat_ice(:,:)*dp_pi/90.)* &

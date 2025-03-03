@@ -24,8 +24,10 @@ arch=mac  # training, belenos, nemo_lenovo, mac
 	      # gnu1020_openmpi_openmp_linux (not work with 4.0)
 #
 # - Define number of processes to run each executable
-    nproc_exe1=4
-    nproc_exe2=4
+    #nproc_exe1=4
+    #nproc_exe2=4
+    nproc_exe1=1
+    nproc_exe2=1
 #
 ############### End of user's section ################################
 #

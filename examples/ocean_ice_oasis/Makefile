@@ -33,12 +33,15 @@ ocean: $(OBJ_M1) ocean.o $(LIBPSMILE) Makefile
 	$(LD) $(LDFLAGS) -o $@ $(OBJ_M1) ocean.o $(LIBPSMILE) $(FLIBS) $(NETCDF_LIBRARY)
 ice: $(OBJ_M2) ice.o $(LIBPSMILE) Makefile
 	$(LD) $(LDFLAGS) -o $@ $(OBJ_M2) ice.o $(LIBPSMILE) $(FLIBS) $(NETCDF_LIBRARY)
+
+test_tovtk: test_tovtk.o tovtk.o
+	$(LD) $(LDFLAGS) -o $@ test_tovtk.o tovtk.o
 #
 #-------------------------------------------------------------------------------
 # Rules for compilation
 #-------------------------------------------------------------------------------
 #
-%.o :		%.F90
+%.o : %.F90
 		$(F90) $(F90FLAGS) -c $<
 
 def_parallel_decomposition.o : 		def_parallel_decomposition.F90

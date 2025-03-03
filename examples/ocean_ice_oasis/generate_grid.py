@@ -48,7 +48,7 @@ def main(filename: str='grid.nc', nx: int=2, ny: int=3):
     
     imask[...] = 0 # no masking
     
-    a_earth = 6.378e6 
+    a_earth = 1.0 # 6.378e6 
     srf[:] = a_earth**2 * numpy.cos( lat2d * numpy.pi/180) * dlon * dlat 
     
     rootgrp.close()
