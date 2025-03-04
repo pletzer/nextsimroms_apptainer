@@ -31,10 +31,10 @@ program sender_apple
    call mpi_comm_size(local_comm, comm_size, kinfo)
    call mpi_comm_rank(local_comm, comm_rank, kinfo)   
       
-   call read_dims('grids.nc', 'nogt', nx_global, ny_global)
+   call read_dims('grids.nc', 'bggd', nx_global, ny_global)
    n_points = nx_global*ny_global
    allocate(lon(nx_global,ny_global), lat(nx_global,ny_global))
-   call read_coords('grids.nc', 'nogt', lon, lat)
+   call read_coords('grids.nc', 'bggd', lon, lat)
 
    local_size=n_points/comm_size
    offset=comm_rank*local_size

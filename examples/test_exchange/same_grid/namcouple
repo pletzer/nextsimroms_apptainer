@@ -13,8 +13,8 @@ $END
 ############################################
 $STRINGS
 FSENDANA FRECVANA 1 7200 1 rst.nc EXPOUT
-362 294 144 143 nogt bggd
-P 2 P 0
+144 143 144 143 bggd bggd
+P 0 P 0
 SCRIPR
 CONSERV LR SCALAR LATLON 1 FRACAREA FIRST
 $END
