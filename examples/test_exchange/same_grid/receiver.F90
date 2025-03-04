@@ -1,6 +1,7 @@
 program receiver
    use mpi
    use mod_oasis
+   use grid_mod
    use netcdf
    implicit none
    integer :: i, j, k, kinfo, date
@@ -10,13 +11,13 @@ program receiver
    character(len=8) :: comp_name = "receiver"
    character(len=8) :: var_name = "FRECVANA"
    real(kind=8) :: error, epsilon
-   integer, parameter :: nx_global = 144, ny_global = 143
-   real(kind=8) ::  bundle(nx_global,ny_global,2)
-   real(kind=8) ::  expected(nx_global,ny_global,2)
-   integer :: n_points = nx_global*ny_global
+   integer :: nx_global, ny_global
+   real(kind=8), allocatable ::  bundle(:, :, :)
+   real(kind=8), allocatable ::  expected(:, :, :)
+   integer :: n_points
    integer :: ncid, varid
-   real(kind=8) :: lon(nx_global,ny_global), lat(nx_global,ny_global)
-   integer :: imsk(nx_global,ny_global)
+   real(kind=8), allocatable :: lon(:, :), lat(:, :)
+   integer, allocatable :: imsk(:, :)
    real(kind=8) :: dp_conv
    logical :: success
 
@@ -25,12 +26,13 @@ program receiver
       & "Error in oasis_init_comp: ", rcode=kinfo)
    print '(A,I0)', "receiver: Component ID: ", comp_id
 
-   kinfo = nf90_open('grids.nc',NF90_NOWRITE,ncid)
-   kinfo = nf90_inq_varid(ncid,'bggd.lon',varid)
-   kinfo = nf90_get_var(ncid,varid,lon)
-   kinfo = nf90_inq_varid(ncid,'bggd.lat',varid)
-   kinfo = nf90_get_var(ncid,varid,lat)
-   kinfo = nf90_close(ncid)
+   call read_dims('grids.nc', 'bggd', nx_global, ny_global)
+   n_points = nx_global*ny_global
+   allocate(bundle(nx_global,ny_global,2))
+   allocate(expected(nx_global,ny_global,2))
+   allocate(lon(nx_global,ny_global), lat(nx_global,ny_global))
+   allocate(imsk(nx_global,ny_global))
+   call read_coords('grids.nc', 'bggd', lon, lat)
 
    kinfo = nf90_open('masks.nc',NF90_NOWRITE,ncid)
    kinfo = nf90_inq_varid(ncid,'bggd.msk',varid)
@@ -88,6 +90,7 @@ program receiver
          end do
       end do
       success = success .and. (error/dble(n_points) < epsilon)
+      print '(A,E20.10)',"Receiver: Average regridding error: ", error/dble(n_points)
       if (success) then
          print '(A,I0,A)',"Receiver: Data for bundle ",k," is ok"
       else

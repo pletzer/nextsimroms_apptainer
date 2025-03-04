@@ -1,7 +1,6 @@
 program sender_apple
    use mpi
    use mod_oasis
-   use netcdf
    use grid_mod
    implicit none
    integer :: i, kinfo, date
