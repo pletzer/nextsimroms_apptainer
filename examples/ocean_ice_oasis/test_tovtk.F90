@@ -39,7 +39,7 @@ program test_tovtk
         enddo
     enddo
 
-    call vtk_write_data(lon, lat, var, 'myvar', 'myvar.vtk')
+    call vtk_write_data_lonlat(lon, lat, var, 'myvar', 'myvar.vtk')
 
 end program
     

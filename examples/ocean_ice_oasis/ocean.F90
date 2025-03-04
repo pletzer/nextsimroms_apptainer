@@ -2,7 +2,7 @@ PROGRAM ocean
   !
   ! Use for netCDF library
   USE netcdf
-  use tovtk_mod, only : vtk_write_data, zero_fill
+  use tovtk_mod, only : vtk_write_data_xyz, zero_fill
 
   !
   USE def_parallel_decomposition
@@ -186,10 +186,9 @@ PROGRAM ocean
     !!!!!!!!!!!!!!!!!!!!!!!! OASIS_GET !!!!!!!!!!!!!!!!!!!!!!
     CALL oasis_get(var_id(1),itap_sec, field_recv_ocean, info)
     
-    call vtk_write_data(grid_clo_ocean, grid_cla_ocean, &
+    call vtk_write_data_xyz(grid_clo_ocean, grid_cla_ocean, &
       & field_recv_ocean, 'field_recv_ocean', &
-      & 'field_recv_ocean' // trim(zero_fill(ib, 3)) // 'pe' // trim(zero_fill(mype, 2)) // '.vtk')
-
+      & 'field_recv_ocean_pe' // trim(zero_fill(mype, 2)) // '_t' // trim(zero_fill(ib, 3)) // '.vtk')
     !
     ! Definition of field produced by the component
     field_send_ocean(:,:) =  ib*(2.-COS(dp_pi*(ACOS(COS(grid_lat_ocean(:,:)*dp_pi/180.)* &

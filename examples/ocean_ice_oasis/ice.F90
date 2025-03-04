@@ -2,7 +2,7 @@ PROGRAM ice
   !
   ! Use for netCDF library
   USE netcdf
-  use tovtk_mod, only : vtk_write_data, zero_fill
+  use tovtk_mod, only : vtk_write_data_xyz, zero_fill
   !
   USE def_parallel_decomposition
   !!!!!!!!!!!!!!!!! USE mod_oasis !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -184,9 +184,9 @@ PROGRAM ice
     !!!!!!!!!!!!!!!!!!!!!!!! OASIS_GET !!!!!!!!!!!!!!!!!!!!!!
     CALL oasis_get(var_id(1), itap_sec, field_recv_ice, info)
   
-    call vtk_write_data(grid_clo_ice, grid_cla_ice, &
+    call vtk_write_data_xyz(grid_clo_ice, grid_cla_ice, &
        & field_recv_ice, 'field_recv_ice', &
-       & 'field_recv_ice' // trim(zero_fill(ib, 3)) // 'pe' // trim(zero_fill(mype, 2)) // '.vtk')
+       & 'field_recv_ice_pe' // trim(zero_fill(mype, 2)) // '_t' // trim(zero_fill(ib, 3)) // '.vtk')
 
     write(w_unit,*) 'Done writing field_recv_ice in file ', 'field_recv_ice' // trim(zero_fill(ib, 5)) // '.vtk'
     ! 
