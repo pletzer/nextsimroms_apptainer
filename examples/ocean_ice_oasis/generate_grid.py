@@ -2,7 +2,7 @@ import numpy
 import netCDF4
 import defopt
 
-def main(filename: str='grid.nc', nx: int=2, ny: int=3):
+def main(filename: str='grid.nc', *, nx: int=2, ny: int=3):
     """
     :param filename: netcdf file name
     :param nx: number of zonal cells

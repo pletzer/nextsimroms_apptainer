@@ -42,11 +42,12 @@ FIELD_SEND_OCN FIELD_RECV_ATM 1 3600  1  fdocn.nc EXPOUT
 # Overlap (P or R) and nbr of overlap grid points for source and target grids.
 P  2  P  0
 #
-# List of analyses (here only MAPPING)
-MAPPING
+# List of analyses 
+SCRIPR
+BILINEAR LR SCALAR LATLON 1
 #
 # Specific parameters for each analysis (here only the name of the remapping file for MAPPING)
-my_remapping_file_bilinear.nc
+#my_remapping_file_bilinear.nc
 #
 ######################################################
 #
