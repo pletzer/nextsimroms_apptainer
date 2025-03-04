@@ -1,0 +1,20 @@
+############################################
+$NFIELDS
+1
+$END
+############################################
+$RUNTIME
+21600
+$END
+############################################
+$NLOGPRT
+0 0
+$END
+############################################
+$STRINGS
+FSENDANA FRECVANA 1 7200 1 rst.nc EXPOUT
+362 294 144 143 nogt bggd
+P 2 P 0
+SCRIPR
+CONSERV LR SCALAR LATLON 1 FRACAREA FIRST
+$END
