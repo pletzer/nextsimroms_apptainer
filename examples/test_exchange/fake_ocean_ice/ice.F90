@@ -1,4 +1,4 @@
-program receiver
+program ice
    use mpi
    use mod_oasis
    use grid_mod
@@ -8,7 +8,7 @@ program receiver
    integer :: comp_id, part_id, var_id
    integer :: part_params(OASIS_Serial_Params)
    integer :: var_nodims(2)
-   character(len=8) :: comp_name = "receiver"
+   character(len=8) :: comp_name = "ice"
    character(len=8) :: var_name = "FRECVANA"
    real(kind=8) :: error, epsilon
    integer :: nx_global, ny_global
@@ -24,7 +24,7 @@ program receiver
    call oasis_init_comp(comp_id, comp_name, kinfo)
    if(kinfo<0) call oasis_abort(comp_id, comp_name, &
       & "Error in oasis_init_comp: ", rcode=kinfo)
-   print '(A,I0)', "receiver: Component ID: ", comp_id
+   print '(A,I0)', "ice: Component ID: ", comp_id
 
    call read_dims('grids.nc', 'bggd', nx_global, ny_global)
    n_points = nx_global*ny_global
@@ -46,7 +46,7 @@ program receiver
       & "Error in oasis_def_partition: ", rcode=kinfo)
 
    var_nodims=[1, 2]
-   print '(2A)', "Receiver: var_name: ", var_name
+   print '(2A)', "ice: var_name: ", var_name
    call oasis_def_var(var_id, var_name, part_id, var_nodims, OASIS_IN, &
       &              [1], OASIS_DOUBLE, kinfo)
    if(kinfo<0 .or. var_id<0) call oasis_abort(comp_id, comp_name, &
@@ -90,14 +90,14 @@ program receiver
          end do
       end do
       success = success .and. (error/dble(n_points) < epsilon)
-      print '(A,E20.10)',"Receiver: Average regridding error: ", error/dble(n_points)
+      print '(A,E20.10)',"ice: Average regridding error: ", error/dble(n_points)
       if (success) then
-         print '(A,I0,A)',"Receiver: Data for bundle ",k," is ok"
+         print '(A,I0,A)',"ice: Data for bundle ",k," is ok"
       else
-         print '(A,I0,A,E12.5)', "Receiver: Error for bundle ",k," is ",error
+         print '(A,I0,A,E12.5)', "ice: Error for bundle ",k," is ",error
       end if
    end do
 
-   if(success) print '(A)', "Receiver: Data received successfully"
+   if(success) print '(A)', "ice: Data received successfully"
 
-end program receiver
+end program ice

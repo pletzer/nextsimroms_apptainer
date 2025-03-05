@@ -14,6 +14,7 @@ ice: ice.F90  grid_mod.o
 	${F90} ice.F90 ${FLAGS} -o ice grid_mod.o -lpsmile.MPI1 -lscrip -lmct -lmpeu $(NETCDF_LIBRARY)
 
 run:
+	rm -f grids.nc
 	ln -s ../common_data/grids.nc .
 	mpiexec -n 4 ocean : -n 1 ice
 

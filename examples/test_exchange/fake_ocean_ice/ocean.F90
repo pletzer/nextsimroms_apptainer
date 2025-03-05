@@ -1,4 +1,4 @@
-program sender_apple
+program ocean
    use mpi
    use mod_oasis
    use grid_mod
@@ -8,7 +8,7 @@ program sender_apple
    integer :: part_params(OASIS_Apple_Params), offset, local_size
    integer :: local_comm, comm_size, comm_rank
    integer :: var_nodims(2)
-   character(len=13) :: comp_name = "sender-apple"
+   character(len=13) :: comp_name = "ocean"
    character(len=8) :: var_name = "FSENDANA"
    real(kind=8), allocatable :: bundle(:,:)
 
@@ -22,7 +22,6 @@ program sender_apple
    call oasis_init_comp(comp_id, comp_name, kinfo)
    if(kinfo<0) call oasis_abort(comp_id, comp_name, &
       & "Error in oasis_init_comp: ", rcode=kinfo)
-   print '(A,I0)', "sender-apple: Component ID: ", comp_id
 
    call oasis_get_localcomm(local_comm, kinfo)
    if(kinfo<0) call oasis_abort(comp_id, comp_name, &
@@ -30,7 +29,8 @@ program sender_apple
 
    call mpi_comm_size(local_comm, comm_size, kinfo)
    call mpi_comm_rank(local_comm, comm_rank, kinfo)   
-      
+   print '(A,I0)', "ocean: Component ID: ", comp_id
+
    call read_dims('grids.nc', 'bggd', nx_global, ny_global)
    n_points = nx_global*ny_global
    allocate(lon(nx_global,ny_global), lat(nx_global,ny_global))
@@ -49,7 +49,7 @@ program sender_apple
       & "Error in oasis_def_partition: ", rcode=kinfo)
 
    var_nodims=[1, 2]
-   print '(A,I0,2A)', "Sender rank(",comm_rank,"): var_name: ", var_name
+   print '(A,I0,2A)', "ocean rank(",comm_rank,"): var_name: ", var_name
    call oasis_def_var(var_id, var_name, part_id, var_nodims, OASIS_OUT, &
       &               [1], OASIS_DOUBLE, kinfo)
    if(kinfo<0 .or. var_id<0) call oasis_abort(comp_id, comp_name, &
@@ -81,4 +81,4 @@ program sender_apple
    if(kinfo<0) call oasis_abort(comp_id, comp_name, &
       & "Error in oasis_terminate: ", rcode=kinfo)
 
-end program sender_apple
+end program ocean
