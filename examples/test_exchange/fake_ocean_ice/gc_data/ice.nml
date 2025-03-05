@@ -1,0 +1,11 @@
+&dims
+    num_export = 0
+    num_import = 1
+/
+&values
+    component_name = 'ICE'
+    grid_name = 'bggd'
+
+    import_field_name = 'I_SST_FROM_OCN'
+    import_field_value = -1.
+/
