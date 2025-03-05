@@ -17,10 +17,16 @@ ocean: ocean.F90 grid_mod.o
 ice: ice.F90  grid_mod.o
 	${F90} ice.F90 ${FLAGS} -o ice grid_mod.o -lpsmile.MPI1 -lscrip -lmct -lmpeu $(NETCDF_LIBRARY)
 
-run:
-	rm -f grids.nc
+runoi:
+	rm -f grids.nc namcouple
 	ln -s ../common_data/grids.nc .
+	ln -s oi_data/namcouple .
 	mpiexec -n 4 ocean : -n 1 ice
+
+rungc:
+	rm -f namcouple
+	ln -s gc_data/namcouple .
+	generic_component gc_data/ocn.nml
 
 clean:
 	rm -f ocean ice

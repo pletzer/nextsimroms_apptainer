@@ -31,7 +31,8 @@ contains
       character(len=STR_LEN), allocatable :: export_field_name(:)
       character(len=STR_LEN), allocatable :: import_field_name(:)
       real(8), allocatable :: export_field_value(:)
-      real(8), allocatable :: import_field_value(:) 
+      real(8), allocatable :: import_field_value(:)
+   
       namelist /dims/ num_export, num_import
 
       namelist /values/ grid_name, &
@@ -57,6 +58,28 @@ contains
       self % import_field_value = import_field_value
             
    end subroutine gc_new
+
+   subroutine gc_print(self, ier)
+      implicit none
+      type(generic_component_type), intent(inout) :: self
+      integer, intent(out) :: ier
+
+      integer :: i
+
+      ier = 0
+
+      print *, 'grid name: ', self % grid_name
+
+      print *, 'number of export field: ', size(self % export_field_name)
+      do i = 1, size(self % export_field_name)
+         print *, '    export field ', self % export_field_name(i), ' value: ', self % export_field_value(i)
+      enddo
+
+      print *, 'number of import field: ', size(self % import_field_name)
+      do i = 1, size(self % import_field_name)
+         print *, '    import field ', self % import_field_name(i), ' value: ', self % import_field_value(i)
+      enddo
+   end subroutine gc_print
 
    subroutine gc_define_fields(self, ier)
       implicit none
@@ -112,6 +135,8 @@ program main
    call get_command_argument(1, namelist_file)
 
    call gc_new(component, namelist_file, ier)
+
+   call gc_print(component, ier)
 
    call gc_del(component, ier)
    

@@ -1,0 +1,13 @@
+&dims
+    num_export = 2
+    num_import = 1
+/
+&values
+    grid_name = 'toc'
+
+    export_field_name = 'O_SST', 'O_SSS'
+    export_field_value = 293., 34
+
+    import_field_name = 'I_FraQsr'
+    import_field_value = 0.5,
+/
