@@ -120,11 +120,28 @@ contains
 
 end module generic_component_mod
 
+module exception_mod
+   contains
+   subroutine check_err(kinfo, comp_id, comp_name, filename, line)
+      use mod_oasis
+      implicit none
+      integer, intent(in) :: kinfo, comp_id
+      character(len=*), intent(in) :: comp_name
+      character(len=*), intent(in) :: filename
+      integer, intent(in) :: line
+      if (kinfo /= 0) then
+         call oasis_abort(comp_id, comp_name, &
+         & "OASIS error: ", rcode=kinfo)
+      endif
+   end subroutine check_err
+end module exception_mod
+
 
 program main
 
    use mpi
    use generic_component_mod
+   use exception_mod
 
    implicit none
 
@@ -145,15 +162,14 @@ program main
    call gc_print(component, ier)
    comp_name = component % component_name  
    call gc_del(component, ier)
-      
 
-   call oasis_init_comp(comp_id, comp_name, kinfo)
-   call oasis_get_localcomm(local_comm, kinfo)
+   call oasis_init_comp(comp_id, comp_name, kinfo); call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
+   call oasis_get_localcomm(local_comm, kinfo); call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
 
    call gc_new(component, namelist_file, ier)
 
    call gc_del(component, ier)
    
-   call oasis_terminate(kinfo)
+   call oasis_terminate(kinfo); call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
 
 end program main
