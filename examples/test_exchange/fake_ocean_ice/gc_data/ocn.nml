@@ -3,6 +3,7 @@
     num_import = 1
 /
 &values
+    component_name = 'OCN'
     grid_name = 'bggd'
 
     export_field_name = 'O_SST', 'O_SSS'

@@ -6,6 +6,7 @@ integer, parameter :: STR_LEN = 16
 
 type generic_component_type
    integer :: ncid
+   character(len=STR_LEN) :: component_name
    character(len=STR_LEN) :: grid_name
    integer, allocatable :: export_field_id(:)
    integer, allocatable :: import_field_id(:)
@@ -26,7 +27,7 @@ contains
       character(len=*), intent(in) :: namelist_file
       integer, intent(out) :: ier
       
-      character(len=STR_LEN) :: grid_name
+      character(len=STR_LEN) :: grid_name, component_name
       integer :: num_export, num_import, iu
       character(len=STR_LEN), allocatable :: export_field_name(:)
       character(len=STR_LEN), allocatable :: import_field_name(:)
@@ -35,7 +36,7 @@ contains
    
       namelist /dims/ num_export, num_import
 
-      namelist /values/ grid_name, &
+      namelist /values/ component_name, grid_name, &
          & export_field_name, import_field_name, export_field_value, import_field_value
 
       ier = 0
@@ -51,6 +52,7 @@ contains
       read(unit=iu, nml=values, iostat=ier); if (ier /= 0) return   
       close(iu)
    
+      self % component_name = component_name
       self % grid_name = grid_name
       self % export_field_name = export_field_name
       self % import_field_name = import_field_name
@@ -68,6 +70,7 @@ contains
 
       ier = 0
 
+      print *, 'component name: ', self % grid_name
       print *, 'grid name: ', self % grid_name
 
       print *, 'number of export field: ', size(self % export_field_name)
@@ -129,19 +132,25 @@ program main
    integer :: num_args, ier
    character(len=STR_LEN) :: namelist_file
    integer :: comp_id, kinfo
+   integer :: local_comm, comm_size, comm_rank
    character(len=STR_LEN) :: comp_name
-
-   call oasis_init_comp(comp_id, comp_name, kinfo)
-
 
    ! get the namelist file name
    num_args = command_argument_count()
    if (num_args /= 1) stop'ERROR must provide namelist file'
    call get_command_argument(1, namelist_file)
+         
+   ! just to get the component name
+   call gc_new(component, namelist_file, ier)
+   call gc_print(component, ier)
+   comp_name = component % component_name  
+   call gc_del(component, ier)
+      
+
+   call oasis_init_comp(comp_id, comp_name, kinfo)
+   call oasis_get_localcomm(local_comm, kinfo)
 
    call gc_new(component, namelist_file, ier)
-
-   call gc_print(component, ier)
 
    call gc_del(component, ier)
    

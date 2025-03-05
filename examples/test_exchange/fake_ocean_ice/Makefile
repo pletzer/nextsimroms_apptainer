@@ -27,7 +27,7 @@ rungc:
 	rm -f grids.nc namcouple
 	ln -s ../common_data/grids.nc .
 	ln -s gc_data/namcouple .
-	generic_component gc_data/ocn.nml
+	mpiexec -n 2 generic_component gc_data/ocn.nml
 
 clean:
 	rm -f ocean ice
