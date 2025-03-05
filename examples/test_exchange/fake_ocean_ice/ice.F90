@@ -5,11 +5,13 @@ program ice
    use netcdf
    implicit none
    integer :: i, j, k, kinfo, date
-   integer :: comp_id, part_id, var_id
+   integer :: comp_id, part_id
    integer :: part_params(OASIS_Serial_Params)
    integer :: var_nodims(2)
    character(len=3) :: comp_name = "ice"
+   integer :: i_from_ocn_id, i_from_ice_id
    character(len=10) :: i_from_ocn = "I_FROM_OCN"
+   character(len=10) :: i_from_ice = "I_FROM_ICE"
    real(kind=8) :: error, epsilon
    integer :: nx_global, ny_global
    real(kind=8), allocatable ::  bundle_export(:, :, :), bundle_import(:, :, :)
@@ -46,13 +48,18 @@ program ice
       & "Error in oasis_def_partition: ", rcode=kinfo)
 
    var_nodims=[1, 2]
-   print '(2A)', "ice: var_name: ", i_from_ocn
-   call oasis_def_var(var_id, i_from_ocn, part_id, var_nodims, OASIS_IN, &
+
+   call oasis_def_var(i_from_ocn_id, i_from_ocn, part_id, var_nodims, OASIS_IN, &
       &              [1], OASIS_DOUBLE, kinfo)
-   if(kinfo<0 .or. var_id<0) call oasis_abort(comp_id, comp_name, &
+   if(kinfo<0 .or. i_from_ocn_id<0) call oasis_abort(comp_id, comp_name, &
       & "Error in oasis_def_var: ", rcode=kinfo)
 
-   call oasis_enddef(kinfo)
+   ! call oasis_def_var(i_from_ice_id, i_from_ice, part_id, var_nodims, OASIS_OUT, &
+   !    &              [1], OASIS_DOUBLE, kinfo)
+   ! if(kinfo<0 .or. i_from_ice_id<0) call oasis_abort(comp_id, comp_name, &
+   !    & "Error in oasis_def_var: ", rcode=kinfo)
+
+      call oasis_enddef(kinfo)
    if(kinfo<0) call oasis_abort(comp_id, comp_name, &
       & "Error in oasis_enddef: ", rcode=kinfo)
 
@@ -60,7 +67,7 @@ program ice
 
    bundle_import(:,:,:)=0
 
-   call oasis_get(var_id, date, bundle_import, kinfo)
+   call oasis_get(i_from_ocn_id, date, bundle_import, kinfo)
    if(kinfo<0) call oasis_abort(comp_id, comp_name, &
       & "Error in oasis_get: ", rcode=kinfo)
 

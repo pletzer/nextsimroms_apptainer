@@ -4,12 +4,14 @@ program ocean
    use grid_mod
    implicit none
    integer :: i, kinfo, date
-   integer :: comp_id, part_id, var_id
+   integer :: comp_id, part_id
    integer :: part_params(OASIS_Apple_Params), offset, local_size
    integer :: local_comm, comm_size, comm_rank
    integer :: var_nodims(2)
    character(len=5) :: comp_name = "ocean"
+   integer :: o_from_ocn_id, o_from_ice_id
    character(len=10) :: o_from_ocn = "O_FROM_OCN"
+   character(len=10) :: o_from_ice = "O_FROM_ICE"
    ! use flat arrays 
    real(kind=8), allocatable :: bundle_export(:,:), bundle_import(:, :)
 
@@ -50,12 +52,16 @@ program ocean
       & "Error in oasis_def_partition: ", rcode=kinfo)
 
    var_nodims=[1, 2]
-   print '(A,I0,2A)', "ocean rank(",comm_rank,"): var_name: ", o_from_ocn
-   call oasis_def_var(var_id, o_from_ocn, part_id, var_nodims, OASIS_OUT, &
+   call oasis_def_var(o_from_ocn_id, o_from_ocn, part_id, var_nodims, OASIS_OUT, &
       &               [1], OASIS_DOUBLE, kinfo)
-   if(kinfo<0 .or. var_id<0) call oasis_abort(comp_id, comp_name, &
+   if(kinfo<0 .or. o_from_ocn_id<0) call oasis_abort(comp_id, comp_name, &
       & "Error in oasis_def_var: ", rcode=kinfo)
 
+   ! call oasis_def_var(o_from_ice_id, o_from_ice, part_id, var_nodims, OASIS_IN, &
+   !    &               [1], OASIS_DOUBLE, kinfo)
+   ! if(kinfo<0 .or. o_from_ice_id<0) call oasis_abort(comp_id, comp_name, &
+   !    & "Error in oasis_def_var: ", rcode=kinfo)
+   
    call oasis_enddef(kinfo)
    if(kinfo<0) call oasis_abort(comp_id, comp_name, &
       & "Error in oasis_enddef: ", rcode=kinfo)
@@ -74,7 +80,7 @@ program ocean
 
    date=0
 
-   call oasis_put(var_id, date, bundle_export, kinfo)
+   call oasis_put(o_from_ocn_id, date, bundle_export, kinfo)
    if(kinfo<0) call oasis_abort(comp_id, comp_name, &
       & "Error in oasis_put: ", rcode=kinfo)
 
