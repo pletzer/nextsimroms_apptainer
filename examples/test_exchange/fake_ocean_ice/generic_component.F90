@@ -142,6 +142,7 @@ program main
    use mpi
    use generic_component_mod
    use exception_mod
+   use grid_mod
 
    implicit none
 
@@ -151,6 +152,10 @@ program main
    integer :: comp_id, kinfo
    integer :: local_comm, comm_size, comm_rank
    character(len=STR_LEN) :: comp_name
+
+   ! grid
+   integer :: nx_global, ny_global, n_points, local_size, offset
+   real(8), allocatable :: lon(:, :), lat(:, :)
 
    ! get the namelist file name
    num_args = command_argument_count()
@@ -163,11 +168,28 @@ program main
    comp_name = component % component_name  
    call gc_del(component, ier)
 
+   ! start MPI
    call oasis_init_comp(comp_id, comp_name, kinfo); call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
    call oasis_get_localcomm(local_comm, kinfo); call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
 
+   call mpi_comm_size(local_comm, comm_size, kinfo)
+   call mpi_comm_rank(local_comm, comm_rank, kinfo)   
+
    call gc_new(component, namelist_file, ier)
 
+   ! get the grid data
+   call read_dims('grids.nc', component % grid_name, nx_global, ny_global)
+   n_points = nx_global*ny_global
+   allocate(lon(nx_global,ny_global), lat(nx_global,ny_global))
+   call read_coords('grids.nc', component % grid_name, lon, lat)
+
+   ! domain decomposition (1D)
+   local_size = n_points/comm_size
+   offset=comm_rank*local_size
+   if (comm_rank == comm_size - 1) local_size = n_points - offset
+   
+
+   ! clean up
    call gc_del(component, ier)
    
    call oasis_terminate(kinfo); call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
