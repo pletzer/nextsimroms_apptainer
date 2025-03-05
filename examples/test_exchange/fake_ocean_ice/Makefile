@@ -2,10 +2,14 @@
 include /usr/local/ifort/build/oasis3-mct/util/make_dir/make.inc
 FLAGS=$(F90FLAGS) -L$(ARCHDIR)/lib
 
-all: ocean ice
+all: ocean ice generic_component
 
-grid_mod.o: grid_mod.F90
+%.o: %.F90
 	${F90} ${FLAGS} -c $<
+
+generic_component: generic_component.o grid_mod.o
+	${F90} $< ${FLAGS} -o $@ grid_mod.o  -lpsmile.MPI1 -lscrip -lmct -lmpeu $(NETCDF_LIBRARY)
+
 
 ocean: ocean.F90 grid_mod.o
 	${F90} ocean.F90 ${FLAGS} -o ocean grid_mod.o  -lpsmile.MPI1 -lscrip -lmct -lmpeu $(NETCDF_LIBRARY)
