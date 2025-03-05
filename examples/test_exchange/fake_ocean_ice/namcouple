@@ -1,0 +1,23 @@
+############################################
+$NFIELDS
+1
+$END
+############################################
+$RUNTIME
+21600
+$END
+############################################
+$NLOGPRT
+0 0
+$END
+############################################
+$STRINGS
+FSENDANA FRECVANA 1 7200 0 rst.nc EXPOUT
+144 143 144 143 bggd bggd
+P 0 P 0
+#FSENDANA FRECVANA 1 7200 1 rst.nc EXPOUT
+#144 143 144 143 bggd bggd
+#P 0 P 0
+#SCRIPR
+#CONSERV LR SCALAR LATLON 1 FRACAREA FIRST
+$END
