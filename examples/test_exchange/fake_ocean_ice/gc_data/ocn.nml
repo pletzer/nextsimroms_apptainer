@@ -3,7 +3,7 @@
     num_import = 1
 /
 &values
-    grid_name = 'toc'
+    grid_name = 'bggd'
 
     export_field_name = 'O_SST', 'O_SSS'
     export_field_value = 293., 34

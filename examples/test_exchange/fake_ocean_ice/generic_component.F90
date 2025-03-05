@@ -128,6 +128,11 @@ program main
    type(generic_component_type) :: component
    integer :: num_args, ier
    character(len=STR_LEN) :: namelist_file
+   integer :: comp_id, kinfo
+   character(len=STR_LEN) :: comp_name
+
+   call oasis_init_comp(comp_id, comp_name, kinfo)
+
 
    ! get the namelist file name
    num_args = command_argument_count()
@@ -140,6 +145,6 @@ program main
 
    call gc_del(component, ier)
    
-   
+   call oasis_terminate(kinfo)
 
 end program main
