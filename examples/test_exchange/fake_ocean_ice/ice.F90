@@ -12,7 +12,7 @@ program ice
    character(len=10) :: i_from_ocn = "I_FROM_OCN"
    real(kind=8) :: error, epsilon
    integer :: nx_global, ny_global
-   real(kind=8), allocatable ::  bundle(:, :, :)
+   real(kind=8), allocatable ::  bundle_export(:, :, :), bundle_import(:, :, :)
    real(kind=8), allocatable ::  expected(:, :, :)
    integer :: n_points
    integer :: ncid, varid
@@ -28,7 +28,7 @@ program ice
 
    call read_dims('grids.nc', 'bggd', nx_global, ny_global)
    n_points = nx_global*ny_global
-   allocate(bundle(nx_global, ny_global, 2))
+   allocate(bundle_import(nx_global, ny_global, 2), bundle_export(nx_global, ny_global, 2))
    allocate(expected(nx_global, ny_global, 2))
    allocate(lon(nx_global,ny_global), lat(nx_global,ny_global))
    allocate(imsk(nx_global,ny_global))
@@ -58,9 +58,9 @@ program ice
 
    date=0
 
-   bundle(:,:,:)=0
+   bundle_import(:,:,:)=0
 
-   call oasis_get(var_id, date, bundle, kinfo)
+   call oasis_get(var_id, date, bundle_import, kinfo)
    if(kinfo<0) call oasis_abort(comp_id, comp_name, &
       & "Error in oasis_get: ", rcode=kinfo)
 
@@ -86,15 +86,15 @@ program ice
       do j = 1, ny_global
          do i = 1, nx_global
             if (imsk(i,j) == 0) &
-               & error = error + abs((bundle(i,j,k)-expected(i,j,k))/expected(i,j,k))
+               & error = error + abs((bundle_import(i,j,k)-expected(i,j,k))/expected(i,j,k))
          end do
       end do
       success = success .and. (error/dble(n_points) < epsilon)
       print '(A,E20.10)',"ice: Average regridding error: ", error/dble(n_points)
       if (success) then
-         print '(A,I0,A)',"ice: Data for bundle ",k," is ok"
+         print '(A,I0,A)',"ice: Data for bundle_import ",k," is ok"
       else
-         print '(A,I0,A,E12.5)', "ice: Error for bundle ",k," is ",error
+         print '(A,I0,A,E12.5)', "ice: Error for bundle_import ",k," is ",error
       end if
    end do
 

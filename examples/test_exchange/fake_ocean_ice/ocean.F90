@@ -10,7 +10,8 @@ program ocean
    integer :: var_nodims(2)
    character(len=5) :: comp_name = "ocean"
    character(len=10) :: o_from_ocn = "O_FROM_OCN"
-   real(kind=8), allocatable :: bundle(:,:)
+   ! use flat arrays 
+   real(kind=8), allocatable :: bundle_export(:,:), bundle_import(:, :)
 
    integer :: nx_global, ny_global
    integer :: n_points
@@ -60,20 +61,20 @@ program ocean
       & "Error in oasis_enddef: ", rcode=kinfo)
 
    dp_conv = atan(1.0)/45.0
-   allocate(bundle(local_size,2))
+   allocate(bundle_export(local_size,2), bundle_import(local_size,2))
    do i = 1, local_size
       ll_j = int((offset+i-1)/nx_global)+1
       ll_i = mod(offset+i-1,nx_global)+1
-      bundle(i,1) = 2.0 + (sin(2.*lat(ll_i,ll_j)*dp_conv))**4 * &
+      bundle_export(i,1) = 2.0 + (sin(2.*lat(ll_i,ll_j)*dp_conv))**4 * &
          & cos(4.*lon(ll_i,ll_j)*dp_conv)
-      bundle(i,2) = 2.0 - cos(atan(1.0)*4.* &
+      bundle_export(i,2) = 2.0 - cos(atan(1.0)*4.* &
           & (acos(cos(lon(ll_i,ll_j)*dp_conv)*cos(lat(ll_i,ll_j)*dp_conv))/ &
           & (1.2*atan(1.)*4)))
    end do
 
    date=0
 
-   call oasis_put(var_id, date, bundle, kinfo)
+   call oasis_put(var_id, date, bundle_export, kinfo)
    if(kinfo<0) call oasis_abort(comp_id, comp_name, &
       & "Error in oasis_put: ", rcode=kinfo)
 
