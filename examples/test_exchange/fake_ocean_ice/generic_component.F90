@@ -149,12 +149,13 @@ program main
    type(generic_component_type) :: component
    integer :: num_args, ier
    character(len=STR_LEN) :: namelist_file
-   integer :: comp_id, kinfo
+   integer :: comp_id, part_id, kinfo
    integer :: local_comm, comm_size, comm_rank
    character(len=STR_LEN) :: comp_name
 
    ! grid
    integer :: nx_global, ny_global, n_points, local_size, offset
+   integer :: part_params(OASIS_Apple_Params)
    real(8), allocatable :: lon(:, :), lat(:, :)
 
    ! get the namelist file name
@@ -188,6 +189,11 @@ program main
    offset=comm_rank*local_size
    if (comm_rank == comm_size - 1) local_size = n_points - offset
    
+   part_params(OASIS_Strategy) = OASIS_Apple
+   part_params(OASIS_Offset)   = offset
+   part_params(OASIS_Length)   = local_size
+   call oasis_def_partition(part_id, part_params, kinfo); call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
+ 
 
    ! clean up
    call gc_del(component, ier)
