@@ -18,13 +18,14 @@ end type generic_component_type
 
 contains
 
-   subroutine gc_new(self, namelist_file)
+   subroutine gc_new(self, namelist_file, ier)
 
       implicit none
 
       type(generic_component_type), intent(inout) :: self
       character(len=*), intent(in) :: namelist_file
-
+      integer, intent(out) :: ier
+      
       character(len=STR_LEN) :: grid_name
       integer :: num_export, num_import, iu
       character(len=STR_LEN), allocatable :: export_field_name(:)
@@ -36,14 +37,17 @@ contains
       namelist /values/ grid_name, &
          & export_field_name, import_field_name, export_field_value, import_field_value
 
-      open(newunit=iu, file=namelist_file)
-      read(unit=iu, nml=dims)
+      ier = 0
+
+      open(newunit=iu, file=namelist_file, status='old', iostat=ier); if (ier /= 0) return
+      read(unit=iu, nml=dims, iostat=ier); if (ier /= 0) return
+
       allocate(export_field_name(num_export), export_field_value(num_export))
       allocate(import_field_name(num_import), import_field_value(num_import))
       
 
       rewind(unit=iu)
-      read(unit=iu, nml=values)   
+      read(unit=iu, nml=values, iostat=ier); if (ier /= 0) return   
       close(iu)
    
       self % grid_name = grid_name
@@ -54,40 +58,63 @@ contains
             
    end subroutine gc_new
 
-   subroutine gc_define_fields(self)
+   subroutine gc_define_fields(self, ier)
       implicit none
       type(generic_component_type), intent(inout) :: self
+      integer, intent(out) :: ier
+      ier = 0
    end subroutine gc_define_fields
 
-   subroutine gc_export(self)
+   subroutine gc_export(self, ier)
       implicit none
       type(generic_component_type), intent(inout) :: self
-   end subroutine gc_export
+      integer, intent(out) :: ier
+         ier = 0
+      end subroutine gc_export
 
-   subroutine gc_import(self)
+   subroutine gc_import(self, ier)
       implicit none
       type(generic_component_type), intent(inout) :: self
+      integer, intent(out) :: ier
+      ier = 0
    end subroutine gc_import
 
-   subroutine gc_del(self)
+   subroutine gc_del(self, ier)
       implicit none
       type(generic_component_type), intent(inout) :: self
-      deallocate(self % export_field_id)
-      deallocate(self % export_field_name)
-      deallocate(self % export_field_value)     
-      deallocate(self % import_field_id)
-      deallocate(self % import_field_name)
-      deallocate(self % import_field_value)     
+      integer, intent(out) :: ier
+      ier = 0
+      deallocate(self % export_field_id, stat=ier)
+      deallocate(self % export_field_name, stat=ier)
+      deallocate(self % export_field_value, stat=ier)     
+      deallocate(self % import_field_id, stat=ier)
+      deallocate(self % import_field_name, stat=ier)
+      deallocate(self % import_field_value, stat=ier)     
    end subroutine gc_del
 
 end module generic_component_mod
 
 
 program main
+
    use mpi
    use generic_component_mod
-   implicit none
-   type(generic_component_type) :: component
 
+   implicit none
+
+   type(generic_component_type) :: component
+   integer :: num_args, ier
+   character(len=STR_LEN) :: namelist_file
+
+   ! get the namelist file name
+   num_args = command_argument_count()
+   if (num_args /= 1) stop'ERROR must provide namelist file'
+   call get_command_argument(1, namelist_file)
+
+   call gc_new(component, namelist_file, ier)
+
+   call gc_del(component, ier)
+   
+   
 
 end program main
