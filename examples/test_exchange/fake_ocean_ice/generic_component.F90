@@ -58,6 +58,8 @@ contains
       self % import_field_name = import_field_name
       self % export_field_value = export_field_value
       self % import_field_value = import_field_value
+      allocate(self % export_field_id(num_export))
+      allocate(self % import_field_id(num_import))
             
    end subroutine gc_new
 
@@ -147,11 +149,12 @@ program main
    implicit none
 
    type(generic_component_type) :: component
-   integer :: num_args, ier
+   integer :: num_args, ier, i, n
    character(len=STR_LEN) :: namelist_file
-   integer :: comp_id, part_id, kinfo
+   integer :: comp_id, part_id, var_id, kinfo
    integer :: local_comm, comm_size, comm_rank
-   character(len=STR_LEN) :: comp_name
+   character(len=STR_LEN) :: comp_name, var_name
+   integer :: var_nodims(2)
 
    ! grid
    integer :: nx_global, ny_global, n_points, local_size, offset
@@ -193,7 +196,27 @@ program main
    part_params(OASIS_Offset)   = offset
    part_params(OASIS_Length)   = local_size
    call oasis_def_partition(part_id, part_params, kinfo); call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
- 
+
+   var_nodims = [1, 1] ! cannot be passed directly to oasis_def_var. 1st number is not used. 2nd number is the bundle size
+   ! define export fields
+   n = size(component % export_field_id)
+   do i = 1, n
+      var_name = trim(component % export_field_name(i))
+      call oasis_def_var(var_id, var_name, part_id, var_nodims, OASIS_OUT, OASIS_DOUBLE, &
+         & kinfo); call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
+      ! store
+      component % export_field_id(i) = var_id
+   enddo
+   n = size(component % import_field_id)
+   do i = 1, n
+      var_name = trim(component % import_field_name(i))
+      call oasis_def_var(var_id, var_name, part_id, var_nodims, OASIS_IN, OASIS_DOUBLE, &
+         & kinfo); call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
+      ! store
+      component % import_field_id(i) = var_id
+   enddo
+
+   call oasis_enddef(kinfo); call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
 
    ! clean up
    call gc_del(component, ier)

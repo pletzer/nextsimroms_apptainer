@@ -1,14 +1,11 @@
 &dims
-    num_export = 2
-    num_import = 1
+    num_export = 1
+    num_import = 0
 /
 &values
     component_name = 'OCN'
     grid_name = 'bggd'
 
-    export_field_name = 'O_SST', 'O_SSS'
-    export_field_value = 293., 34
-
-    import_field_name = 'I_FraQsr'
-    import_field_value = 0.5,
+    export_field_name = 'O_SST_FROM_OCN'
+    export_field_value = 293.
 /
