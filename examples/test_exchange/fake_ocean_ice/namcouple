@@ -12,7 +12,14 @@ $NLOGPRT
 $END
 ############################################
 $STRINGS
-FSENDANA FRECVANA 1 7200 0 rst.nc EXPOUT
+# O_FROM_OCN symbolic name of source field
+# I_FROM_OCN symbolic name of receiving field
+# 1 unused
+# 7200 coupling period 
+# 0 number of transformations
+# rstO2I.nc restart file
+# EXPOUT: exported, transformed and written to netcdf file
+O_FROM_OCN I_FROM_OCN 1 7200 0 rstO2I.nc EXPOUT
 144 143 144 143 bggd bggd
 P 0 P 0
 #FSENDANA FRECVANA 1 7200 1 rst.nc EXPOUT
@@ -20,4 +27,9 @@ P 0 P 0
 #P 0 P 0
 #SCRIPR
 #CONSERV LR SCALAR LATLON 1 FRACAREA FIRST
+#
+#I_FROM_ICE O_FROM_ICE 1 7200 0 rstI2O.nc EXPOUT
+#144 143 144 143 bggd bggd
+#P 0 P 0
+#
 $END

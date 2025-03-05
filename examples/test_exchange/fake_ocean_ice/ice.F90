@@ -8,8 +8,8 @@ program ice
    integer :: comp_id, part_id, var_id
    integer :: part_params(OASIS_Serial_Params)
    integer :: var_nodims(2)
-   character(len=8) :: comp_name = "ice"
-   character(len=8) :: var_name = "FRECVANA"
+   character(len=3) :: comp_name = "ice"
+   character(len=10) :: i_from_ocn = "I_FROM_OCN"
    real(kind=8) :: error, epsilon
    integer :: nx_global, ny_global
    real(kind=8), allocatable ::  bundle(:, :, :)
@@ -28,8 +28,8 @@ program ice
 
    call read_dims('grids.nc', 'bggd', nx_global, ny_global)
    n_points = nx_global*ny_global
-   allocate(bundle(nx_global,ny_global,2))
-   allocate(expected(nx_global,ny_global,2))
+   allocate(bundle(nx_global, ny_global, 2))
+   allocate(expected(nx_global, ny_global, 2))
    allocate(lon(nx_global,ny_global), lat(nx_global,ny_global))
    allocate(imsk(nx_global,ny_global))
    call read_coords('grids.nc', 'bggd', lon, lat)
@@ -46,8 +46,8 @@ program ice
       & "Error in oasis_def_partition: ", rcode=kinfo)
 
    var_nodims=[1, 2]
-   print '(2A)', "ice: var_name: ", var_name
-   call oasis_def_var(var_id, var_name, part_id, var_nodims, OASIS_IN, &
+   print '(2A)', "ice: var_name: ", i_from_ocn
+   call oasis_def_var(var_id, i_from_ocn, part_id, var_nodims, OASIS_IN, &
       &              [1], OASIS_DOUBLE, kinfo)
    if(kinfo<0 .or. var_id<0) call oasis_abort(comp_id, comp_name, &
       & "Error in oasis_def_var: ", rcode=kinfo)

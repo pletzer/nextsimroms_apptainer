@@ -8,8 +8,8 @@ program ocean
    integer :: part_params(OASIS_Apple_Params), offset, local_size
    integer :: local_comm, comm_size, comm_rank
    integer :: var_nodims(2)
-   character(len=13) :: comp_name = "ocean"
-   character(len=8) :: var_name = "FSENDANA"
+   character(len=5) :: comp_name = "ocean"
+   character(len=10) :: o_from_ocn = "O_FROM_OCN"
    real(kind=8), allocatable :: bundle(:,:)
 
    integer :: nx_global, ny_global
@@ -49,8 +49,8 @@ program ocean
       & "Error in oasis_def_partition: ", rcode=kinfo)
 
    var_nodims=[1, 2]
-   print '(A,I0,2A)', "ocean rank(",comm_rank,"): var_name: ", var_name
-   call oasis_def_var(var_id, var_name, part_id, var_nodims, OASIS_OUT, &
+   print '(A,I0,2A)', "ocean rank(",comm_rank,"): var_name: ", o_from_ocn
+   call oasis_def_var(var_id, o_from_ocn, part_id, var_nodims, OASIS_OUT, &
       &               [1], OASIS_DOUBLE, kinfo)
    if(kinfo<0 .or. var_id<0) call oasis_abort(comp_id, comp_name, &
       & "Error in oasis_def_var: ", rcode=kinfo)
