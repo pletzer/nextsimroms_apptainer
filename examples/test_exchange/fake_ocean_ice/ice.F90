@@ -50,12 +50,12 @@ program ice
    var_nodims=[1, 2]
 
    call oasis_def_var(i_from_ocn_id, i_from_ocn, part_id, var_nodims, OASIS_IN, &
-      &              [1], OASIS_DOUBLE, kinfo)
+      &              OASIS_DOUBLE, kinfo)
    if(kinfo<0 .or. i_from_ocn_id<0) call oasis_abort(comp_id, comp_name, &
       & "Error in oasis_def_var: ", rcode=kinfo)
 
    ! call oasis_def_var(i_from_ice_id, i_from_ice, part_id, var_nodims, OASIS_OUT, &
-   !    &              [1], OASIS_DOUBLE, kinfo)
+   !    &              OASIS_DOUBLE, kinfo)
    ! if(kinfo<0 .or. i_from_ice_id<0) call oasis_abort(comp_id, comp_name, &
    !    & "Error in oasis_def_var: ", rcode=kinfo)
 

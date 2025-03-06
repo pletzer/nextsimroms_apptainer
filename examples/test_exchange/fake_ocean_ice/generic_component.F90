@@ -15,6 +15,10 @@ type generic_component_type
    character(len=STR_LEN), allocatable :: import_field_name(:)
    real(8), allocatable :: export_field_value(:)
    real(8), allocatable :: import_field_value(:)
+   ! dimension: flat index, field index
+   real(8), allocatable :: export_field_data(:, :)
+   real(8), allocatable :: import_field_data(:, :)
+
 end type generic_component_type
 
 contains
@@ -47,7 +51,6 @@ contains
       allocate(export_field_name(num_export), export_field_value(num_export))
       allocate(import_field_name(num_import), import_field_value(num_import))
       
-
       rewind(unit=iu)
       read(unit=iu, nml=values, iostat=ier); if (ier /= 0) return   
       close(iu)
@@ -114,10 +117,12 @@ contains
       ier = 0
       deallocate(self % export_field_id, stat=ier)
       deallocate(self % export_field_name, stat=ier)
-      deallocate(self % export_field_value, stat=ier)     
+      deallocate(self % export_field_value, stat=ier)
+      deallocate(self % export_field_data, stat=ier)   
       deallocate(self % import_field_id, stat=ier)
       deallocate(self % import_field_name, stat=ier)
       deallocate(self % import_field_value, stat=ier)     
+      deallocate(self % import_field_data, stat=ier)   
    end subroutine gc_del
 
 end module generic_component_mod
@@ -138,7 +143,7 @@ module exception_mod
    end subroutine check_err
 end module exception_mod
 
-
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 program main
 
    use mpi
@@ -160,6 +165,7 @@ program main
    integer :: nx_global, ny_global, n_points, local_size, offset
    integer :: part_params(OASIS_Apple_Params)
    real(8), allocatable :: lon(:, :), lat(:, :)
+   integer :: date
 
    ! get the namelist file name
    num_args = command_argument_count()
@@ -184,7 +190,8 @@ program main
    ! get the grid data
    call read_dims('grids.nc', component % grid_name, nx_global, ny_global)
    n_points = nx_global*ny_global
-   allocate(lon(nx_global,ny_global), lat(nx_global,ny_global))
+   allocate(lon(nx_global,ny_global), lat(nx_global, ny_global))
+
    call read_coords('grids.nc', component % grid_name, lon, lat)
 
    ! domain decomposition (1D)
@@ -198,26 +205,64 @@ program main
    call oasis_def_partition(part_id, part_params, kinfo); call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
 
    var_nodims = [1, 1] ! cannot be passed directly to oasis_def_var. 1st number is not used. 2nd number is the bundle size
+   ! set the export fields
+   n =  size(component % export_field_id)
+   allocate(component % export_field_data(local_size, n))
+   do i = 1, n
+      component % export_field_data(:, i) = component % export_field_value(i)
+   enddo
+         
+   ! initialize the import fields
+   n =  size(component % import_field_id)
+   allocate(component % import_field_data(local_size, n))
+   do i = 1, n
+      component % import_field_data(:, i) = component % import_field_value(i)
+   enddo
+      
    ! define export fields
    n = size(component % export_field_id)
    do i = 1, n
       var_name = trim(component % export_field_name(i))
-      call oasis_def_var(var_id, var_name, part_id, var_nodims, OASIS_OUT, OASIS_DOUBLE, &
+      call oasis_def_var(component % export_field_id(i), &
+         & var_name, part_id, var_nodims, OASIS_OUT, OASIS_DOUBLE, &
          & kinfo); call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
-      ! store
-      component % export_field_id(i) = var_id
    enddo
+
+   ! define import fields
    n = size(component % import_field_id)
    do i = 1, n
       var_name = trim(component % import_field_name(i))
-      call oasis_def_var(var_id, var_name, part_id, var_nodims, OASIS_IN, OASIS_DOUBLE, &
+      call oasis_def_var(component % import_field_id(i), &
+         & var_name, part_id, var_nodims, OASIS_IN, OASIS_DOUBLE, &
          & kinfo); call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
-      ! store
-      component % import_field_id(i) = var_id
    enddo
 
+   ! done with definition
    call oasis_enddef(kinfo); call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
 
+   ! for the time being, a one off exchange
+   date = 0 ! number of seconds
+
+   ! MAY NEED TO ENSURE THAT COMP1 exports first (?)
+
+   ! export
+   n = size(component % export_field_id)
+   do i = 1, n
+      print *, component % component_name, ' exports ', component % export_field_name(i)
+      call oasis_put(component % export_field_id(i), date, component % export_field_data(:, i), &
+         & kinfo); call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
+      print *, component % component_name, ' success'
+   enddo
+
+   ! import
+   n = size(component % import_field_id)
+   do i = 1, n
+      print *, component % component_name, ' imports ', component % import_field_name(i)
+      call oasis_get(component % import_field_id(i), date, component % import_field_data(:, i), &
+         & kinfo); call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
+      print *, component % component_name, ' success'
+   enddo
+      
    ! clean up
    call gc_del(component, ier)
    
