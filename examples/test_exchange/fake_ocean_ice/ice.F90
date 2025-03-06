@@ -30,6 +30,7 @@ program ice
 
    call read_dims('grids.nc', 'bggd', nx_global, ny_global)
    n_points = nx_global*ny_global
+   write(0, *) 'ICE DEBUG nx_global, ny_global = ', nx_global, ny_global
    allocate(bundle_import(nx_global, ny_global, 2), bundle_export(nx_global, ny_global, 2))
    allocate(expected(nx_global, ny_global, 2))
    allocate(lon(nx_global,ny_global), lat(nx_global,ny_global))

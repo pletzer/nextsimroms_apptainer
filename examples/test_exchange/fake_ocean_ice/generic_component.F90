@@ -8,16 +8,17 @@ type generic_component_type
    integer :: ncid
    character(len=STR_LEN) :: component_name
    character(len=STR_LEN) :: grid_name
-   integer, allocatable :: export_field_id(:)
-   integer, allocatable :: import_field_id(:)
-
    character(len=STR_LEN), allocatable :: export_field_name(:)
    character(len=STR_LEN), allocatable :: import_field_name(:)
    real(8), allocatable :: export_field_value(:)
    real(8), allocatable :: import_field_value(:)
    ! dimension: flat index, field index
-   real(8), allocatable :: export_field_data(:, :)
-   real(8), allocatable :: import_field_data(:, :)
+   real(8), allocatable :: export_bundle_data(:, :)
+   real(8), allocatable :: import_bundle_data(:, :)
+   character(len=STR_LEN) :: export_bundle_name
+   character(len=STR_LEN) :: import_bundle_name
+   integer :: export_bundle_id
+   integer :: import_bundle_id
 
 end type generic_component_type
 
@@ -37,11 +38,13 @@ contains
       character(len=STR_LEN), allocatable :: import_field_name(:)
       real(8), allocatable :: export_field_value(:)
       real(8), allocatable :: import_field_value(:)
+      character(len=STR_LEN) :: export_bundle_name, import_bundle_name
    
       namelist /dims/ num_export, num_import
 
       namelist /values/ component_name, grid_name, &
-         & export_field_name, import_field_name, export_field_value, import_field_value
+         & export_field_name, import_field_name, export_field_value, import_field_value, &
+         & export_bundle_name, import_bundle_name
 
       ier = 0
 
@@ -61,8 +64,8 @@ contains
       self % import_field_name = import_field_name
       self % export_field_value = export_field_value
       self % import_field_value = import_field_value
-      allocate(self % export_field_id(num_export))
-      allocate(self % import_field_id(num_import))
+      self % export_bundle_name = export_bundle_name
+      self % import_bundle_name = import_bundle_name
             
    end subroutine gc_new
 
@@ -78,51 +81,51 @@ contains
       print *, 'component name: ', self % grid_name
       print *, 'grid name: ', self % grid_name
 
+      print *, 'export bundle name: ', self % export_bundle_name
       print *, 'number of export field: ', size(self % export_field_name)
       do i = 1, size(self % export_field_name)
          print *, '    export field ', self % export_field_name(i), ' value: ', self % export_field_value(i)
       enddo
 
+      print *, 'import bundle name: ', self % import_bundle_name
       print *, 'number of import field: ', size(self % import_field_name)
       do i = 1, size(self % import_field_name)
          print *, '    import field ', self % import_field_name(i), ' value: ', self % import_field_value(i)
       enddo
    end subroutine gc_print
 
-   subroutine gc_define_fields(self, ier)
-      implicit none
-      type(generic_component_type), intent(inout) :: self
-      integer, intent(out) :: ier
-      ier = 0
-   end subroutine gc_define_fields
+   ! subroutine gc_define_fields(self, ier)
+   !    implicit none
+   !    type(generic_component_type), intent(inout) :: self
+   !    integer, intent(out) :: ier
+   !    ier = 0
+   ! end subroutine gc_define_fields
 
-   subroutine gc_export(self, ier)
-      implicit none
-      type(generic_component_type), intent(inout) :: self
-      integer, intent(out) :: ier
-         ier = 0
-      end subroutine gc_export
+   ! subroutine gc_export(self, ier)
+   !    implicit none
+   !    type(generic_component_type), intent(inout) :: self
+   !    integer, intent(out) :: ier
+   !       ier = 0
+   !    end subroutine gc_export
 
-   subroutine gc_import(self, ier)
-      implicit none
-      type(generic_component_type), intent(inout) :: self
-      integer, intent(out) :: ier
-      ier = 0
-   end subroutine gc_import
+   ! subroutine gc_import(self, ier)
+   !    implicit none
+   !    type(generic_component_type), intent(inout) :: self
+   !    integer, intent(out) :: ier
+   !    ier = 0
+   ! end subroutine gc_import
 
    subroutine gc_del(self, ier)
       implicit none
       type(generic_component_type), intent(inout) :: self
       integer, intent(out) :: ier
       ier = 0
-      deallocate(self % export_field_id, stat=ier)
       deallocate(self % export_field_name, stat=ier)
       deallocate(self % export_field_value, stat=ier)
-      deallocate(self % export_field_data, stat=ier)   
-      deallocate(self % import_field_id, stat=ier)
+      deallocate(self % export_bundle_data, stat=ier)   
       deallocate(self % import_field_name, stat=ier)
       deallocate(self % import_field_value, stat=ier)     
-      deallocate(self % import_field_data, stat=ier)   
+      deallocate(self % import_bundle_data, stat=ier)   
    end subroutine gc_del
 
 end module generic_component_mod
@@ -154,7 +157,7 @@ program main
    implicit none
 
    type(generic_component_type) :: component
-   integer :: num_args, ier, i, n
+   integer :: num_args, ier, i, n_export, n_import
    character(len=STR_LEN) :: namelist_file
    integer :: comp_id, part_id, var_id, kinfo
    integer :: local_comm, comm_size, comm_rank
@@ -175,7 +178,11 @@ program main
    ! just to get the component name
    call gc_new(component, namelist_file, ier)
    call gc_print(component, ier)
-   comp_name = component % component_name  
+   comp_name = component % component_name
+   n_export = size(component % export_field_name)
+   n_import = size(component % import_field_name)
+   if (n_export /= size(component % export_field_value)) stop'ERROR number of export names/values does not match'
+   if (n_export /= size(component % export_field_value)) stop'ERROR number of import names/values does not match'
    call gc_del(component, ier)
 
    ! start MPI
@@ -204,38 +211,36 @@ program main
    part_params(OASIS_Length)   = local_size
    call oasis_def_partition(part_id, part_params, kinfo); call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
 
-   var_nodims = [1, 1] ! cannot be passed directly to oasis_def_var. 1st number is not used. 2nd number is the bundle size
    ! set the export fields
-   n =  size(component % export_field_id)
-   allocate(component % export_field_data(local_size, n))
-   do i = 1, n
-      component % export_field_data(:, i) = component % export_field_value(i)
+   allocate(component % export_bundle_data(local_size, n_export))
+   do i = 1, n_export
+      component % export_bundle_data(:, i) = component % export_field_value(i)
    enddo
          
    ! initialize the import fields
-   n =  size(component % import_field_id)
-   allocate(component % import_field_data(local_size, n))
-   do i = 1, n
-      component % import_field_data(:, i) = component % import_field_value(i)
-   enddo
-      
-   ! define export fields
-   n = size(component % export_field_id)
-   do i = 1, n
-      var_name = trim(component % export_field_name(i))
-      call oasis_def_var(component % export_field_id(i), &
-         & var_name, part_id, var_nodims, OASIS_OUT, OASIS_DOUBLE, &
-         & kinfo); call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
+   write(0, *), '$$$$$ ', component % component_name, ' has sizes nx_global, ny_global, local_size = ', nx_global, ny_global, local_size
+   allocate(component % import_bundle_data(local_size, n_import))
+   do i = 1, n_import
+      component % import_bundle_data(:, i) = component % import_field_value(i)
    enddo
 
-   ! define import fields
-   n = size(component % import_field_id)
-   do i = 1, n
-      var_name = trim(component % import_field_name(i))
-      call oasis_def_var(component % import_field_id(i), &
-         & var_name, part_id, var_nodims, OASIS_IN, OASIS_DOUBLE, &
-         & kinfo); call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
-   enddo
+   ! define export bundle
+   if (n_export > 0) then
+      var_nodims = [1, n_export] ! cannot be passed directly to oasis_def_var. 1st number is not used. 2nd number is the bundle size 
+      var_name = trim(component % export_bundle_name)
+      call oasis_def_var(component % export_bundle_id, &
+            & var_name, part_id, var_nodims, OASIS_OUT, OASIS_DOUBLE, &
+            & kinfo); call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
+   endif
+
+   ! define import bundle
+   if (n_import > 0) then
+      var_nodims = [1, n_import] ! cannot be passed directly to oasis_def_var. 1st number is not used. 2nd number is the bundle size 
+      var_name = trim(component % import_bundle_name)
+      call oasis_def_var(component % import_bundle_id, &
+            & var_name, part_id, var_nodims, OASIS_IN, OASIS_DOUBLE, &
+            & kinfo); call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
+   endif
 
    ! done with definition
    call oasis_enddef(kinfo); call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
@@ -243,25 +248,25 @@ program main
    ! for the time being, a one off exchange
    date = 0 ! number of seconds
 
-   ! MAY NEED TO ENSURE THAT COMP1 exports first (?)
-
    ! export
-   n = size(component % export_field_id)
-   do i = 1, n
-      print *, component % component_name, ' exports ', component % export_field_name(i)
-      call oasis_put(component % export_field_id(i), date, component % export_field_data(:, i), &
+   if (n_export > 0) then
+      write(0, *) '$$$$$ ', component % component_name, ' exports ', component % export_bundle_name, &
+         ' dims: ', size(component % export_bundle_data, 1), size(component % export_bundle_data, 2)
+      call oasis_put(component % export_bundle_id, &
+         & date, component % export_bundle_data, &
          & kinfo); call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
-      print *, component % component_name, ' success'
-   enddo
+      print *, component % component_name, ' export was successful'
+   endif
 
    ! import
-   n = size(component % import_field_id)
-   do i = 1, n
-      print *, component % component_name, ' imports ', component % import_field_name(i)
-      call oasis_get(component % import_field_id(i), date, component % import_field_data(:, i), &
+   if (n_import > 0) then
+      write(0, *) '$$$$$ ', component % component_name, ' imports ', component % import_bundle_name, &
+         ' dims: ', size(component % import_bundle_data, 1), size(component % import_bundle_data, 2)
+      call oasis_get(component % import_bundle_id, &
+         & date, component % import_bundle_data, &
          & kinfo); call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
-      print *, component % component_name, ' success'
-   enddo
+      print *, component % component_name, ' import was successful'
+   endif
       
    ! clean up
    call gc_del(component, ier)

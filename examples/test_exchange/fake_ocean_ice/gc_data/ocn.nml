@@ -8,4 +8,7 @@
 
     export_field_name = 'O_SST_FROM_OCN'
     export_field_value = 293.
+
+    export_bundle_name = 'O_FROM_OCN'
+    import_bundle_name = 'O_FROM_ICE'
 /

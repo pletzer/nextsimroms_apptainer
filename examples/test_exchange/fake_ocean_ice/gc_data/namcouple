@@ -19,7 +19,7 @@ $STRINGS
 # 0 number of transformations
 # rstO2I.nc restart file
 # EXPOUT: exported, transformed and written to netcdf file
-O_SST_FROM_OCN I_SST_FROM_OCN 1 7200 0 rstO2I.nc EXPOUT
+O_FROM_OCN I_FROM_OCN 1 7200 0 rstO2I.nc EXPOUT
 144 143 144 143 bggd bggd
 P 0 P 0
 #FSENDANA FRECVANA 1 7200 1 rst.nc EXPOUT
