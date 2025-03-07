@@ -8,6 +8,7 @@ module exception_mod
       character(len=*), intent(in) :: filename
       integer, intent(in) :: line
       if (kinfo /= 0) then
+         write(0, *), 'ERROR in file ', filename, ' at line ', line
          call oasis_abort(comp_id, comp_name, &
          & "OASIS error: ", rcode=kinfo)
       endif
