@@ -28,20 +28,6 @@ runoi:
 	rm -f nout.?????? debug*
 	mpiexec -n 4 ocean : -n 1 ice
 
-rungc:
-	rm -f grids.nc namcouple
-	ln -s ../common_data/grids.nc .
-	ln -s gc_data/namcouple .
-	rm -f nout.?????? debug*
-	mpiexec -n 1 generic_component gc_data/ocn.nml : -n 1 generic_component gc_data/ice.nml
-
-rungc2x2:
-	rm -f grids.nc namcouple
-	ln -s ../common_data/grids.nc .
-	ln -s gc_data/namcouple .
-	rm -f nout.?????? debug*
-	mpiexec -n 2 generic_component gc_data/ocn.nml : -n 2 generic_component gc_data/ice.nml
-
 clean:
 	rm -f ocean ice generic_component
 	rm -f *~
