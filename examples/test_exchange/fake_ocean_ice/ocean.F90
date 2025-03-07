@@ -12,8 +12,6 @@ program ocean
    integer :: var_nodims(2)
    character(len=5) :: comp_name
    integer :: o_from_ocn_id, o_from_ice_id
-   character(len=10) :: o_from_ocn = "O_FROM_OCN"
-   character(len=10) :: o_from_ice = "O_FROM_ICE"
    ! use flat arrays 
    real(kind=8), allocatable :: bundle_export(:,:), bundle_import(:, :)
 
@@ -74,7 +72,7 @@ program ocean
    if(kinfo<0 .or. o_from_ocn_id<0) call oasis_abort(comp_id, comp_name, &
       & "Error in oasis_def_var: ", rcode=kinfo)
 
-   ! call oasis_def_var(o_from_ice_id, o_from_ice, part_id, var_nodims, OASIS_IN, &
+   ! call oasis_def_var(o_from_ice_id, component % import_bundle_name, part_id, var_nodims, OASIS_IN, &
    !    &               OASIS_DOUBLE, kinfo)
    ! if(kinfo<0 .or. o_from_ice_id<0) call oasis_abort(comp_id, comp_name, &
    !    & "Error in oasis_def_var: ", rcode=kinfo)
