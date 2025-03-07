@@ -9,17 +9,17 @@ LIBS = -L$(OASIS_DIR)/lib -lpsmile.MPI1 -lscrip -lmct -lmpeu $(NETCDF_LIBRARY)
 all: ocean ice generic_component
 
 %.o: %.F90
-	${F90} -check=all -g -O0 -traceback -I $(OASIS_DIR)/include -c $<
+	${F90} -check all -g -O0 -traceback -I $(OASIS_DIR)/include -c $<
 
-generic_component: generic_component.o grid_mod.o
-	${F90} $< -g -O0 -o $@ grid_mod.o $(LIBS)
+generic_component: generic_component.o grid_mod.o generic_component_mod.o exception_mod.o
+	${F90} $< -g -O0 -o $@ grid_mod.o generic_component_mod.o exception_mod.o $(LIBS)
 
 
-ocean: ocean.F90 grid_mod.o
-	${F90} ocean.F90 ${FLAGS} -o ocean grid_mod.o $(LIBS)
+ocean: ocean.F90 grid_mod.o  generic_component_mod.o exception_mod.o
+	${F90} ocean.F90 ${FLAGS} -o ocean grid_mod.o generic_component_mod.o  exception_mod.o $(LIBS)
 
-ice: ice.F90  grid_mod.o
-	${F90} ice.F90 ${FLAGS} -o ice grid_mod.o $(LIBS)
+ice: ice.F90  grid_mod.o generic_component_mod.o exception_mod.o
+	${F90} ice.F90 ${FLAGS} -o ice grid_mod.o generic_component_mod.o  exception_mod.o $(LIBS)
 
 runoi:
 	rm -f grids.nc namcouple
