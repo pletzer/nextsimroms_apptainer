@@ -61,11 +61,15 @@ program ocean
    call gc_new(component, 'oi_data/ocean.nml', kinfo)
       call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
 
+   ! debug 
+   call gc_print(component, kinfo)
+
    n_export = size(component % export_field_value)
    n_import = size(component % import_field_value)
 
    var_nodims=[1, n_export]
-   call oasis_def_var(o_from_ocn_id, o_from_ocn, part_id, var_nodims, OASIS_OUT, &
+   call oasis_def_var(o_from_ocn_id, component % export_bundle_name, &
+      &               part_id, var_nodims, OASIS_OUT, &
       &               OASIS_DOUBLE, kinfo)
    if(kinfo<0 .or. o_from_ocn_id<0) call oasis_abort(comp_id, comp_name, &
       & "Error in oasis_def_var: ", rcode=kinfo)
