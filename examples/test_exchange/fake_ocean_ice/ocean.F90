@@ -11,16 +11,14 @@ program ocean
    integer :: local_comm, comm_size, comm_rank
    integer :: var_nodims(2)
    character(len=5) :: comp_name
-   integer :: o_from_ocn_id, o_from_ice_id
    ! use flat arrays 
    real(kind=8), allocatable :: bundle_export(:,:), bundle_import(:, :)
 
    integer :: nx_global, ny_global
-   integer :: n_points
-   integer :: ncid, varid
+   integer :: n_points     ! total number of points
    real(kind=8), allocatable :: lon(:, :), lat(:, :)
-   integer :: ll_i, ll_j
-   real(kind=8) :: dp_conv
+   integer :: ll_i, ll_j   ! local lon, lat indices
+   real(kind=8) :: dp_conv ! used in the analytic formula
 
    type(generic_component_type) :: component
    integer :: n_export, n_import
@@ -66,23 +64,27 @@ program ocean
    n_import = size(component % import_field_value)
 
    var_nodims=[1, n_export]
-   call oasis_def_var(o_from_ocn_id, component % export_bundle_name, &
+   call oasis_def_var(component % export_bundle_id, component % export_bundle_name, &
       &               part_id, var_nodims, OASIS_OUT, &
       &               OASIS_DOUBLE, kinfo)
-   if(kinfo<0 .or. o_from_ocn_id<0) call oasis_abort(comp_id, comp_name, &
+   if(kinfo<0 .or. component % export_bundle_id<0) call oasis_abort(comp_id, comp_name, &
       & "Error in oasis_def_var: ", rcode=kinfo)
 
-   ! call oasis_def_var(o_from_ice_id, component % import_bundle_name, part_id, var_nodims, OASIS_IN, &
+   ! var_nodims=[1, n_import]
+   ! call oasis_def_var(component % import_bundle_id, component % import_bundle_name, &
+   !    &               part_id, var_nodims, OASIS_IN, &
    !    &               OASIS_DOUBLE, kinfo)
-   ! if(kinfo<0 .or. o_from_ice_id<0) call oasis_abort(comp_id, comp_name, &
+   ! if(kinfo<0 .or. component % import_bundle_id<0) call oasis_abort(comp_id, comp_name, &
    !    & "Error in oasis_def_var: ", rcode=kinfo)
    
    call oasis_enddef(kinfo)
    if(kinfo<0) call oasis_abort(comp_id, comp_name, &
       & "Error in oasis_enddef: ", rcode=kinfo)
 
+   allocate(bundle_export(local_size, n_export), bundle_import(local_size, n_import))
+
+   ! set the values of the export bundle
    dp_conv = atan(1.0)/45.0
-   allocate(bundle_export(local_size,2), bundle_import(local_size,2))
    do i = 1, local_size
       ll_j = int((offset+i-1)/nx_global)+1
       ll_i = mod(offset+i-1,nx_global)+1
@@ -93,12 +95,14 @@ program ocean
           & (1.2*atan(1.)*4)))
    end do
 
+   ! export the field
    date=0
 
-   call oasis_put(o_from_ocn_id, date, bundle_export, kinfo)
+   call oasis_put(component % export_bundle_id, date, bundle_export, kinfo)
    if(kinfo<0) call oasis_abort(comp_id, comp_name, &
       & "Error in oasis_put: ", rcode=kinfo)
 
+   ! clean up
    call gc_del(component, kinfo)
       call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
 
