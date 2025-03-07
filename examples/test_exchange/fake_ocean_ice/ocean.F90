@@ -23,7 +23,9 @@ program ocean
    real(kind=8), allocatable :: lon(:, :), lat(:, :)
    integer :: ll_i, ll_j
    real(kind=8) :: dp_conv
+
    type(generic_component_type) :: component
+   integer :: n_export, n_import
 
 
    comp_name = "ocean"
@@ -59,7 +61,10 @@ program ocean
    call gc_new(component, 'oi_data/ocean.nml', kinfo)
       call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
 
-   var_nodims=[1, 2]
+   n_export = size(component % export_field_value)
+   n_import = size(component % import_field_value)
+
+   var_nodims=[1, n_export]
    call oasis_def_var(o_from_ocn_id, o_from_ocn, part_id, var_nodims, OASIS_OUT, &
       &               OASIS_DOUBLE, kinfo)
    if(kinfo<0 .or. o_from_ocn_id<0) call oasis_abort(comp_id, comp_name, &
