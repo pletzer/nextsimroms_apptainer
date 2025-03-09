@@ -3,15 +3,15 @@ program ice
    use mod_oasis
    use grid_mod
    use netcdf
+   use generic_component_mod
+   use exception_mod
    implicit none
+   character(len=3), parameter :: comp_name = 'ice'
    integer :: i, j, k, kinfo, date
    integer :: comp_id, part_id
    integer :: part_params(OASIS_Serial_Params)
+   integer :: local_comm, comm_size, comm_rank
    integer :: var_nodims(2)
-   character(len=3) :: comp_name = "ice"
-   integer :: i_from_ocn_id, i_from_ice_id
-   character(len=10) :: i_from_ocn = "I_FROM_OCN"
-   character(len=10) :: i_from_ice = "I_FROM_ICE"
    real(kind=8) :: error, epsilon
    integer :: nx_global, ny_global
    real(kind=8), allocatable ::  bundle_export(:, :, :), bundle_import(:, :, :)
@@ -22,12 +22,21 @@ program ice
    integer, allocatable :: imsk(:, :)
    real(kind=8) :: dp_conv
    logical :: success
+
+   type(generic_component_type) :: component
    integer :: n_export, n_import
 
    call oasis_init_comp(comp_id, comp_name, kinfo)
    if(kinfo<0) call oasis_abort(comp_id, comp_name, &
       & "Error in oasis_init_comp: ", rcode=kinfo)
    print '(A,I0)', "ice: Component ID: ", comp_id
+
+   call oasis_get_localcomm(local_comm, kinfo)
+   if(kinfo<0) call oasis_abort(comp_id, comp_name, &
+      & "Error in oasis_get_localcomm: ", rcode=kinfo)
+   call mpi_comm_size(local_comm, comm_size, kinfo)
+   call mpi_comm_rank(local_comm, comm_rank, kinfo)
+   print *, comp_name, ": Component ID: ", comp_id
 
    call read_dims('grids.nc', 'bggd', nx_global, ny_global)
    n_points = nx_global*ny_global
@@ -47,24 +56,33 @@ program ice
    if(kinfo<0) call oasis_abort(comp_id, comp_name, &
       & "Error in oasis_def_partition: ", rcode=kinfo)
 
-   n_import = 3 ! set manually for the time being
-   n_export = 0
+   call gc_new(component, 'oi_data/ice.nml', kinfo)
+   call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
+
+   ! debug 
+   call gc_print(component, kinfo)
+
+   n_export = size(component % export_field_value)
+   n_import = size(component % import_field_value)
+
    var_nodims=[1, n_import]
    allocate(bundle_import(nx_global, ny_global, n_import), &
          & bundle_export(nx_global, ny_global, n_export))
    allocate(expected(nx_global, ny_global, n_import))
       
-   call oasis_def_var(i_from_ocn_id, i_from_ocn, part_id, var_nodims, OASIS_IN, &
-      &              OASIS_DOUBLE, kinfo)
-   if(kinfo<0 .or. i_from_ocn_id<0) call oasis_abort(comp_id, comp_name, &
-      & "Error in oasis_def_var: ", rcode=kinfo)
+   ! DEFINE EXPORT FIELDS HERE...
+   
+   if (n_import > 0) then 
+      call oasis_def_var(component % import_bundle_id, component % import_bundle_name, &
+                  &  part_id, var_nodims, OASIS_IN, &
+                  &  OASIS_DOUBLE, kinfo)
+      if(kinfo<0 .or. component % import_bundle_id < 0) &
+         &  call oasis_abort(comp_id, comp_name, &
+         & "Error in oasis_def_var: ", rcode=kinfo)
+   endif
 
-   ! call oasis_def_var(i_from_ice_id, i_from_ice, part_id, var_nodims, OASIS_OUT, &
-   !    &              OASIS_DOUBLE, kinfo)
-   ! if(kinfo<0 .or. i_from_ice_id<0) call oasis_abort(comp_id, comp_name, &
-   !    & "Error in oasis_def_var: ", rcode=kinfo)
 
-      call oasis_enddef(kinfo)
+   call oasis_enddef(kinfo)
    if(kinfo<0) call oasis_abort(comp_id, comp_name, &
       & "Error in oasis_enddef: ", rcode=kinfo)
 
@@ -72,13 +90,9 @@ program ice
 
    bundle_import(:,:,:)=0
 
-   call oasis_get(i_from_ocn_id, date, bundle_import, kinfo)
+   call oasis_get(component % import_bundle_id, date, bundle_import, kinfo)
    if(kinfo<0) call oasis_abort(comp_id, comp_name, &
       & "Error in oasis_get: ", rcode=kinfo)
-
-   call oasis_terminate(kinfo)
-   if(kinfo<0) call oasis_abort(comp_id, comp_name, &
-      & "Error in oasis_terminate: ", rcode=kinfo)
 
    ! exact field
    dp_conv = atan(1.)/45.0
@@ -115,4 +129,8 @@ program ice
 
    if(success) print '(A)', "ice: Data received successfully"
 
+   call oasis_terminate(kinfo)
+   if(kinfo<0) call oasis_abort(comp_id, comp_name, &
+      & "Error in oasis_terminate: ", rcode=kinfo)
+      
 end program ice
