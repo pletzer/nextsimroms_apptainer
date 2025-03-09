@@ -6,6 +6,8 @@ module generic_component_mod
     
     type generic_component_type
         character(len=STR_LEN) :: grid_name
+        integer(8) :: run_time
+        integer(8) :: time_step
         integer :: export_bundle_id
         integer :: import_bundle_id
         character(len=STR_LEN) :: export_bundle_name
@@ -33,14 +35,19 @@ module generic_component_mod
         real(8), allocatable :: export_field_value(:)
         real(8), allocatable :: import_field_value(:)
         character(len=STR_LEN) :: export_bundle_name, import_bundle_name
+        integer(8) :: run_time, time_step
     
-        namelist /dims/ num_export, num_import
+        namelist /dims/ num_export, num_import, run_time, time_step
 
         namelist /values/ grid_name, &
             & export_field_name, import_field_name, export_field_value, import_field_value, &
             & export_bundle_name, import_bundle_name
 
         ier = 0
+        run_time = 0
+        time_step = 0
+        num_import = 0
+        num_export = 0
 
         open(newunit=iu, file=namelist_file, status='old', iostat=ier); if (ier /= 0) return
         read(unit=iu, nml=dims, iostat=ier); if (ier /= 0) return
@@ -52,6 +59,8 @@ module generic_component_mod
         read(unit=iu, nml=values, iostat=ier); if (ier /= 0) return   
         close(iu)
     
+        self % run_time = run_time
+        self % time_step = time_step
         self % grid_name = grid_name
         self % export_field_name = export_field_name
         self % import_field_name = import_field_name

@@ -98,14 +98,14 @@ program ocean
       enddo
    enddo
 
-   ! export the field
-   date=0
-
-   if (n_export > 0) then
-      call oasis_put(component % export_bundle_id, date, bundle_export, kinfo)
-      if(kinfo<0) call oasis_abort(comp_id, comp_name, &
-         & "Error in oasis_put: ", rcode=kinfo)
-   endif
+   do date = 1, component % run_time, component % time_step
+      if (n_export > 0) then
+         ! export the field
+         call oasis_put(component % export_bundle_id, date, bundle_export, kinfo)
+         if(kinfo<0) call oasis_abort(comp_id, comp_name, &
+            & "Error in oasis_put: ", rcode=kinfo)
+      endif
+   enddo
 
    ! clean up
    call gc_del(component, kinfo)

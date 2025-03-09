@@ -96,18 +96,18 @@ program ice
       & "Error in oasis_enddef: ", rcode=kinfo)
 
 
-   date=0
-
-
    if (n_import > 0 .and. comm_rank == 0) then
 
       allocate(bundle_import(nx_global, ny_global, n_import), &
          & bundle_export(nx_global, ny_global, n_export))
       allocate(expected(nx_global, ny_global, n_import))
          
-      call oasis_get(component % import_bundle_id, date, bundle_import, kinfo)
-      if(kinfo<0) call oasis_abort(comp_id, comp_name, &
-         & "Error in oasis_get: ", rcode=kinfo)
+      do date = 1, component % run_time, component % time_step
+         ! import the field
+         call oasis_get(component % import_bundle_id, date, bundle_import, kinfo)
+         if(kinfo<0) call oasis_abort(comp_id, comp_name, &
+            & "Error in oasis_get: ", rcode=kinfo)
+      enddo
 
       do k = 1, n_import
          call vtk_write_data(lon, lat, bundle_import(:, :, k), &
