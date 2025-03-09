@@ -64,15 +64,19 @@ program ice
 
    n_export = size(component % export_field_value)
    n_import = size(component % import_field_value)
-
-   var_nodims=[1, n_import]
-   allocate(bundle_import(nx_global, ny_global, n_import), &
-         & bundle_export(nx_global, ny_global, n_export))
-   allocate(expected(nx_global, ny_global, n_import))
       
-   ! DEFINE EXPORT FIELDS HERE...
-   
-   if (n_import > 0) then 
+   if (n_export > 0) then
+      var_nodims=[1, n_export]
+      call oasis_def_var(component % export_bundle_id, component % export_bundle_name, &
+                  &  part_id, var_nodims, OASIS_OUT, &
+                  &  OASIS_DOUBLE, kinfo)
+      if(kinfo<0 .or. component % export_bundle_id < 0) &
+         &  call oasis_abort(comp_id, comp_name, &
+         & "Error in oasis_def_var: ", rcode=kinfo)
+   endif
+
+   if (n_import > 0) then
+      var_nodims=[1, n_import]
       call oasis_def_var(component % import_bundle_id, component % import_bundle_name, &
                   &  part_id, var_nodims, OASIS_IN, &
                   &  OASIS_DOUBLE, kinfo)
@@ -81,10 +85,14 @@ program ice
          & "Error in oasis_def_var: ", rcode=kinfo)
    endif
 
-
    call oasis_enddef(kinfo)
    if(kinfo<0) call oasis_abort(comp_id, comp_name, &
       & "Error in oasis_enddef: ", rcode=kinfo)
+
+   allocate(bundle_import(nx_global, ny_global, n_import), &
+         & bundle_export(nx_global, ny_global, n_export))
+   allocate(expected(nx_global, ny_global, n_import))
+
 
    date=0
 
