@@ -5,6 +5,7 @@ program ice
    use netcdf
    use generic_component_mod
    use exception_mod
+   use tovtk_mod
    implicit none
    character(len=3), parameter :: comp_name = 'ice'
    integer :: i, j, k, kinfo, date
@@ -107,6 +108,12 @@ program ice
       call oasis_get(component % import_bundle_id, date, bundle_import, kinfo)
       if(kinfo<0) call oasis_abort(comp_id, comp_name, &
          & "Error in oasis_get: ", rcode=kinfo)
+
+      do k = 1, n_import
+         call vtk_write_data(lon, lat, bundle_import(:, :, k), &
+            & trim(component % import_field_name(k)), &
+            & trim(component % import_field_name(k)) // '.vtk')
+      enddo
 
       ! exact field
       dp_conv = atan(1.)/45.0
