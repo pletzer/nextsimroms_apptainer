@@ -52,9 +52,12 @@ program ice
 
    part_params(OASIS_Strategy) = OASIS_Serial
    part_params(OASIS_Length)   = n_points
-   call oasis_def_partition(part_id, part_params, kinfo)
-   if(kinfo<0) call oasis_abort(comp_id, comp_name, &
-      & "Error in oasis_def_partition: ", rcode=kinfo)
+   
+   if (comm_rank == 0) then
+      call oasis_def_partition(part_id, part_params, kinfo)
+      if(kinfo<0) call oasis_abort(comp_id, comp_name, &
+         & "Error in oasis_def_partition: ", rcode=kinfo)
+   endif
 
    call gc_new(component, 'oi_data/ice.nml', kinfo)
    call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
