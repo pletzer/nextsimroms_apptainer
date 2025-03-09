@@ -6,7 +6,7 @@ program ocean
    use exception_mod
    implicit none
    character(len=3), parameter :: comp_name = 'ocn'
-   integer :: i, kinfo, date
+   integer :: i, k, kinfo, date
    integer :: comp_id, part_id
    integer :: part_params(OASIS_Apple_Params), offset, local_size
    integer :: local_comm, comm_size, comm_rank
@@ -86,16 +86,17 @@ program ocean
    allocate(bundle_export(local_size, n_export), bundle_import(local_size, n_import))
 
    ! set the values of the export bundle
-   dp_conv = atan(1.0)/45.0
-   do i = 1, local_size
-      ll_j = int((offset+i-1)/nx_global)+1
-      ll_i = mod(offset+i-1,nx_global)+1
-      bundle_export(i,1) = 2.0 + (sin(2.*lat(ll_i,ll_j)*dp_conv))**4 * &
-         & cos(4.*lon(ll_i,ll_j)*dp_conv)
-      bundle_export(i,2) = 2.0 - cos(atan(1.0)*4.* &
-          & (acos(cos(lon(ll_i,ll_j)*dp_conv)*cos(lat(ll_i,ll_j)*dp_conv))/ &
-          & (1.2*atan(1.)*4)))
-   end do
+   dp_conv = atan(1.0)/45.0 ! conversion factor
+   do k = 1, n_export
+      do i = 1, local_size
+         ll_j = int((offset+i-1)/nx_global)+1
+         ll_i = mod(offset+i-1,nx_global)+1
+         bundle_export(i, k) = k * ( &
+            & 2.0 + (sin(2.*lat(ll_i,ll_j)*dp_conv))**4 * &
+            & cos(4.*lon(ll_i,ll_j)*dp_conv) &
+            & )
+      enddo
+   enddo
 
    ! export the field
    date=0

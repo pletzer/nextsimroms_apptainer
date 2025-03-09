@@ -22,6 +22,7 @@ program ice
    integer, allocatable :: imsk(:, :)
    real(kind=8) :: dp_conv
    logical :: success
+   integer :: n_export, n_import
 
    call oasis_init_comp(comp_id, comp_name, kinfo)
    if(kinfo<0) call oasis_abort(comp_id, comp_name, &
@@ -48,7 +49,8 @@ program ice
    if(kinfo<0) call oasis_abort(comp_id, comp_name, &
       & "Error in oasis_def_partition: ", rcode=kinfo)
 
-   var_nodims=[1, 2]
+   n_import = 2
+   var_nodims=[1, n_import]
 
    call oasis_def_var(i_from_ocn_id, i_from_ocn, part_id, var_nodims, OASIS_IN, &
       &              OASIS_DOUBLE, kinfo)
@@ -77,19 +79,20 @@ program ice
       & "Error in oasis_terminate: ", rcode=kinfo)
 
    dp_conv = atan(1.)/45.0
-   do j = 1, ny_global
-      do i = 1, nx_global
-         expected(i,j,1) = 2.0 + (sin(2.*lat(i,j)*dp_conv))**4 * &
-            & cos(4.*lon(i,j)*dp_conv)
-         expected(i,j,2) = 2.0 - cos(atan(1.0)*4.* &
-            & (acos(cos(lon(i,j)*dp_conv)*cos(lat(i,j)*dp_conv))/ &
-            & (1.2*atan(1.)*4)))
-      end do
-   end do
+   do k = 1, n_import
+      do j = 1, ny_global
+         do i = 1, nx_global
+            expected(i,j,k) = k * ( &
+               & 2.0 + (sin(2.*lat(i,j)*dp_conv))**4 * &
+               & cos(4.*lon(i,j)*dp_conv) &
+               & )
+         enddo
+      enddo
+   enddo
 
    epsilon=1.e-3
    success = .true.
-   do k = 1, 2
+   do k = 1, n_import
       error=0.
       do j = 1, ny_global
          do i = 1, nx_global
@@ -98,11 +101,11 @@ program ice
          end do
       end do
       success = success .and. (error/dble(n_points) < epsilon)
-      print '(A,E20.10)',"ice: Average regridding error: ", error/dble(n_points)
+      print '(A,A, E20.10)', comp_name, ": Average regridding error: ", error/dble(n_points)
       if (success) then
-         print '(A,I0,A)',"ice: Data for bundle_import ",k," is ok"
+         print '(A,A,I0,A)', comp_name, ": Data for bundle_import ",k," is ok"
       else
-         print '(A,I0,A,E12.5)', "ice: Error for bundle_import ",k," is ",error
+         print '(A,A,I0,A,E12.5)', comp_name, ": Error for bundle_import ",k," is ",error
       end if
    end do
 
