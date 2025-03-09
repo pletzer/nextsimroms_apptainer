@@ -98,7 +98,8 @@ program ocean
       enddo
    enddo
 
-   do date = 1, component % run_time, component % time_step
+   date = 0
+   do date = 0, component % run_time - 1, component % time_step
       if (n_export > 0) then
          ! export the field
          call oasis_put(component % export_bundle_id, date, bundle_export, kinfo)

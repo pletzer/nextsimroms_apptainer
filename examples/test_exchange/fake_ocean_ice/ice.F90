@@ -102,7 +102,8 @@ program ice
          & bundle_export(nx_global, ny_global, n_export))
       allocate(expected(nx_global, ny_global, n_import))
          
-      do date = 1, component % run_time, component % time_step
+      date = 0
+      do date = 0, component % run_time -1, component % time_step
          ! import the field
          call oasis_get(component % import_bundle_id, date, bundle_import, kinfo)
          if(kinfo<0) call oasis_abort(comp_id, comp_name, &
@@ -148,7 +149,11 @@ program ice
          end if
       end do
 
-      if(success) print '(A)', "ice: Data received successfully"
+      if(success) then
+         print '(A)', "ice: Data received successfully"
+      else
+         print *, 'ice: FAILURE!!!'
+      endif
    
    endif
 
