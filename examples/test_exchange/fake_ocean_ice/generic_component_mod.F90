@@ -5,7 +5,6 @@ module generic_component_mod
     integer, parameter :: STR_LEN = 16
     
     type generic_component_type
-        character(len=STR_LEN) :: component_name
         character(len=STR_LEN) :: grid_name
         integer :: export_bundle_id
         integer :: import_bundle_id
@@ -30,7 +29,7 @@ module generic_component_mod
         character(len=*), intent(in) :: namelist_file
         integer, intent(out) :: ier
         
-        character(len=STR_LEN) :: grid_name, component_name
+        character(len=STR_LEN) :: grid_name
         integer :: num_export, num_import, iu
         character(len=STR_LEN), allocatable :: export_field_name(:)
         character(len=STR_LEN), allocatable :: import_field_name(:)
@@ -40,7 +39,7 @@ module generic_component_mod
     
         namelist /dims/ num_export, num_import
 
-        namelist /values/ component_name, grid_name, &
+        namelist /values/ grid_name, &
             & export_field_name, import_field_name, export_field_value, import_field_value, &
             & export_bundle_name, import_bundle_name
 
@@ -56,7 +55,6 @@ module generic_component_mod
         read(unit=iu, nml=values, iostat=ier); if (ier /= 0) return   
         close(iu)
     
-        self % component_name = component_name
         self % grid_name = grid_name
         self % export_field_name = export_field_name
         self % import_field_name = import_field_name

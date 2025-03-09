@@ -5,12 +5,12 @@ program ocean
    use generic_component_mod
    use exception_mod
    implicit none
+   character(len=3), parameter :: comp_name = 'ocn'
    integer :: i, kinfo, date
    integer :: comp_id, part_id
    integer :: part_params(OASIS_Apple_Params), offset, local_size
    integer :: local_comm, comm_size, comm_rank
    integer :: var_nodims(2)
-   character(len=5) :: comp_name
    ! use flat arrays 
    real(kind=8), allocatable :: bundle_export(:,:), bundle_import(:, :)
 
@@ -23,8 +23,6 @@ program ocean
    type(generic_component_type) :: component
    integer :: n_export, n_import
 
-
-   comp_name = "ocean"
    call oasis_init_comp(comp_id, comp_name, kinfo)
    if(kinfo<0) call oasis_abort(comp_id, comp_name, &
       & "Error in oasis_init_comp: ", rcode=kinfo)
@@ -35,7 +33,7 @@ program ocean
 
    call mpi_comm_size(local_comm, comm_size, kinfo)
    call mpi_comm_rank(local_comm, comm_rank, kinfo)   
-   print '(A,I0)', "ocean: Component ID: ", comp_id
+   print *, comp_name, ": Component ID: ", comp_id
 
    call read_dims('../common_data/grids.nc', 'bggd', nx_global, ny_global)
    n_points = nx_global*ny_global
