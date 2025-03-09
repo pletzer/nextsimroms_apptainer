@@ -14,9 +14,6 @@ module generic_component_mod
         character(len=STR_LEN), allocatable :: import_field_name(:)
         real(8), allocatable :: export_field_value(:)
         real(8), allocatable :: import_field_value(:)
-        ! dimension: flat index, field index
-        real(8), allocatable :: export_bundle_data(:, :)
-        real(8), allocatable :: import_bundle_data(:, :)
     end type generic_component_type
 
     contains
@@ -90,27 +87,6 @@ module generic_component_mod
         enddo
     end subroutine gc_print
 
-    ! subroutine gc_define_fields(self, ier)
-    !    implicit none
-    !    type(generic_component_type), intent(inout) :: self
-    !    integer, intent(out) :: ier
-    !    ier = 0
-    ! end subroutine gc_define_fields
-
-    ! subroutine gc_export(self, ier)
-    !    implicit none
-    !    type(generic_component_type), intent(inout) :: self
-    !    integer, intent(out) :: ier
-    !       ier = 0
-    !    end subroutine gc_export
-
-    ! subroutine gc_import(self, ier)
-    !    implicit none
-    !    type(generic_component_type), intent(inout) :: self
-    !    integer, intent(out) :: ier
-    !    ier = 0
-    ! end subroutine gc_import
-
     subroutine gc_del(self, ier)
         implicit none
         type(generic_component_type), intent(inout) :: self
@@ -120,10 +96,8 @@ module generic_component_mod
         ! do not generate an error if deallocating an array that is not allocated
         deallocate(self % export_field_name, stat=status)
         deallocate(self % export_field_value, stat=status)
-        deallocate(self % export_bundle_data, stat=status)   
         deallocate(self % import_field_name, stat=status)
         deallocate(self % import_field_value, stat=status)     
-        deallocate(self % import_bundle_data, stat=status) 
     end subroutine gc_del
 
 end module generic_component_mod

@@ -32,8 +32,6 @@ program ice
    call read_dims('grids.nc', 'bggd', nx_global, ny_global)
    n_points = nx_global*ny_global
    write(0, *) 'ICE DEBUG nx_global, ny_global = ', nx_global, ny_global
-   allocate(bundle_import(nx_global, ny_global, 2), bundle_export(nx_global, ny_global, 2))
-   allocate(expected(nx_global, ny_global, 2))
    allocate(lon(nx_global,ny_global), lat(nx_global,ny_global))
    allocate(imsk(nx_global,ny_global))
    call read_coords('grids.nc', 'bggd', lon, lat)
@@ -49,9 +47,13 @@ program ice
    if(kinfo<0) call oasis_abort(comp_id, comp_name, &
       & "Error in oasis_def_partition: ", rcode=kinfo)
 
-   n_import = 2
+   n_import = 3 ! set manually for the time being
+   n_export = 0
    var_nodims=[1, n_import]
-
+   allocate(bundle_import(nx_global, ny_global, n_import), &
+         & bundle_export(nx_global, ny_global, n_export))
+   allocate(expected(nx_global, ny_global, n_import))
+      
    call oasis_def_var(i_from_ocn_id, i_from_ocn, part_id, var_nodims, OASIS_IN, &
       &              OASIS_DOUBLE, kinfo)
    if(kinfo<0 .or. i_from_ocn_id<0) call oasis_abort(comp_id, comp_name, &
@@ -78,6 +80,7 @@ program ice
    if(kinfo<0) call oasis_abort(comp_id, comp_name, &
       & "Error in oasis_terminate: ", rcode=kinfo)
 
+   ! exact field
    dp_conv = atan(1.)/45.0
    do k = 1, n_import
       do j = 1, ny_global
@@ -96,6 +99,7 @@ program ice
       error=0.
       do j = 1, ny_global
          do i = 1, nx_global
+            ! imsk = 0 means valid
             if (imsk(i,j) == 0) &
                & error = error + abs((bundle_import(i,j,k)-expected(i,j,k))/expected(i,j,k))
          end do

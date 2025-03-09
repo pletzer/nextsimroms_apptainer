@@ -5,7 +5,7 @@ program ocean
    use generic_component_mod
    use exception_mod
    implicit none
-   character(len=3), parameter :: comp_name = 'ocn'
+   character(len=5), parameter :: comp_name = 'ocean'
    integer :: i, k, kinfo, date
    integer :: comp_id, part_id
    integer :: part_params(OASIS_Apple_Params), offset, local_size
