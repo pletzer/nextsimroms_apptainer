@@ -1,0 +1,13 @@
+&dims
+    num_export = 0
+    num_import = 3
+/
+&values
+    grid_name = 'bggd'
+
+    import_field_name = 'sss', 'sst', 'u' 
+    import_field_value = 34, 293., 0.1
+
+    import_bundle_name = 'I_FROM_OCN'
+    export_bundle_name = 'I_FROM_ICE'
+/
