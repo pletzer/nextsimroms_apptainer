@@ -65,7 +65,9 @@ program ice
    n_export = size(component % export_field_value)
    n_import = size(component % import_field_value)
       
-   if (n_export > 0) then
+   ! Only rank 0 contributes to the coupling
+
+   if (n_export > 0 .and. comm_rank == 0) then
       var_nodims=[1, n_export]
       call oasis_def_var(component % export_bundle_id, component % export_bundle_name, &
                   &  part_id, var_nodims, OASIS_OUT, &
@@ -75,7 +77,7 @@ program ice
          & "Error in oasis_def_var: ", rcode=kinfo)
    endif
 
-   if (n_import > 0) then
+   if (n_import > 0 .and. comm_rank == 0) then
       var_nodims=[1, n_import]
       call oasis_def_var(component % import_bundle_id, component % import_bundle_name, &
                   &  part_id, var_nodims, OASIS_IN, &
@@ -89,53 +91,56 @@ program ice
    if(kinfo<0) call oasis_abort(comp_id, comp_name, &
       & "Error in oasis_enddef: ", rcode=kinfo)
 
-   allocate(bundle_import(nx_global, ny_global, n_import), &
-         & bundle_export(nx_global, ny_global, n_export))
-   allocate(expected(nx_global, ny_global, n_import))
-
 
    date=0
 
-   bundle_import(:,:,:)=0
 
-   call oasis_get(component % import_bundle_id, date, bundle_import, kinfo)
-   if(kinfo<0) call oasis_abort(comp_id, comp_name, &
-      & "Error in oasis_get: ", rcode=kinfo)
+   if (n_import > 0 .and. comm_rank == 0) then
 
-   ! exact field
-   dp_conv = atan(1.)/45.0
-   do k = 1, n_import
-      do j = 1, ny_global
-         do i = 1, nx_global
-            expected(i,j,k) = k * ( &
-               & 2.0 + (sin(2.*lat(i,j)*dp_conv))**4 * &
-               & cos(4.*lon(i,j)*dp_conv) &
-               & )
+      allocate(bundle_import(nx_global, ny_global, n_import), &
+         & bundle_export(nx_global, ny_global, n_export))
+      allocate(expected(nx_global, ny_global, n_import))
+         
+      call oasis_get(component % import_bundle_id, date, bundle_import, kinfo)
+      if(kinfo<0) call oasis_abort(comp_id, comp_name, &
+         & "Error in oasis_get: ", rcode=kinfo)
+
+      ! exact field
+      dp_conv = atan(1.)/45.0
+      do k = 1, n_import
+         do j = 1, ny_global
+            do i = 1, nx_global
+               expected(i,j,k) = k * ( &
+                  & 2.0 + (sin(2.*lat(i,j)*dp_conv))**4 * &
+                  & cos(4.*lon(i,j)*dp_conv) &
+                  & )
+            enddo
          enddo
       enddo
-   enddo
 
-   epsilon=1.e-3
-   success = .true.
-   do k = 1, n_import
-      error=0.
-      do j = 1, ny_global
-         do i = 1, nx_global
-            ! imsk = 0 means valid
-            if (imsk(i,j) == 0) &
-               & error = error + abs((bundle_import(i,j,k)-expected(i,j,k))/expected(i,j,k))
+      epsilon=1.e-3
+      success = .true.
+      do k = 1, n_import
+         error=0.
+         do j = 1, ny_global
+            do i = 1, nx_global
+               ! imsk = 0 means valid
+               if (imsk(i,j) == 0) &
+                  & error = error + abs((bundle_import(i,j,k)-expected(i,j,k))/expected(i,j,k))
+            end do
          end do
+         success = success .and. (error/dble(n_points) < epsilon)
+         print '(A,A, E20.10)', comp_name, ": Average regridding error: ", error/dble(n_points)
+         if (success) then
+            print '(A,A,I0,A)', comp_name, ": Data for bundle_import ",k," is ok"
+         else
+            print '(A,A,I0,A,E12.5)', comp_name, ": Error for bundle_import ",k," is ",error
+         end if
       end do
-      success = success .and. (error/dble(n_points) < epsilon)
-      print '(A,A, E20.10)', comp_name, ": Average regridding error: ", error/dble(n_points)
-      if (success) then
-         print '(A,A,I0,A)', comp_name, ": Data for bundle_import ",k," is ok"
-      else
-         print '(A,A,I0,A,E12.5)', comp_name, ": Error for bundle_import ",k," is ",error
-      end if
-   end do
 
-   if(success) print '(A)', "ice: Data received successfully"
+      if(success) print '(A)', "ice: Data received successfully"
+   
+   endif
 
    call oasis_terminate(kinfo)
    if(kinfo<0) call oasis_abort(comp_id, comp_name, &
