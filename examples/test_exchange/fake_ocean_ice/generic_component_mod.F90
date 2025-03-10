@@ -8,10 +8,8 @@ module generic_component_mod
         character(len=STR_LEN) :: grid_name
         integer(8) :: run_time
         integer(8) :: time_step
-        integer :: export_bundle_id
-        integer :: import_bundle_id
-        character(len=STR_LEN) :: export_bundle_name
-        character(len=STR_LEN) :: import_bundle_name
+        integer, allocatable :: export_field_id(:)
+        integer, allocatable :: import_field_id(:)
         character(len=STR_LEN), allocatable :: export_field_name(:)
         character(len=STR_LEN), allocatable :: import_field_name(:)
         real(8), allocatable :: export_field_value(:)
@@ -34,14 +32,12 @@ module generic_component_mod
         character(len=STR_LEN), allocatable :: import_field_name(:)
         real(8), allocatable :: export_field_value(:)
         real(8), allocatable :: import_field_value(:)
-        character(len=STR_LEN) :: export_bundle_name, import_bundle_name
         integer(8) :: run_time, time_step
     
         namelist /dims/ num_export, num_import, run_time, time_step
 
         namelist /values/ grid_name, &
-            & export_field_name, import_field_name, export_field_value, import_field_value, &
-            & export_bundle_name, import_bundle_name
+            & export_field_name, import_field_name, export_field_value, import_field_value
 
         ier = 0
         run_time = 0
@@ -52,8 +48,12 @@ module generic_component_mod
         open(newunit=iu, file=namelist_file, status='old', iostat=ier); if (ier /= 0) return
         read(unit=iu, nml=dims, iostat=ier); if (ier /= 0) return
 
-        allocate(export_field_name(num_export), export_field_value(num_export))
-        allocate(import_field_name(num_import), import_field_value(num_import))
+        allocate(export_field_name(num_export), &
+            &    export_field_value(num_export), &
+            &    self % export_field_id(num_export))
+        allocate(import_field_name(num_import), &
+            &    import_field_value(num_import), &
+            &    self % import_field_id(num_import))
         
         rewind(unit=iu)
         read(unit=iu, nml=values, iostat=ier); if (ier /= 0) return   
@@ -66,8 +66,6 @@ module generic_component_mod
         self % import_field_name = import_field_name
         self % export_field_value = export_field_value
         self % import_field_value = import_field_value
-        self % export_bundle_name = export_bundle_name
-        self % import_bundle_name = import_bundle_name
             
     end subroutine gc_new
 
@@ -83,13 +81,11 @@ module generic_component_mod
         print *, 'component name: ', self % grid_name
         print *, 'grid name: ', self % grid_name
 
-        print *, 'export bundle name: ', self % export_bundle_name
         print *, 'number of export field: ', size(self % export_field_name)
         do i = 1, size(self % export_field_name)
             print *, '    export field ', self % export_field_name(i), ' value: ', self % export_field_value(i)
         enddo
 
-        print *, 'import bundle name: ', self % import_bundle_name
         print *, 'number of import field: ', size(self % import_field_name)
         do i = 1, size(self % import_field_name)
             print *, '    import field ', self % import_field_name(i), ' value: ', self % import_field_value(i)

@@ -61,22 +61,28 @@ program ocean
    n_export = size(component % export_field_value)
    n_import = size(component % import_field_value)
 
+   var_nodims=[1, 1]
+   
    if (n_export > 0) then
-      var_nodims=[1, n_export]
-      call oasis_def_var(component % export_bundle_id, component % export_bundle_name, &
-         &               part_id, var_nodims, OASIS_OUT, &
-         &               OASIS_DOUBLE, kinfo)
-      if(kinfo<0 .or. component % export_bundle_id<0) call oasis_abort(comp_id, comp_name, &
-         & "Error in oasis_def_var: ", rcode=kinfo)
+      do k = 1, n_export
+         call oasis_def_var(component % export_field_id(k), component % export_field_name(k), &
+            &               part_id, var_nodims, OASIS_OUT, &
+            &               OASIS_DOUBLE, kinfo)
+         if(kinfo<0 .or. component % export_field_id(k) < 0) &
+            & call oasis_abort(comp_id, comp_name, &
+            & "Error in oasis_def_var: ", rcode=kinfo)
+      enddo
    endif
 
    if (n_import > 0) then
-      var_nodims=[1, n_import]
-      call oasis_def_var(component % import_bundle_id, component % import_bundle_name, &
-         &               part_id, var_nodims, OASIS_IN, &
-         &               OASIS_DOUBLE, kinfo)
-      if(kinfo<0 .or. component % import_bundle_id<0) call oasis_abort(comp_id, comp_name, &
-         & "Error in oasis_def_var: ", rcode=kinfo)
+      do k = 1, n_import
+         call oasis_def_var(component % import_field_id(k), component % import_field_name(k), &
+            &               part_id, var_nodims, OASIS_IN, &
+          &               OASIS_DOUBLE, kinfo)
+         if(kinfo<0 .or. component % import_field_id(k) < 0) &
+            & call oasis_abort(comp_id, comp_name, &
+            & "Error in oasis_def_var: ", rcode=kinfo)
+      enddo
    endif
    
    call oasis_enddef(kinfo)
@@ -102,9 +108,11 @@ program ocean
    do date = 0, component % run_time - 1, component % time_step
       if (n_export > 0) then
          ! export the field
-         call oasis_put(component % export_bundle_id, date, bundle_export, kinfo)
-         if(kinfo<0) call oasis_abort(comp_id, comp_name, &
-            & "Error in oasis_put: ", rcode=kinfo)
+         do k = 1, n_export
+            call oasis_put(component % export_field_id(k), date, bundle_export(:, k), kinfo)
+            if(kinfo<0) call oasis_abort(comp_id, comp_name, &
+               & "Error in oasis_put: ", rcode=kinfo)
+         enddo
       endif
    enddo
 
