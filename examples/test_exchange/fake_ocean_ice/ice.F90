@@ -16,7 +16,6 @@ program ice
    real(kind=8) :: error, epsilon
    integer :: nx_global, ny_global
    real(kind=8), allocatable ::  bundle_export(:, :, :), bundle_import(:, :, :)
-   real(kind=8), allocatable ::  expected(:, :, :)
    integer :: n_points
    integer :: ncid, varid
    real(kind=8), allocatable :: lon(:, :), lat(:, :)
@@ -100,14 +99,23 @@ program ice
       & "Error in oasis_enddef: ", rcode=kinfo)
 
 
-   if (n_import > 0 .and. comm_rank == 0) then
+   if (comm_rank == 0) then
 
       allocate(bundle_import(nx_global, ny_global, n_import), &
-         & bundle_export(nx_global, ny_global, n_export))
-      allocate(expected(nx_global, ny_global, n_import))
+             & bundle_export(nx_global, ny_global, n_export))
          
       date = 0
       do date = 0, component % run_time -1, component % time_step
+
+         if (n_export > 0) then
+            do k = 1, n_export
+               ! export the field
+               call oasis_put(component % export_field_id(k), date, bundle_export(:, :, k), kinfo)
+               if(kinfo<0) call oasis_abort(comp_id, comp_name, &
+                  & "Error in oasis_get: ", rcode=kinfo)
+            enddo
+         endif
+
          if (n_import > 0) then
             do k = 1, n_import
                ! import the field
@@ -116,25 +124,13 @@ program ice
                   & "Error in oasis_get: ", rcode=kinfo)
             enddo
          endif
+
       enddo
 
       do k = 1, n_import
          call vtk_write_data(lon, lat, bundle_import(:, :, k), &
             & trim(component % import_field_name(k)), &
             & trim(component % import_field_name(k)) // '.vtk')
-      enddo
-
-      ! exact field
-      dp_conv = atan(1.)/45.0
-      do k = 1, n_import
-         do j = 1, ny_global
-            do i = 1, nx_global
-               expected(i,j,k) = k * ( &
-                  & 2.0 + (sin(2.*lat(i,j)*dp_conv))**4 * &
-                  & cos(4.*lon(i,j)*dp_conv) &
-                  & )
-            enddo
-         enddo
       enddo
 
       epsilon=1.e-3
@@ -145,11 +141,13 @@ program ice
             do i = 1, nx_global
                ! imsk = 0 means valid
                if (imsk(i,j) == 0) &
-                  & error = error + abs((bundle_import(i,j,k)-expected(i,j,k))/expected(i,j,k))
+                  & error = error + abs( &
+                  & bundle_import(i,j,k) - component%import_field_value(k) &
+                  & )
             end do
          end do
          success = success .and. (error/dble(n_points) < epsilon)
-         print '(A,A, E20.10)', comp_name, ": Average regridding error: ", error/dble(n_points)
+         print '(A,A, E20.10)', comp_name, ": Average coupling error: ", error/dble(n_points)
          if (success) then
             print '(A,A,I0,A)', comp_name, ": Data for bundle_import ",k," is ok"
          else

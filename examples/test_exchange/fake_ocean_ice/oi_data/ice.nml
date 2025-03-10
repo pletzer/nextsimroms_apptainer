@@ -8,5 +8,5 @@
     grid_name = 'bggd'
 
     import_field_name = 'I_SST', 'I_SSS', 'I_Uocn', 'I_Vocn', 'I_SSH', 'I_MLD', 'I_FrcQsr'
-    import_field_value = 0., 0., 0., 0., 0., 0., 0.
+    import_field_value = 293., 34, 0.1, 0.2, 0., 0., 0.5
 /

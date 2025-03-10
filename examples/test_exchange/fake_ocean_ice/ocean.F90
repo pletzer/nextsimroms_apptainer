@@ -94,18 +94,24 @@ program ocean
    ! set the values of the export bundle
    dp_conv = atan(1.0)/45.0 ! conversion factor
    do k = 1, n_export
-      do i = 1, local_size
-         ll_j = int((offset+i-1)/nx_global)+1
-         ll_i = mod(offset+i-1,nx_global)+1
-         bundle_export(i, k) = k * ( &
-            & 2.0 + (sin(2.*lat(ll_i,ll_j)*dp_conv))**4 * &
-            & cos(4.*lon(ll_i,ll_j)*dp_conv) &
-            & )
-      enddo
+      bundle_export(:, k) = component % export_field_value(k)
+      ! do i = 1, local_size
+      !    ll_j = int((offset+i-1)/nx_global)+1
+      !    ll_i = mod(offset+i-1,nx_global)+1
+      !    bundle_export(i, k) = k * ( &
+      !       & 2.0 + (sin(2.*lat(ll_i,ll_j)*dp_conv))**4 * &
+      !       & cos(4.*lon(ll_i,ll_j)*dp_conv) &
+      !       & )
+      ! enddo
    enddo
 
+   do k = 1, n_import
+      bundle_import(:, k) = component % import_field_value(k)
+   enddo
+   
    date = 0
    do date = 0, component % run_time - 1, component % time_step
+
       if (n_export > 0) then
          ! export the field
          do k = 1, n_export
@@ -114,6 +120,16 @@ program ocean
                & "Error in oasis_put: ", rcode=kinfo)
          enddo
       endif
+
+      if (n_import > 0) then
+         ! import
+         do k = 1, n_import
+            call oasis_get(component % import_field_id(k), date, bundle_import(:, k), kinfo)
+            if(kinfo<0) call oasis_abort(comp_id, comp_name, &
+               & "Error in oasis_put: ", rcode=kinfo)
+         enddo
+      endif
+
    enddo
 
    ! clean up
