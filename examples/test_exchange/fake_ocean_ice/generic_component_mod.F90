@@ -101,8 +101,10 @@ module generic_component_mod
         ! do not generate an error if deallocating an array that is not allocated
         deallocate(self % export_field_name, stat=status)
         deallocate(self % export_field_value, stat=status)
+        deallocate(self % export_field_id, stat=status)
         deallocate(self % import_field_name, stat=status)
-        deallocate(self % import_field_value, stat=status)     
+        deallocate(self % import_field_value, stat=status)
+        deallocate(self % import_field_id, stat=status)  
     end subroutine gc_del
 
 end module generic_component_mod
