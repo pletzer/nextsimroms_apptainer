@@ -1,5 +1,5 @@
 &dims
-    num_export = 0
+    num_export = 1
     num_import = 7
     run_time = 21600
     time_step = 7200
@@ -9,4 +9,7 @@
 
     import_field_name = 'I_SST', 'I_SSS', 'I_Uocn', 'I_Vocn', 'I_SSH', 'I_MLD', 'I_FrcQsr'
     import_field_value = 293., 34, 0.1, 0.2, 0., 0., 0.5
+
+    export_field_name = 'I_sfi'
+    export_field_value = 1.e-3
 /

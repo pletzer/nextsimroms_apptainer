@@ -1,7 +1,7 @@
 ############################################
 $NFIELDS
 #15
-7
+8
 $END
 ############################################
 $RUNTIME
@@ -62,7 +62,9 @@ P 0 P 0
 #
 # I_rsso O_QsrOce
 #
-# I_sfi O_SFLX
+I_sfi O_SFLX 1 7200 0 i2o.nc EXPORTED
+144 143 144 143 bggd bggd
+P 0 P 0
 #
 # I_taumod  O_TauMod
 #

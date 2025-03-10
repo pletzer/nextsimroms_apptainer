@@ -42,6 +42,8 @@ program ocean
    allocate(lon(nx_global,ny_global), lat(nx_global,ny_global))
    call read_coords('../common_data/grids.nc', 'bggd', lon, lat)
 
+   ! Domain decomposition
+
    local_size=n_points/comm_size
    offset=comm_rank*local_size
    if (comm_rank == comm_size - 1) &
