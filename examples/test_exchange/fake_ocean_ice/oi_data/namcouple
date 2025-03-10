@@ -1,6 +1,7 @@
 ############################################
 $NFIELDS
-15
+#15
+7
 $END
 ############################################
 $RUNTIME
@@ -12,13 +13,13 @@ $NLOGPRT
 $END
 ############################################
 $STRINGS
-# O_FROM_OCN symbolic name of source field
-# I_FROM_OCN symbolic name of receiving field
+# O_SSTSST symbolic name of source field
+# I_SST symbolic name of receiving field
 # 1 unused
 # 7200 coupling period 
 # 0 number of transformations
-# rstO2I.nc restart file
-# EXPOUT: exported, transformed and written to netcdf file
+# o2i.nc restart file
+# EXPOUT: exported, transformed and written to netcdf file (use EXPORTED if no file should be written)
 #
 # OCEAN --->> ICE
 O_SSTSST I_SST 1 7200  0 o2i.nc EXPORTED

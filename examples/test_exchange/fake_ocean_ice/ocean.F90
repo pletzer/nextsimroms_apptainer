@@ -23,6 +23,8 @@ program ocean
    type(generic_component_type) :: component
    integer :: n_export, n_import
 
+   call mpi_init(kinfo)
+
    call oasis_init_comp(comp_id, comp_name, kinfo)
    if(kinfo<0) call oasis_abort(comp_id, comp_name, &
       & "Error in oasis_init_comp: ", rcode=kinfo)
@@ -140,4 +142,6 @@ program ocean
    if(kinfo<0) call oasis_abort(comp_id, comp_name, &
       & "Error in oasis_terminate: ", rcode=kinfo)
 
+   call mpi_finalize(kinfo)
+      
 end program ocean
