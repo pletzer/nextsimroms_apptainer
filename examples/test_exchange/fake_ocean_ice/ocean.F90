@@ -78,7 +78,7 @@ program ocean
       do k = 1, n_import
          call oasis_def_var(component % import_field_id(k), component % import_field_name(k), &
             &               part_id, var_nodims, OASIS_IN, &
-          &               OASIS_DOUBLE, kinfo)
+          &                 OASIS_DOUBLE, kinfo)
          if(kinfo<0 .or. component % import_field_id(k) < 0) &
             & call oasis_abort(comp_id, comp_name, &
             & "Error in oasis_def_var: ", rcode=kinfo)

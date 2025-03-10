@@ -1,6 +1,6 @@
 ############################################
 $NFIELDS
-3
+15
 $END
 ############################################
 $RUNTIME
@@ -20,15 +20,52 @@ $STRINGS
 # rstO2I.nc restart file
 # EXPOUT: exported, transformed and written to netcdf file
 #
-o_sss i_sss 1 7200 0 sss.nc EXPORTED
+# OCEAN --->> ICE
+O_SSTSST I_SST 1 7200  0 o2i.nc EXPORTED
 144 143 144 143 bggd bggd
 P 0 P 0
-
-o_sst i_sst 1 7200 0 sst.nc EXPORTED
+#
+O_SSSal  I_SSS 1 7200  0 o2i.nc EXPORTED
 144 143 144 143 bggd bggd
 P 0 P 0
-
-o_u i_u 1 7200 0 u.nc EXPORTED
+#
+O_OCurx1 I_Uocn 1 7200  0 o2i.nc EXPORTED
 144 143 144 143 bggd bggd
 P 0 P 0
+#
+O_OCury1 I_Vocn 1 7200  0 o2i.nc EXPORTED
+144 143 144 143 bggd bggd
+P 0 P 0
+#
+O_SSHght I_SSH 1 7200  0 o2i.nc EXPORTED
+144 143 144 143 bggd bggd
+P 0 P 0
+#
+O_E3T1st I_MLD 1 7200  0 o2i.nc EXPORTED
+144 143 144 143 bggd bggd
+P 0 P 0
+#
+O_FraQsr I_FrcQsr 1 7200  0 o2i.nc EXPORTED
+144 143 144 143 bggd bggd
+P 0 P 0
+#
+# ICE --->> OCEAN
+#
+# I_taux O_OTaux1
+#
+# I_tauy O_OTauy1
+#
+# I_emp OOEvaMPr
+#
+# I_rsnos O_QnsOce
+#
+# I_rsso O_QsrOce
+#
+# I_sfi O_SFLX
+#
+# I_taumod  O_TauMod
+#
+# I_sic RIceFrc
+#
+#
 $END

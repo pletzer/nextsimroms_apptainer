@@ -1,12 +1,12 @@
 &dims
     num_export = 0
-    num_import = 3
+    num_import = 7
     run_time = 21600
     time_step = 7200
 /
 &values
     grid_name = 'bggd'
 
-    import_field_name = 'i_sss', 'i_sst', 'i_u' 
-    import_field_value = 34, 293., 0.1
+    import_field_name = 'I_SST', 'I_SSS', 'I_Uocn', 'I_Vocn', 'I_SSH', 'I_MLD', 'I_FrcQsr'
+    import_field_value = 0., 0., 0., 0., 0., 0., 0.
 /
