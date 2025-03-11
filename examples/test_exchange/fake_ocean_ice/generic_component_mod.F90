@@ -5,7 +5,6 @@ module generic_component_mod
     integer, parameter :: STR_LEN = 16
     
     type generic_component_type
-        character(len=STR_LEN) :: grid_name
         integer(8) :: run_time
         integer(8) :: time_step
         integer :: nx_global
@@ -28,7 +27,6 @@ module generic_component_mod
         character(len=*), intent(in) :: namelist_file
         integer, intent(out) :: ier
         
-        character(len=STR_LEN) :: grid_name
         integer :: num_export, num_import, iu
         character(len=STR_LEN), allocatable :: export_field_name(:)
         character(len=STR_LEN), allocatable :: import_field_name(:)
@@ -39,7 +37,7 @@ module generic_component_mod
     
         namelist /dims/ num_export, num_import, run_time, time_step, nx_global, ny_global
 
-        namelist /values/ grid_name, &
+        namelist /values/ &
             & export_field_name, import_field_name, export_field_value, import_field_value
 
         ier = 0
@@ -66,7 +64,6 @@ module generic_component_mod
     
         self % run_time = run_time
         self % time_step = time_step
-        self % grid_name = grid_name
         self % export_field_name = export_field_name
         self % import_field_name = import_field_name
         self % export_field_value = export_field_value
@@ -84,9 +81,6 @@ module generic_component_mod
         integer :: i
 
         ier = 0
-
-        print *, 'component name: ', self % grid_name
-        print *, 'grid name: ', self % grid_name
 
         print *, 'number of export field: ', size(self % export_field_name)
         do i = 1, size(self % export_field_name)

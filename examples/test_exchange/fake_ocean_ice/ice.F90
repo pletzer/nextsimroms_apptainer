@@ -38,7 +38,11 @@ program ice
    call mpi_comm_rank(local_comm, comm_rank, kinfo)
    print *, comp_name, ": Component ID: ", comp_id
 
-   call read_dims('grids.nc', 'bggd', nx_global, ny_global)
+   call gc_new(component, 'oi_data/ice.nml', kinfo)
+   call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
+
+   nx_global = component % nx_global
+   ny_global = component % ny_global
    n_points = nx_global*ny_global
    write(0, *) 'ICE DEBUG nx_global, ny_global = ', nx_global, ny_global
    allocate(lon(nx_global,ny_global), lat(nx_global,ny_global))
@@ -59,8 +63,6 @@ program ice
          & "Error in oasis_def_partition: ", rcode=kinfo)
    endif
 
-   call gc_new(component, 'oi_data/ice.nml', kinfo)
-   call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
 
    ! debug 
    call gc_print(component, kinfo)

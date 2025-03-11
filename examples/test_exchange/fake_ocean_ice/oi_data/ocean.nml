@@ -7,8 +7,6 @@
     ny_global = 143
 /
 &values
-    grid_name = 'bggd'
-
     export_field_name = 'O_SSTSST', 'O_SSSal', 'O_OCurx1', 'O_OCury1', 'O_SSHght', 'O_E3T1st', 'O_FraQsr',
     export_field_value = 293., 34, 0.1, 0.2, 0., 0., 0.5
 

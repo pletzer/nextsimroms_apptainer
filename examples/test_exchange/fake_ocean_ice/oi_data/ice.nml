@@ -3,10 +3,10 @@
     num_import = 7
     run_time = 21600
     time_step = 7200
+    nx_global = 144
+    ny_global = 143
 /
 &values
-    grid_name = 'bggd'
-
     import_field_name = 'I_SST', 'I_SSS', 'I_Uocn', 'I_Vocn', 'I_SSH', 'I_MLD', 'I_FrcQsr'
     import_field_value = 293., 34, 0.1, 0.2, 0., 0., 0.5
 
