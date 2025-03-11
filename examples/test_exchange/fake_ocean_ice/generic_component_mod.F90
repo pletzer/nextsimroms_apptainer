@@ -8,6 +8,8 @@ module generic_component_mod
         character(len=STR_LEN) :: grid_name
         integer(8) :: run_time
         integer(8) :: time_step
+        integer :: nx_global
+        integer :: ny_global
         integer, allocatable :: export_field_id(:)
         integer, allocatable :: import_field_id(:)
         character(len=STR_LEN), allocatable :: export_field_name(:)
@@ -33,8 +35,9 @@ module generic_component_mod
         real(8), allocatable :: export_field_value(:)
         real(8), allocatable :: import_field_value(:)
         integer(8) :: run_time, time_step
+        integer :: nx_global, ny_global
     
-        namelist /dims/ num_export, num_import, run_time, time_step
+        namelist /dims/ num_export, num_import, run_time, time_step, nx_global, ny_global
 
         namelist /values/ grid_name, &
             & export_field_name, import_field_name, export_field_value, import_field_value
@@ -44,6 +47,8 @@ module generic_component_mod
         time_step = 0
         num_import = 0
         num_export = 0
+        nx_global = 0
+        ny_global = 0
 
         open(newunit=iu, file=namelist_file, status='old', iostat=ier); if (ier /= 0) return
         read(unit=iu, nml=dims, iostat=ier); if (ier /= 0) return
@@ -66,6 +71,8 @@ module generic_component_mod
         self % import_field_name = import_field_name
         self % export_field_value = export_field_value
         self % import_field_value = import_field_value
+        self % nx_global = nx_global
+        self % ny_global = ny_global
             
     end subroutine gc_new
 

@@ -3,6 +3,8 @@
     num_import = 1
     run_time = 21600
     time_step = 7200
+    nx_global = 144
+    ny_global = 143
 /
 &values
     grid_name = 'bggd'

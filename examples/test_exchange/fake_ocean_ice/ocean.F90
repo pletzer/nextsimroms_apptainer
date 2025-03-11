@@ -34,7 +34,11 @@ program ocean
    call mpi_comm_rank(local_comm, comm_rank, kinfo)   
    print *, comp_name, ": Component ID: ", comp_id
 
-   call read_dims('../common_data/grids.nc', 'bggd', nx_global, ny_global)
+   call gc_new(component, 'oi_data/ocean.nml', kinfo)
+      call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
+
+   nx_global = component % nx_global
+   ny_global = component % ny_global
    n_points = nx_global*ny_global
 
    ! Domain decomposition
@@ -51,8 +55,6 @@ program ocean
    if(kinfo<0) call oasis_abort(comp_id, comp_name, &
       & "Error in oasis_def_partition: ", rcode=kinfo)
 
-   call gc_new(component, 'oi_data/ocean.nml', kinfo)
-      call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
 
    ! debug 
    call gc_print(component, kinfo)
