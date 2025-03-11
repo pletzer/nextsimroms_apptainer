@@ -1,0 +1,12 @@
+&dims
+    num_export = 3
+    num_import = 0
+    run_time = 21600
+    time_step = 7200
+/
+&values
+    grid_name = 'bggd'
+
+    export_field_name = 'o_sss', 'o_sst', 'o_u' 
+    export_field_value = 34, 293., 0.1
+/
