@@ -16,9 +16,6 @@ program ocean
 
    integer :: nx_global, ny_global
    integer :: n_points     ! total number of points
-   real(kind=8), allocatable :: lon(:, :), lat(:, :)
-   integer :: ll_i, ll_j   ! local lon, lat indices
-   real(kind=8) :: dp_conv ! used in the analytic formula
 
    type(generic_component_type) :: component
    integer :: n_export, n_import
@@ -39,8 +36,6 @@ program ocean
 
    call read_dims('../common_data/grids.nc', 'bggd', nx_global, ny_global)
    n_points = nx_global*ny_global
-   allocate(lon(nx_global,ny_global), lat(nx_global,ny_global))
-   call read_coords('../common_data/grids.nc', 'bggd', lon, lat)
 
    ! Domain decomposition
 
@@ -96,17 +91,8 @@ program ocean
    allocate(bundle_export(local_size, n_export), bundle_import(local_size, n_import))
 
    ! set the values of the export bundle
-   dp_conv = atan(1.0)/45.0 ! conversion factor
    do k = 1, n_export
       bundle_export(:, k) = component % export_field_value(k)
-      ! do i = 1, local_size
-      !    ll_j = int((offset+i-1)/nx_global)+1
-      !    ll_i = mod(offset+i-1,nx_global)+1
-      !    bundle_export(i, k) = k * ( &
-      !       & 2.0 + (sin(2.*lat(ll_i,ll_j)*dp_conv))**4 * &
-      !       & cos(4.*lon(ll_i,ll_j)*dp_conv) &
-      !       & )
-      ! enddo
    enddo
 
    do k = 1, n_import
