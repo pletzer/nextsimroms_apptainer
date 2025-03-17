@@ -107,7 +107,7 @@ program ice
              & bundle_export(nx_global, ny_global, n_export))
          
       date = 0
-      do date = 0, component % run_time -1, component % time_step
+      do date = 0, component % run_time, component % time_step
 
          ! must import first as ocean sends first 
          if (n_import > 0) then

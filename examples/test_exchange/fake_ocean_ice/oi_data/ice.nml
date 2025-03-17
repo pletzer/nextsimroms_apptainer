@@ -2,7 +2,7 @@
     num_export = 1
     num_import = 7
     run_time = 21600
-    time_step = 7200
+    time_step = 3600 ! 7200
     nx_global = 144
     ny_global = 143
 /

@@ -5,7 +5,8 @@ $NFIELDS
 $END
 ############################################
 $RUNTIME
-21600
+# RUNTIME must be > model time (for some reason)
+21601
 $END
 ############################################
 $NLOGPRT
@@ -22,7 +23,7 @@ $STRINGS
 # EXPOUT: exported, transformed and written to netcdf file (use EXPORTED if no file should be written)
 #
 # OCEAN --->> ICE
-O_SSTSST I_SST 1 7200  0 o2i.nc EXPORTED
+O_SSTSST I_SST 1 7200  0 o2i.nc EXPOUT
 144 143 144 143 bggd bggd
 P 0 P 0
 #

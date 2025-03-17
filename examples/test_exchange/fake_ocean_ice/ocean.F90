@@ -100,9 +100,10 @@ program ocean
    do k = 1, n_import
       bundle_import(:, k) = component % import_field_value(k)
    enddo
-   
+  
+   ! data is the number of seconds into the simulation 
    date = 0
-   do date = 0, component % run_time - 1, component % time_step
+   do date = 0, component % run_time, component % time_step
 
       if (n_export > 0) then
          ! export the field
