@@ -1,8 +1,8 @@
 &dims
     num_export = 7
     num_import = 1
-    run_time = 21600
-    time_step = 3600 ! 7200
+    run_time =  18
+    time_step = 2
     nx_global = 144
     ny_global = 143
 /
