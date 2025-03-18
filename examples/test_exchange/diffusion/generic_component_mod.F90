@@ -26,9 +26,9 @@ module generic_component_mod
         integer, intent(out) :: ier
 
         integer :: nx, ny, nz, num_steps, iu
-        real(8) :: kappa, dx, dt, top_temperature, bottom_temperature
+        real(8) :: kappa, dx, dt
         
-        namelist /model/ nx, ny, nz, num_steps, kappa, dt, dx, top_temperature, bottom_temperature
+        namelist /model/ nx, ny, nz, num_steps, kappa, dt, dx
 
         dx = 0
         dt = 0
@@ -49,8 +49,9 @@ module generic_component_mod
         allocate(self % new_temperature(nx, ny, nz))
         allocate(self % bottom_temperature(nx, ny))  
         allocate(self % top_temperature(nx, ny))
-        self % bottom_temperature = bottom_temperature
-        self % top_temperature = top_temperature 
+        ! initialize
+        self % bottom_temperature = 0
+        self % top_temperature = 0
             
     end subroutine gc_new
 

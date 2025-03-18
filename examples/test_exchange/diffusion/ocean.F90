@@ -11,7 +11,7 @@ program ocean
    integer :: local_comm, comm_size, comm_rank
    integer :: var_nodims(2)
 
-   integer :: nx_global, ny_global
+   integer :: nx, ny, nz
    integer :: n_points     ! total number of points
 
    type(generic_component_type) :: component
@@ -34,9 +34,11 @@ program ocean
    call gc_new(component, 'oi_data/ocean.nml', kinfo)
    call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
 
-   nx_global = size(component % temperature, 1)
-   ny_global = size(component % temperature, 2)
-   n_points = nx_global*ny_global
+   nx = size(component % temperature, 1)
+   ny = size(component % temperature, 2)
+   nz = size(component % temperature, 3)
+   ! number of points in the horizontal plane
+   n_points = nx*ny
 
    ! Domain decomposition
 
@@ -77,12 +79,14 @@ program ocean
    if(kinfo<0) call oasis_abort(comp_id, comp_name, &
       & "Error in oasis_enddef: ", rcode=kinfo)
 
-   ! initialize the temperature of this component to the bottom, ocean temperature
+   ! initialize the temperature of this component
    do k = 1, size(component % temperature, 3)
-      component % temperature(:, :, k) = component % bottom_temperature
+      component % temperature(:, :, k) = 0
    enddo
-   component % top_temperature = component % bottom_temperature
-   
+   ! perturbation
+   component % temperature(floor(real(nx, 8)/2.) + 1, floor(real(ny, 8)/3) + 1, nz) = 1
+   component % top_temperature = component % temperature(:, :, nz)
+   component % bottom_temperature = 0
      
    ! data is the number of seconds into the simulation 
    date = 0
@@ -107,7 +111,7 @@ program ocean
       if(kinfo<0) call oasis_abort(comp_id, comp_name, &
             & "Error in oasis_put: ", rcode=kinfo)
 
-      print *,'ocean: at end of step ', date, ' top temperature is ', component % top_temperature
+      print *,'ocean at step ', date, ' : chksum recv data ', sum(component % top_temperature)
 
    enddo
 

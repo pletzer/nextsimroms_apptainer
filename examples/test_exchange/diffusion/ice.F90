@@ -11,7 +11,7 @@ program ice
    integer :: local_comm, comm_size, comm_rank
    integer :: var_nodims(2)
 
-   integer :: nx_global, ny_global
+   integer :: nx, ny, nz
    integer :: n_points     ! total number of points
 
    type(generic_component_type) :: component
@@ -34,9 +34,10 @@ program ice
    call gc_new(component, 'oi_data/ice.nml', kinfo)
    call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
 
-   nx_global = size(component % temperature, 1)
-   ny_global = size(component % temperature, 2)
-   n_points = nx_global*ny_global
+   nx = size(component % temperature, 1)
+   ny = size(component % temperature, 2)
+   nz = size(component % temperature, 3)
+   n_points = nx*ny
 
    ! Domain decomposition
 
@@ -78,11 +79,9 @@ program ice
       & "Error in oasis_enddef: ", rcode=kinfo)
 
    ! initialize the temperature of this component to the the top temperature
-   do k = 1, size(component % temperature, 3)
-      component % temperature(:, :, k) = component % top_temperature
-   enddo
-   component % bottom_temperature = component % top_temperature
-   
+   do k = 1, nz
+      component % temperature(:, :, k) = 0
+   enddo   
      
    ! data is the number of seconds into the simulation 
    date = 0
@@ -98,7 +97,7 @@ program ice
       if(kinfo<0) call oasis_abort(comp_id, comp_name, &
                   & "Error in oasis_put: ", rcode=kinfo)
 
-      print *,'ice: at start of step ', date, ' bottom temperature is ', component % bottom_temperature
+      print *,'ice at stpe ', date, ' : chksum recv data ', sum(component % bottom_temperature)
             
       ! advance
       call gc_step(component, kinfo)
