@@ -77,7 +77,7 @@ program ocean
    if(kinfo<0) call oasis_abort(comp_id, comp_name, &
       & "Error in oasis_enddef: ", rcode=kinfo)
 
-   ! initialize the temperature of this component to the bottom temperature
+   ! initialize the temperature of this component to the bottom, ocean temperature
    do k = 1, size(component % temperature, 3)
       component % temperature(:, :, k) = component % bottom_temperature
    enddo
@@ -87,6 +87,8 @@ program ocean
    date = 0
    do date = 0, component % num_steps
 
+      ! Ocean exports first, advances and then imports. Order is important to avoid deadlocks
+
       ! set the top temperature
       component % top_temperature = component % temperature(:, :, size(component % temperature, 3))
 
@@ -95,10 +97,9 @@ program ocean
       if(kinfo<0) call oasis_abort(comp_id, comp_name, &
             & "Error in oasis_put: ", rcode=kinfo)
 
-      ! advance
+      ! advance by one time step
       call gc_step(component, kinfo)
       call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
-
 
       ! import the temperature from ice
       call oasis_get(import_id, date, component % top_temperature, kinfo)

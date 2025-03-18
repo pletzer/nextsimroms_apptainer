@@ -26,9 +26,9 @@ module generic_component_mod
         integer, intent(out) :: ier
 
         integer :: nx, ny, nz, num_steps, iu
-        real(8) :: kappa, dx, dt
+        real(8) :: kappa, dx, dt, top_temperature, bottom_temperature
         
-        namelist /model/ nx, ny, nz, num_steps, kappa, dt, dx
+        namelist /model/ nx, ny, nz, num_steps, kappa, dt, dx, top_temperature, bottom_temperature
 
         dx = 0
         dt = 0
@@ -48,7 +48,9 @@ module generic_component_mod
         allocate(self % temperature(nx, ny, nz))
         allocate(self % new_temperature(nx, ny, nz))
         allocate(self % bottom_temperature(nx, ny))  
-        allocate(self % top_temperature(nx, ny))  
+        allocate(self % top_temperature(nx, ny))
+        self % bottom_temperature = bottom_temperature
+        self % top_temperature = top_temperature 
             
     end subroutine gc_new
 
@@ -68,19 +70,21 @@ module generic_component_mod
         nz = size(self % temperature, 3)
     
         ! inner domain
-        do k = 2, size(self% temperature, 3) - 1
+        do k = 2, size(self % temperature, 3) - 1 ! note: we skip the top and bottom layers
             km = k - 1
             kp = k + 1
             do j = 1, size(self % temperature, 2)
                 jm = j - 1
-                if (jm <= 0) jm = jm + 1
+                if (jm <= 0) jm = jm + 1 ! periodic boundaries
                 jp = j + 1
-                if (jp > ny) jp = jp - ny
+                if (jp > ny) jp = jp - ny  ! periodic boundaries
                 do i = 1, size(self % temperature, 1)
                     im = i - 1
-                    if (im <= 0) im = im + nx
+                    if (im <= 0) im = im + nx  ! periodic boundaries
                     ip = i + 1
-                    if (ip > nx) ip = ip - nx
+                    if (ip > nx) ip = ip - nx  ! periodic boundaries
+
+                    ! new field 
                     self % new_temperature(i, j, k) = self % temperature(i, j, k) + &
                     & coeff * ( & 
                     &   self % temperature(ip, j, k) + self % temperature(im, j, k) +  &
@@ -88,11 +92,14 @@ module generic_component_mod
                     &   self % temperature(i, j, kp) + self % temperature(i, j, km) +  &
                     &  - 6*self % temperature(i, j, k)                                 &
                         )
+
                 enddo
             enddo
         enddo
 
-        ! bottom and top
+        ! bottom and top. Field is set by the boundary conditions. Depending on the 
+        ! component, either bottom or top field will not change and the other is 
+        ! determined by the other component
         do j = 1, size(self % temperature, 2)
             jm = j - 1
             if (jm <= 0) jm = jm + 1
@@ -110,7 +117,7 @@ module generic_component_mod
             enddo
         enddo
     
-        ! update, entire domain
+        ! store the new solution across entire domain
         do k = 1, size(self% temperature, 3)
             do j = 1, size(self % temperature, 2)
                 do i = 1, size(self % temperature, 1)

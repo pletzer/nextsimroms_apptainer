@@ -1,12 +1,11 @@
 ############################################
 $NFIELDS
-#15
-8
+2
 $END
 ############################################
 $RUNTIME
 # RUNTIME must be > model time (for some reason)
-19
+6
 $END
 ############################################
 $NLOGPRT
@@ -23,53 +22,12 @@ $STRINGS
 # EXPOUT: exported, transformed and written to netcdf file (use EXPORTED if no file should be written)
 #
 # OCEAN --->> ICE
-O_SSTSST I_SST 1 6  0 o2i.nc EXPOUT
-144 143 144 143 bggd bggd
+O_SST_FROM_OCN I_SST_FROM_OCN 1 1 0 o2i.nc EXPOUT
+8 8 8 8 xxx xxx
 P 0 P 0
 #
-O_SSSal  I_SSS 1 6  0 o2i.nc EXPORTED
-144 143 144 143 bggd bggd
+I_SST_FROM_ICE O_SST_FROM_ICE 1 1 0 i2o.nc EXPOUT
+8 8 8 8 xxx xxx
 P 0 P 0
-#
-O_OCurx1 I_Uocn 1 6  0 o2i.nc EXPORTED
-144 143 144 143 bggd bggd
-P 0 P 0
-#
-O_OCury1 I_Vocn 1 6  0 o2i.nc EXPORTED
-144 143 144 143 bggd bggd
-P 0 P 0
-#
-O_SSHght I_SSH 1 6  0 o2i.nc EXPORTED
-144 143 144 143 bggd bggd
-P 0 P 0
-#
-O_E3T1st I_MLD 1 6  0 o2i.nc EXPORTED
-144 143 144 143 bggd bggd
-P 0 P 0
-#
-O_FraQsr I_FrcQsr 1 6  0 o2i.nc EXPORTED
-144 143 144 143 bggd bggd
-P 0 P 0
-#
-# ICE --->> OCEAN
-#
-# I_taux O_OTaux1
-#
-# I_tauy O_OTauy1
-#
-# I_emp OOEvaMPr
-#
-# I_rsnos O_QnsOce
-#
-# I_rsso O_QsrOce
-#
-I_sfi O_SFLX 1 6 0 i2o.nc EXPORTED
-144 143 144 143 bggd bggd
-P 0 P 0
-#
-# I_taumod  O_TauMod
-#
-# I_sic RIceFrc
-#
 #
 $END

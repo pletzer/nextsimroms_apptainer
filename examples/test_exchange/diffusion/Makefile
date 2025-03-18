@@ -22,7 +22,7 @@ run:
 	ln -s ../common_data/grids.nc .
 	ln -s oi_data/namcouple .
 	rm -f nout.?????? debug*
-	mpiexec -n 4 ocean : -n 2 ice
+	mpiexec -n 1 ocean : -n 1 ice
 
 clean:
 	rm -f ocean ice

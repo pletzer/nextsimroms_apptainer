@@ -87,10 +87,12 @@ program ice
    date = 0
    do date = 0, component % num_steps
 
+      ! Ice imports first, advances and then exports
+
       ! set the top temperature
       component % top_temperature = component % temperature(:, :, size(component % temperature, 3))
 
-      ! import the temperature from ocean
+      ! import the bottom temperature from ocean
       call oasis_get(import_id, date, component % bottom_temperature, kinfo)
       if(kinfo<0) call oasis_abort(comp_id, comp_name, &
                   & "Error in oasis_put: ", rcode=kinfo)
@@ -100,7 +102,7 @@ program ice
       call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
 
 
-      ! export the temperature to ocean
+      ! export the bottom temperature to ocean
       call oasis_put(export_id, date, component % bottom_temperature, kinfo)
          if(kinfo<0) call oasis_abort(comp_id, comp_name, &
                   & "Error in oasis_put: ", rcode=kinfo)
