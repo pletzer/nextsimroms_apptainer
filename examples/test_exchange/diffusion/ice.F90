@@ -81,6 +81,7 @@ program ice
    do k = 1, size(component % temperature, 3)
       component % temperature(:, :, k) = component % top_temperature
    enddo
+   component % bottom_temperature = component % top_temperature
    
      
    ! data is the number of seconds into the simulation 
@@ -96,6 +97,8 @@ program ice
       call oasis_get(import_id, date, component % bottom_temperature, kinfo)
       if(kinfo<0) call oasis_abort(comp_id, comp_name, &
                   & "Error in oasis_put: ", rcode=kinfo)
+
+      print *,'ice: at start of step ', date, ' bottom temperature is ', component % bottom_temperature
             
       ! advance
       call gc_step(component, kinfo)

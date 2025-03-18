@@ -5,7 +5,7 @@ $END
 ############################################
 $RUNTIME
 # RUNTIME must be > model time (for some reason)
-6
+666666
 $END
 ############################################
 $NLOGPRT

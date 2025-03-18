@@ -81,6 +81,7 @@ program ocean
    do k = 1, size(component % temperature, 3)
       component % temperature(:, :, k) = component % bottom_temperature
    enddo
+   component % top_temperature = component % bottom_temperature
    
      
    ! data is the number of seconds into the simulation 
@@ -92,7 +93,7 @@ program ocean
       ! set the top temperature
       component % top_temperature = component % temperature(:, :, size(component % temperature, 3))
 
-      ! export the temperature to ice
+      ! export the top temperature to ice
       call oasis_put(export_id, date, component % top_temperature, kinfo)
       if(kinfo<0) call oasis_abort(comp_id, comp_name, &
             & "Error in oasis_put: ", rcode=kinfo)
@@ -105,6 +106,8 @@ program ocean
       call oasis_get(import_id, date, component % top_temperature, kinfo)
       if(kinfo<0) call oasis_abort(comp_id, comp_name, &
             & "Error in oasis_put: ", rcode=kinfo)
+
+      print *,'ocean: at end of step ', date, ' top temperature is ', component % top_temperature
 
    enddo
 
