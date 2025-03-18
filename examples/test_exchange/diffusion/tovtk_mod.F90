@@ -48,15 +48,15 @@ module tovtk_mod
         write(iu, '(A)') 'DATASET RECTILINEAR_GRID'
         write(iu, '(A, I6, I6, I6)') 'DIMENSIONS ', nx, ny, nz
         write(iu, '(A, I6, A)') 'X_COORDINATES ', nx, ' double'
-        do i = 0, nx
+        do i = 0, nx - 1
             write(iu, '(E20.8)') real(i, 8)
         enddo
         write(iu, '(A, I6, A)') 'Y_COORDINATES ', ny, ' double'
-        do j = 0, ny
+        do j = 0, ny - 1
             write(iu, '(E20.8)') real(j, 8)
         enddo
-        write(iu, '(A, I6, A)') 'Y_COORDINATES ', ny, ' double'
-        do k = 0, nz
+        write(iu, '(A, I6, A)') 'Z_COORDINATES ', nz, ' double'
+        do k = 0, nz - 1
             write(iu, '(E20.8)') real(k, 8)
         enddo
         write(iu, '(A, I6)') 'CELL_DATA', numCells

@@ -23,11 +23,11 @@ $STRINGS
 #
 # OCEAN --->> ICE
 O_SST_FROM_OCN I_SST_FROM_OCN 1 1 0 o2i.nc EXPOUT
-8 8 8 8 xxx xxx
+16 16 16 16 xxx xxx
 P 0 P 0
 #
 I_SST_FROM_ICE O_SST_FROM_ICE 1 1 0 i2o.nc EXPOUT
-8 8 8 8 xxx xxx
+16 16 16 16 xxx xxx
 P 0 P 0
 #
 $END

@@ -1,9 +1,9 @@
 &model
-nx = 8
-ny = 8
+nx = 16
+ny = 16
 nz = 4
-kappa = 2.2
+kappa = 2.0
 dx = 0.1
-num_steps = 2
-dt = 0.1
+num_steps = 10
+dt = 0.01
 /

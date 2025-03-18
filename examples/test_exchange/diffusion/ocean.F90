@@ -3,8 +3,10 @@ program ocean
    use mod_oasis
    use generic_component_mod
    use exception_mod
+   use tovtk_mod
    implicit none
    character(len=5), parameter :: comp_name = 'ocean'
+   character(len=16) :: str_n
    integer :: i, k, kinfo, date
    integer :: comp_id, part_id, export_id, import_id
    integer :: part_params(OASIS_Serial_Params), offset, local_size
@@ -86,7 +88,10 @@ program ocean
    ! perturbation
    component % temperature(floor(real(nx, 8)/2.) + 1, floor(real(ny, 8)/3) + 1, nz) = 1
    component % top_temperature = component % temperature(:, :, nz)
-   component % bottom_temperature = 0
+   component % bottom_temperature = component % temperature(:, :, 1)
+
+   call zero_fill(0, 6, str_n)
+   call vtk_write_data(component % temperature, 'field', 'ocean'//trim(str_n)//'.vtk')
      
    ! data is the number of seconds into the simulation 
    date = 0
@@ -105,6 +110,9 @@ program ocean
       ! advance by one time step
       call gc_step(component, kinfo)
       call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
+
+      call zero_fill(date, 6, str_n)
+         call vtk_write_data(component % temperature, 'field', 'ocean'//trim(str_n)//'.vtk')
 
       ! import the temperature from ice
       call oasis_get(import_id, date, component % top_temperature, kinfo)
