@@ -1,0 +1,75 @@
+############################################
+$NFIELDS
+#15
+8
+$END
+############################################
+$RUNTIME
+# RUNTIME must be > model time (for some reason)
+19
+$END
+############################################
+$NLOGPRT
+0 0
+$END
+############################################
+$STRINGS
+# O_SSTSST symbolic name of source field
+# I_SST symbolic name of receiving field
+# 1 unused
+# 6 coupling period 
+# 0 number of transformations
+# o2i.nc restart file
+# EXPOUT: exported, transformed and written to netcdf file (use EXPORTED if no file should be written)
+#
+# OCEAN --->> ICE
+O_SSTSST I_SST 1 6  0 o2i.nc EXPOUT
+144 143 144 143 bggd bggd
+P 0 P 0
+#
+O_SSSal  I_SSS 1 6  0 o2i.nc EXPORTED
+144 143 144 143 bggd bggd
+P 0 P 0
+#
+O_OCurx1 I_Uocn 1 6  0 o2i.nc EXPORTED
+144 143 144 143 bggd bggd
+P 0 P 0
+#
+O_OCury1 I_Vocn 1 6  0 o2i.nc EXPORTED
+144 143 144 143 bggd bggd
+P 0 P 0
+#
+O_SSHght I_SSH 1 6  0 o2i.nc EXPORTED
+144 143 144 143 bggd bggd
+P 0 P 0
+#
+O_E3T1st I_MLD 1 6  0 o2i.nc EXPORTED
+144 143 144 143 bggd bggd
+P 0 P 0
+#
+O_FraQsr I_FrcQsr 1 6  0 o2i.nc EXPORTED
+144 143 144 143 bggd bggd
+P 0 P 0
+#
+# ICE --->> OCEAN
+#
+# I_taux O_OTaux1
+#
+# I_tauy O_OTauy1
+#
+# I_emp OOEvaMPr
+#
+# I_rsnos O_QnsOce
+#
+# I_rsso O_QsrOce
+#
+I_sfi O_SFLX 1 6 0 i2o.nc EXPORTED
+144 143 144 143 bggd bggd
+P 0 P 0
+#
+# I_taumod  O_TauMod
+#
+# I_sic RIceFrc
+#
+#
+$END
