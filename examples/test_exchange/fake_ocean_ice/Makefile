@@ -1,4 +1,3 @@
-#include ../../../../util/make_dir/make.inc
 include /usr/local/ifort/build/oasis3-mct/util/make_dir/make.inc
 FLAGS=$(F90FLAGS) -L$(ARCHDIR)/lib
 
@@ -17,12 +16,19 @@ ocean: ocean.F90 grid_mod.o  generic_component_mod.o exception_mod.o tovtk_mod.o
 ice: ice.F90  grid_mod.o generic_component_mod.o exception_mod.o tovtk_mod.o
 	${F90} ice.F90 ${FLAGS} -o ice grid_mod.o generic_component_mod.o tovtk_mod.o exception_mod.o $(LIBS)
 
-run:
+4x2:
 	rm -f grids.nc namcouple
 	ln -s ../common_data/grids.nc .
 	ln -s oi_data/namcouple .
 	rm -f nout.?????? debug*
 	mpiexec -n 4 ocean : -n 2 ice
+
+1x1:
+	rm -f grids.nc namcouple
+	ln -s ../common_data/grids.nc .
+	ln -s oi_data/namcouple .
+	rm -f nout.?????? debug*
+	mpiexec -n 1 ocean : -n 1 ice
 
 clean:
 	rm -f ocean ice

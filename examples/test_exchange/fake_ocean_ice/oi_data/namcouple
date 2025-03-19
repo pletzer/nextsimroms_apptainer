@@ -55,8 +55,7 @@
 #
 # --- start Field 1 --- Sea_surface_temperature [K;K]
 #
-O_SSTSST I_SST 1 1800  1 ocean.nc EXPORTED
-#118 165  118 165 tor2 tor2  SEQ=1 LAG=0
+O_SSTSST I_SST 1 1800  1 o2i.nc EXPORTED
 157 165   157 165 tor2 tor2  SEQ=1 LAG=0
 P  2  P  2
 #
@@ -69,217 +68,24 @@ AVERAGE
 # --- end field 1 ---
 #
 ###############################################################################
-#
-# --- start Field 2 --- sea_surface_salinity  [PSU;PSU]
-#
-O_SSSal  I_SSS 2 1800  1 ocean.nc EXPORTED
-157 165  157 165 tor2 tor2  SEQ=1 LAG=0
-P  2  P  2
-#
-# List of analyses
-#
-LOCTRANS
-#
-AVERAGE
-#
-# --- end field 2 ---
-#
-###############################################################################
-#
-# --- start Field 3 --- zonal_current  [m/s;m/s]
-#
-O_OCurx1 I_Uocn 2 1800  1 ocean.nc EXPORTED
-157 165  157 165 uor2 uor2  SEQ=1 LAG=0
-P  2  P  2
-#
-# List of analyses
-#
-LOCTRANS
-#
-AVERAGE
-#
-#
-# --- end field 3 ---
-#
-###############################################################################
-#
-# --- start Field 4 --- meridional_current  [m/s;m/s]
-#
-O_OCury1 I_Vocn 2 1800  1 ocean.nc EXPORTED
-157 165  157 165 vor2 vor2  SEQ=1 LAG=0
-P  2  P  2
-#
-# List of analyses
-#
-LOCTRANS
-#
-AVERAGE
-#
-#
-# --- end field 4 ---
-#
-###############################################################################
-#
-# --- start Field 5 --- SSHeight  [m;m]
-#
-O_SSHght I_SSH 2 1800  1 ocean.nc EXPORTED
-157 165  157 165 tor2 tor2  SEQ=1 LAG=0
-P  2  P  2
-#
-# List of analyses
-#
-LOCTRANS
-#
-AVERAGE
-#
-#
-# --- end field 5 ---
-#
-###############################################################################
-#
-# --- start Field 6 --- First level depth (vvl only)
-#
-#O_E3T1st I_MLD 2 1800  1 ocean.nc EXPORTED
-#157 165  157 165 tor2 tor2  SEQ=1 LAG=0
-#P  2  P  2
-#
-# List of analyses
-#
-#LOCTRANS
-#
-#AVERAGE
-#
-#
-# --- end field 6 ---
-###############################################################################
-#
-# --- start Field 7 --- Fraction of solar net radiation absorbed in the first ocean level
-#
-O_FraQsr I_FrcQsr 2 1800  1 ocean.nc EXPORTED
-157 165  157 165 tor2 tor2  SEQ=1 LAG=0
-P  2  P  2
-#
-# List of analyses
-#
-LOCTRANS
-#
-AVERAGE
-#
-#
-# --- end field 6 ---
 ############################################################################
-#                      ICE  --->>>  OCEAN
-############################################################################
+#                      OCEAN  <<<---  ICE
+#                      ------------------
+###############################################################################
 #
-# --- start Field 8 --- eastward  wind stress over ocean at U point
+# --- start Field 1 --- Sea_surface_temperature [K;K]
 #
-I_taux O_OTaux1   23  1800  1  ice_nextsim.nc  EXPORTED
-157 165  157 165 uor2 uor2  SEQ=1 LAG=0
+I_taux O_OTaux1 1 1800  1 i2o.nc EXPORTED
+157 165   157 165 tor2 tor2  SEQ=1 LAG=0
 P  2  P  2
 #
- LOCTRANS 
+# List of analyses
 #
-INSTANT
+LOCTRANS
 #
-# --- end field 6 ---
+AVERAGE
 #
-#########################################################################
-#
-# --- start Field 9 --- northward wind stress over ocean at V point
-#
-I_tauy O_OTauy1   24  1800  1  ice_nextsim.nc  EXPORTED
-157 165  157 165 vor2 vor2  SEQ=1 LAG=0
-P  2  P  2
-#
- LOCTRANS 
-#
-INSTANT
-#
-# --- end field 7 ---
-#
-############################################################################
-#
-# --- start Field 10--- total solid precip (snow)
-#
-#I_emp OOEvaMPr 28 1800  1  ice_nextsim.nc  EXPORTED
-#157 165  157 165 tor2 tor2  SEQ=1 LAG=0
-#P  2  P  2
-#
-# LOCTRANS 
-#
-#INSTANT
-#
-#
-# --- end field 8 ---
-#
-###########################################################################
-#
-# --- start Field 11--- Total Non Solar 
-#
-I_rsnos O_QnsOce 6  1800  1  ice_nextsim.nc  EXPORTED
-157 165  157 165 tor2 tor2  SEQ=1 LAG=0
-P  2  P  2
-#
- LOCTRANS 
-#
-INSTANT
-#
-#
-# --- end field 9 ---
-#
-############################################################################
-#
-# --- start Field 12 --- Total Solar 
-#
-I_rsso O_QsrOce 7 1800  1  ice_nextsim.nc  EXPORTED
-157 165  157 165 tor2 tor2  SEQ=1 LAG=0
-P  2  P  2
-#
- LOCTRANS 
-#
-INSTANT
-#
-# --- end field 10 ---
-##########################################################################
-#
-# --- start Field 13 --- Salt flux
-#
-I_sfi O_SFLX 7 1800  1  ice_nextsim.nc  EXPORTED
-157 165  157 165 tor2 tor2  SEQ=1 LAG=0
-P  2  P  2
-#
- LOCTRANS 
-#
-INSTANT
-#
-# --- end field 11 ---
-#
-##########################################################################
-#
-# --- start Field 14 --- Wind stress module       
-#
-I_taumod  O_TauMod 7 1800  1  ice_nextsim.nc  EXPORTED
-157 165  157 165 tor2 tor2  SEQ=1 LAG=0
-P  2  P  2
-#
- LOCTRANS 
-#
-INSTANT
-#
-# --- end field 13 ---
-##########################################################################
-#
-# --- start Field 15 ---  Sea ice cover      
-#
-###I_sic RIceFrc 7 1800  1  ice_nextsim.nc  EXPORTED
-###157 165  157 165 tor2 tor2  SEQ=1 LAG=0
-###P  2  P  2
-#
-### LOCTRANS 
-#
-###INSTANT
-#
-# --- end field 13 ---
+# --- end field 1 ---
 ##########################################################################
  $END
 

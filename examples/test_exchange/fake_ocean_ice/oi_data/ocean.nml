@@ -1,15 +1,15 @@
 &dims
-    num_export = 6
-    num_import = 6 !7
+    num_export = 1 !6
+    num_import = 1 !6 !7
     run_time = 7200 ! 5929200 ! 21600 ! 63072000
     time_step = 1800
     nx_global = 157
     ny_global = 165
 /
 &values
-    export_field_name = 'O_SSTSST', 'O_SSSal', 'O_OCurx1', 'O_OCury1', 'O_SSHght', 'O_FraQsr',
-    export_field_value = -1., 34, 0.1, 0.2, 0., 0.5
+    export_field_name = 'O_SSTSST', !'O_SSSal', 'O_OCurx1', 'O_OCury1', 'O_SSHght', 'O_FraQsr',
+    export_field_value = -1., ! 34, 0.1, 0.2, 0., 0.5
 
-    import_field_name = 'O_OTaux1', 'O_OTauy1', 'O_QnsOce', 'O_QsrOce', 'O_SFLX', 'O_TauMod' !, 'RIceFrc', 
-    import_field_value = 0, 0, 0, 0, 0, 0 !, 0
+    import_field_name = 'O_OTaux1', ! 'O_OTauy1', 'O_QnsOce', 'O_QsrOce', 'O_SFLX', 'O_TauMod' !, 'RIceFrc', 
+    import_field_value = 0, ! 0, 0, 0, 0, 0 !, 0
 /
