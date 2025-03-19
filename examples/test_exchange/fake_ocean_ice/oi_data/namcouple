@@ -40,7 +40,7 @@
 ###############################################################################
 #
  $NLOGPRT
-   30  0
+   0  0
  $END
 #
 ###############################################################################
@@ -54,37 +54,37 @@
 ###############################################################################
 #
 #Sea_surface_temperature [K;K]
-O_SSTSST I_SST 1 1800  1 o2i.nc EXPORTED
+O_SSTSST I_SST 1 1800  1 ocean_restart.nc EXPORTED
 157 165   157 165 tor2 tor2  SEQ=1 LAG=0
 P  2  P  2
 LOCTRANS
 AVERAGE
 #
-O_SSSal I_SSS 1 1800  1 o2i.nc EXPORTED
+O_SSSal I_SSS 1 1800  1 ocean_restart.nc EXPORTED
 157 165   157 165 tor2 tor2  SEQ=1 LAG=0
 P  2  P  2
 LOCTRANS
 AVERAGE
 #
-O_OCurx1 I_Uocn 1 1800  1 o2i.nc EXPORTED
+O_OCurx1 I_Uocn 1 1800  1 ocean_restart.nc EXPORTED
 157 165   157 165 tor2 tor2  SEQ=1 LAG=0
 P  2  P  2
 LOCTRANS
 AVERAGE
 #
-O_OCury1 I_Vocn 1 1800  1 o2i.nc EXPORTED
+O_OCury1 I_Vocn 1 1800  1 ocean_restart.nc EXPORTED
 157 165   157 165 tor2 tor2  SEQ=1 LAG=0
 P  2  P  2
 LOCTRANS
 AVERAGE
 #
-O_SSHght I_SSH 1 1800  1 o2i.nc EXPORTED
+O_SSHght I_SSH 1 1800  1 ocean_restart.nc EXPORTED
 157 165   157 165 tor2 tor2  SEQ=1 LAG=0
 P  2  P  2
 LOCTRANS
 AVERAGE
 #
-O_FraQsr I_FrcQsr 1 1800  1 o2i.nc EXPORTED
+O_FraQsr I_FrcQsr 1 1800  1 ocean_restart.nc EXPORTED
 157 165   157 165 tor2 tor2  SEQ=1 LAG=0
 P  2  P  2
 LOCTRANS
@@ -97,37 +97,37 @@ AVERAGE
 ###############################################################################
 #
 #
-I_taux O_OTaux1 1 1800  1 i2o.nc EXPORTED
+I_taux O_OTaux1 1 1800  1 ice_restart.nc EXPORTED
 157 165   157 165 tor2 tor2  SEQ=1 LAG=0
 P  2  P  2
 LOCTRANS
 AVERAGE
 #
-I_tauy O_OTauy1 1 1800  1 i2o.nc EXPORTED
+I_tauy O_OTauy1 1 1800  1 ice_restart.nc EXPORTED
 157 165   157 165 tor2 tor2  SEQ=1 LAG=0
 P  2  P  2
 LOCTRANS
 AVERAGE
 #
-I_rsnos O_QnsOce 1 1800  1 i2o.nc EXPORTED
+I_rsnos O_QnsOce 1 1800  1 ice_restart.nc EXPORTED
 157 165   157 165 tor2 tor2  SEQ=1 LAG=0
 P  2  P  2
 LOCTRANS
 AVERAGE
 #
-I_rsso O_QsrOce 1 1800  1 i2o.nc EXPORTED
+I_rsso O_QsrOce 1 1800  1 ice_restart.nc EXPORTED
 157 165   157 165 tor2 tor2  SEQ=1 LAG=0
 P  2  P  2
 LOCTRANS
 AVERAGE
 #
-I_sfi O_SFLX 1 1800  1 i2o.nc EXPORTED
+I_sfi O_SFLX 1 1800  1 ice_restart.nc EXPORTED
 157 165   157 165 tor2 tor2  SEQ=1 LAG=0
 P  2  P  2
 LOCTRANS
 AVERAGE
 #
-I_taumod O_TauMod 1 1800  1 i2o.nc EXPORTED
+I_taumod O_TauMod 1 1800  1 ice_restart.nc EXPORTED
 157 165   157 165 tor2 tor2  SEQ=1 LAG=0
 P  2  P  2
 LOCTRANS
