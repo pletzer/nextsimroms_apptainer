@@ -48,8 +48,12 @@ module generic_component_mod
         nx_global = 0
         ny_global = 0
 
-        open(newunit=iu, file=namelist_file, status='old', iostat=ier); if (ier /= 0) return
-        read(unit=iu, nml=dims, iostat=ier); if (ier /= 0) return
+        open(newunit=iu, file=namelist_file, status='old', iostat=ier); 
+        print *, ' ier 1: ', ier,'namelist_file: ',namelist_file
+        if (ier /= 0) return
+        read(unit=iu, nml=dims, iostat=ier); 
+        print *, ' ier 2: ', ier,'namelist_file: ',namelist_file
+        if (ier /= 0) return
 
         allocate(export_field_name(num_export), &
             &    export_field_value(num_export), &
@@ -59,7 +63,9 @@ module generic_component_mod
             &    self % import_field_id(num_import))
         
         rewind(unit=iu)
-        read(unit=iu, nml=values, iostat=ier); if (ier /= 0) return   
+        read(unit=iu, nml=values, iostat=ier); 
+        print *, ' ier 3: ', ier,'namelist_file: ',namelist_file
+        if (ier /= 0) return   
         close(iu)
     
         self % run_time = run_time

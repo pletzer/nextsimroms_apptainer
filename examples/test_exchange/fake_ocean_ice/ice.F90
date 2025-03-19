@@ -14,17 +14,20 @@ program ice
    integer :: local_comm, comm_size, comm_rank
    integer :: var_nodims(2)
    real(kind=8) :: error, epsilon
-   integer :: nx_global, ny_global
    real(kind=8), allocatable ::  bundle_export(:, :, :), bundle_import(:, :, :)
-   integer :: n_points
    integer :: ncid, varid
    real(kind=8), allocatable :: lon(:, :), lat(:, :)
    integer, allocatable :: imsk(:, :)
    real(kind=8) :: dp_conv
    logical :: success
 
+   integer :: nx_global, ny_global
+   integer :: n_points
+
    type(generic_component_type) :: component
    integer :: n_export, n_import
+
+   call mpi_init(kinfo)
 
    call oasis_init_comp(comp_id, comp_name, kinfo)
    if(kinfo<0) call oasis_abort(comp_id, comp_name, &
@@ -171,4 +174,6 @@ program ice
    if(kinfo<0) call oasis_abort(comp_id, comp_name, &
       & "Error in oasis_terminate: ", rcode=kinfo)
       
+   call mpi_finalize(kinfo)
+
 end program ice
