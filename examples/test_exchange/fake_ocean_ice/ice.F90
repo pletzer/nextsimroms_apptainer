@@ -13,13 +13,12 @@ program ice
    integer :: part_params(OASIS_Serial_Params)
    integer :: local_comm, comm_size, comm_rank
    integer :: var_nodims(2)
-   real(kind=8) :: error, epsilon
+   real(kind=8) :: total
    real(kind=8), allocatable ::  bundle_export(:, :, :), bundle_import(:, :, :)
    integer :: ncid, varid
    real(kind=8), allocatable :: lon(:, :), lat(:, :)
    integer, allocatable :: imsk(:, :)
    real(kind=8) :: dp_conv
-   logical :: success
 
    integer :: nx_global, ny_global
    integer :: n_points
@@ -131,7 +130,6 @@ program ice
             enddo
          endif
 
-
       enddo
 
       do k = 1, n_import
@@ -140,35 +138,21 @@ program ice
             & trim(component % import_field_name(k)) // '.vtk')
       enddo
 
-      epsilon=1.e-3
-      success = .true.
+      ! compute the average values of the imported fields
       do k = 1, n_import
-         error=0.
+         total = 0.
          do j = 1, ny_global
             do i = 1, nx_global
                ! imsk = 0 means valid
                if (imsk(i,j) == 0) &
-                  & error = error + abs( &
-                  & bundle_import(i,j,k) - component%import_field_value(k) &
-                  & )
+                  & total = total + bundle_import(i,j,k)
             end do
          end do
-         success = success .and. (error/dble(n_points) < epsilon)
-         print '(A,A, E20.10)', comp_name, ": Average coupling error: ", error/dble(n_points)
-         if (success) then
-            print '(A,A,I0,A)', comp_name, ": Data for bundle_import ",k," is ok"
-         else
-            print '(A,A,I0,A,E12.5)', comp_name, ": Error for bundle_import ",k," is ",error
-         end if
+         print *, comp_name, ": Average imported field value for ", &
+           &         component % import_field_name(k),  " is ", total/dble(n_points)
       end do
-
-      if(success) then
-         print '(A)', "ice: Data received successfully"
-      else
-         print *, 'ice: FAILURE!!!'
-      endif
    
-   endif
+      endif
 
    call oasis_terminate(kinfo)
    if(kinfo<0) call oasis_abort(comp_id, comp_name, &

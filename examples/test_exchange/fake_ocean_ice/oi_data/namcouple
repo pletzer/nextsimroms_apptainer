@@ -53,19 +53,42 @@
 #                      ------------------
 ###############################################################################
 #
-# --- start Field 1 --- Sea_surface_temperature [K;K]
-#
+#Sea_surface_temperature [K;K]
 O_SSTSST I_SST 1 1800  1 o2i.nc EXPORTED
 157 165   157 165 tor2 tor2  SEQ=1 LAG=0
 P  2  P  2
-#
-# List of analyses
-#
 LOCTRANS
-#
 AVERAGE
 #
-# --- end field 1 ---
+O_SSSal I_SSS 1 1800  1 o2i.nc EXPORTED
+157 165   157 165 tor2 tor2  SEQ=1 LAG=0
+P  2  P  2
+LOCTRANS
+AVERAGE
+#
+O_OCurx1 I_Uocn 1 1800  1 o2i.nc EXPORTED
+157 165   157 165 tor2 tor2  SEQ=1 LAG=0
+P  2  P  2
+LOCTRANS
+AVERAGE
+#
+O_OCury1 I_Vocn 1 1800  1 o2i.nc EXPORTED
+157 165   157 165 tor2 tor2  SEQ=1 LAG=0
+P  2  P  2
+LOCTRANS
+AVERAGE
+#
+O_SSHght I_SSH 1 1800  1 o2i.nc EXPORTED
+157 165   157 165 tor2 tor2  SEQ=1 LAG=0
+P  2  P  2
+LOCTRANS
+AVERAGE
+#
+O_FraQsr I_FrcQsr 1 1800  1 o2i.nc EXPORTED
+157 165   157 165 tor2 tor2  SEQ=1 LAG=0
+P  2  P  2
+LOCTRANS
+AVERAGE
 #
 ###############################################################################
 ############################################################################

@@ -1,6 +1,7 @@
 module generic_component_mod
 
     use mod_oasis
+    use exception_mod
     implicit none
     integer, parameter :: STR_LEN = 16
     
@@ -49,11 +50,9 @@ module generic_component_mod
         ny_global = 0
 
         open(newunit=iu, file=namelist_file, status='old', iostat=ier); 
-        print *, ' ier 1: ', ier,'namelist_file: ',namelist_file
-        if (ier /= 0) return
+        if (ier /= 0) call check_err_generic(ier, __FILE__, __LINE__)
         read(unit=iu, nml=dims, iostat=ier); 
-        print *, ' ier 2: ', ier,'namelist_file: ',namelist_file
-        if (ier /= 0) return
+        if (ier /= 0) call check_err_generic(ier, __FILE__, __LINE__)
 
         allocate(export_field_name(num_export), &
             &    export_field_value(num_export), &
@@ -64,8 +63,7 @@ module generic_component_mod
         
         rewind(unit=iu)
         read(unit=iu, nml=values, iostat=ier); 
-        print *, ' ier 3: ', ier,'namelist_file: ',namelist_file
-        if (ier /= 0) return   
+        if (ier /= 0) call check_err_generic(ier, __FILE__, __LINE__)
         close(iu)
     
         self % run_time = run_time

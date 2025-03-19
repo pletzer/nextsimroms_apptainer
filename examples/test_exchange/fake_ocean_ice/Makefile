@@ -10,6 +10,9 @@ all: ocean ice
 %.o: %.F90
 	${F90} -check all -g -O0 -traceback -I/usr/local/ifort/include -I $(OASIS_DIR)/include -c $<
 
+
+generic_component_mod.o: exception_mod.o
+
 ocean: ocean.F90 grid_mod.o  generic_component_mod.o exception_mod.o tovtk_mod.o
 	${F90} ocean.F90 ${FLAGS} -o ocean grid_mod.o generic_component_mod.o tovtk_mod.o exception_mod.o $(LIBS)
 
