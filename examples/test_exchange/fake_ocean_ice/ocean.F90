@@ -108,7 +108,7 @@ program ocean
       if (n_export > 0) then
          ! export the field
          do k = 1, n_export
-            call oasis_put(component % export_field_id(k), date, bundle_export(:, k), kinfo)
+            call oasis_put(component % export_field_id(k), date, bundle_export(:, k), kinfo, write_restart=.TRUE.)
             if(kinfo<0) call oasis_abort(comp_id, comp_name, &
                & "Error in oasis_put: ", rcode=kinfo)
          enddo

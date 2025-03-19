@@ -86,12 +86,12 @@ module generic_component_mod
 
         ier = 0
 
-        print *, 'number of export field: ', size(self % export_field_name)
+        print *, 'number of export fields: ', size(self % export_field_name)
         do i = 1, size(self % export_field_name)
             print *, '    export field ', self % export_field_name(i), ' value: ', self % export_field_value(i)
         enddo
 
-        print *, 'number of import field: ', size(self % import_field_name)
+        print *, 'number of import fields: ', size(self % import_field_name)
         do i = 1, size(self % import_field_name)
             print *, '    import field ', self % import_field_name(i), ' value: ', self % import_field_value(i)
         enddo

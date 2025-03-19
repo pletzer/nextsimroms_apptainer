@@ -2,7 +2,8 @@
     num_export = 6
     num_import = 6
     run_time = 7200 ! 5929200 ! 21600
-    time_step = 1800
+    ! model time step
+    time_step = 600
     nx_global = 157
     ny_global = 165
 /
