@@ -1,8 +1,0 @@
-&ice
-nx = 10
-ny = 11
-lon_min = 0.
-lon_max = 360.
-lat_min = -90.
-lat_max = 90.
-/
