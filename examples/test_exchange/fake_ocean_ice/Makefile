@@ -22,16 +22,24 @@ ice: ice.F90  grid_mod.o generic_component_mod.o exception_mod.o tovtk_mod.o
 4x2:
 	rm -f grids.nc namcouple
 	ln -s ../common_data/grids.nc .
-	ln -s oi_data/namcouple .
+	cp oi_data/namcouple .
 	rm -f nout.?????? debug*
 	mpiexec -n 4 ocean : -n 2 ice
 
 1x1:
 	rm -f grids.nc namcouple
 	ln -s ../common_data/grids.nc .
-	ln -s oi_data/namcouple .
+	cp oi_data/namcouple .
 	rm -f nout.?????? debug*
 	mpiexec -n 1 ocean : -n 1 ice
+
+4x2lag:
+	rm -f grids.nc namcouple
+	ln -s ../common_data/grids.nc .
+	cp oi_data/namcouple.LAG namcouple
+	rm -f nout.?????? debug*
+	mpiexec -n 4 ocean : -n 2 ice
+
 
 clean:
 	rm -f ocean ice

@@ -55,7 +55,7 @@
 #
 #Sea_surface_temperature [K;K]
 O_SSTSST I_SST 1 1800  1 ocean_restart.nc EXPORTED
-157 165   157 165 tor2 tor2  SEQ=1 LAG=0
+157 165   157 165 tor2 tor2  SEQ=1 LAG=1800
 P  2  P  2
 LOCTRANS
 AVERAGE
