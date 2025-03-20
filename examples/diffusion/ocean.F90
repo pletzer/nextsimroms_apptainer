@@ -7,7 +7,7 @@ program ocean
    implicit none
    character(len=5), parameter :: comp_name = 'ocean'
    character(len=16) :: str_n
-   integer :: i, k, kinfo, date
+   integer :: i, j, k, kinfo, date
    integer :: comp_id, part_id, export_id, import_id
    integer :: part_params(OASIS_Serial_Params), offset, local_size
    integer :: local_comm, comm_size, comm_rank
@@ -18,6 +18,7 @@ program ocean
 
    type(generic_component_type) :: component
    integer :: n_export, n_import
+   real(8), allocatable :: xs(:), ys(:), zs(:)
 
    call mpi_init(kinfo)
 
@@ -39,6 +40,18 @@ program ocean
    nx = size(component % temperature, 1)
    ny = size(component % temperature, 2)
    nz = size(component % temperature, 3)
+
+   allocate(xs(nx+1), ys(ny+1), zs(nz+1))
+   do i = 1, nx+1
+      xs(i) = real(i-1, 8)
+   enddo
+   do j = 1, ny+1
+      ys(j) = real(j-1, 8)
+   enddo
+   do k = 1, nz+1
+      zs(k) = real(-nz + k - 1, 8) ! ocean
+   enddo
+            
    ! number of points in the horizontal plane
    n_points = nx*ny
 
@@ -91,7 +104,7 @@ program ocean
    component % bottom_temperature = component % temperature(:, :, 1)
 
    call zero_fill(0, 6, str_n)
-   call vtk_write_data(component % temperature, 'field', 'ocean'//trim(str_n)//'.vtk')
+   call vtk_write_data(xs, ys, zs, component % temperature, 'field', 'ocean'//trim(str_n)//'.vtk')
      
    ! data is the number of seconds into the simulation 
    date = 0
@@ -112,7 +125,7 @@ program ocean
       call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
 
       call zero_fill(date, 6, str_n)
-         call vtk_write_data(component % temperature, 'field', 'ocean'//trim(str_n)//'.vtk')
+         call vtk_write_data(xs, ys, zs, component % temperature, 'field', 'ocean'//trim(str_n)//'.vtk')
 
       ! import the temperature from ice
       call oasis_get(import_id, date, component % top_temperature, kinfo)

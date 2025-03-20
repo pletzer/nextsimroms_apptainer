@@ -66,6 +66,7 @@ module generic_component_mod
         ier = 0
         
         coeff = self % kappa * self % dt / self % dx**2
+    
         nx = size(self % temperature, 1)
         ny = size(self % temperature, 2)
         nz = size(self % temperature, 3)
@@ -76,7 +77,7 @@ module generic_component_mod
             kp = k + 1
             do j = 1, size(self % temperature, 2)
                 jm = j - 1
-                if (jm <= 0) jm = jm + 1 ! periodic boundaries
+                if (jm <= 0) jm = jm + ny ! periodic boundaries
                 jp = j + 1
                 if (jp > ny) jp = jp - ny  ! periodic boundaries
                 do i = 1, size(self % temperature, 1)
@@ -103,7 +104,7 @@ module generic_component_mod
         ! determined by the other component
         do j = 1, size(self % temperature, 2)
             jm = j - 1
-            if (jm <= 0) jm = jm + 1
+            if (jm <= 0) jm = jm + ny
             jp = j + 1
             if (jp > ny) jp = jp - ny
             do i = 1, size(self % temperature, 1)

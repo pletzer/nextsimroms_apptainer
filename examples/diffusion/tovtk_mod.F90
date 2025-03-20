@@ -23,8 +23,9 @@ module tovtk_mod
             
     end subroutine zero_fill
     
-    subroutine vtk_write_data(values, var_name, filename)
+    subroutine vtk_write_data(xs, ys, zs, values, var_name, filename)
 
+        real(8), intent(in) :: xs(:), ys(:), zs(:)
         real(8), intent(in) :: values(:, :, :)
         character(len=*), intent(in) :: var_name, filename
 
@@ -48,16 +49,16 @@ module tovtk_mod
         write(iu, '(A)') 'DATASET RECTILINEAR_GRID'
         write(iu, '(A, I6, I6, I6)') 'DIMENSIONS ', nx, ny, nz
         write(iu, '(A, I6, A)') 'X_COORDINATES ', nx, ' double'
-        do i = 0, nx - 1
-            write(iu, '(E20.8)') real(i, 8)
+        do i = 1, nx
+            write(iu, '(E20.8)') xs(i)
         enddo
         write(iu, '(A, I6, A)') 'Y_COORDINATES ', ny, ' double'
-        do j = 0, ny - 1
-            write(iu, '(E20.8)') real(j, 8)
+        do j = 1, ny
+            write(iu, '(E20.8)') ys(j)
         enddo
         write(iu, '(A, I6, A)') 'Z_COORDINATES ', nz, ' double'
-        do k = 0, nz - 1
-            write(iu, '(E20.8)') real(k, 8)
+        do k = 1, nz
+            write(iu, '(E20.8)') zs(k)
         enddo
         write(iu, '(A, I6)') 'CELL_DATA', numCells
         write(iu, '(A, A, A)') 'SCALARS ', trim(var_Name), ' double 1'
