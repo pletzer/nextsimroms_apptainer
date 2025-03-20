@@ -119,7 +119,7 @@ module generic_component_mod
             enddo
         enddo
     
-        ! store the new solution across entire domain
+        ! store the new solution across the entire domain
         do k = 1, size(self% temperature, 3)
             do j = 1, size(self % temperature, 2)
                 do i = 1, size(self % temperature, 1)
