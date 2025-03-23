@@ -17,12 +17,13 @@ module generic_component_mod
 
     contains
 
-    subroutine gc_new(self, namelist_file, ier)
+    subroutine gc_new(self, namelist_file, is_ocean, ier)
 
         implicit none
 
         type(generic_component_type), intent(inout) :: self
         character(len=*), intent(in) :: namelist_file
+        logical, intent(in) :: is_ocean
         integer, intent(out) :: ier
 
         integer :: nx, ny, nz, num_steps, iu
@@ -30,7 +31,9 @@ module generic_component_mod
 
         integer :: nx1, ny1, nz1
         
-        namelist /model/ nx, ny, nz, num_steps, kappa, dt, dx
+        namelist /model/ nx, ny, num_steps, dt, dx
+        namelist /ice/ kappa, nz
+        namelist /ocean/ kappa, nz
 
         dx = 0
         dt = 0
@@ -40,7 +43,12 @@ module generic_component_mod
         ny = 1
         nz = 1
         open(newunit=iu, file=namelist_file, status='old', iostat=ier); if (ier /= 0) return
-        read(unit=iu, nml=model, iostat=ier); if (ier /= 0) return        
+        read(unit=iu, nml=model, iostat=ier); if (ier /= 0) return
+        if (is_ocean) then
+            read(unit=iu, nml=ocean, iostat=ier); if (ier /= 0) return
+        else
+            read(unit=iu, nml=ice, iostat=ier); if (ier /= 0) return
+        end if        
         close(iu)
 
         nx1 = nx + 1
@@ -79,7 +87,7 @@ module generic_component_mod
         nx = nx1 - 1
         ny = ny1 - 1
     
-        ! inner domain
+        ! interior domain
         do k = 2, nz1 - 1 ! note: we skip the top and bottom layers
             km = k - 1
             kp = k + 1
@@ -120,14 +128,33 @@ module generic_component_mod
                 if (im <= 0) im = im + nx
                 ip = i + 1
                 if (ip > nx) ip = ip - nx
+
                 ! bottom
-                self % new_temperature(i, j, 1) = self % bottom_temperature(i, j)
+                k = 1
+                kp = k + 1
+                self % new_temperature(i, j, k) = self % temperature(i, j, k) + &
+                & coeff * ( & 
+                &   self % temperature(ip, j, k) + self % temperature(im, j, k) +  &
+                &   self % temperature(i, jp, k) + self % temperature(i, jm, k) +  &
+                &   self % temperature(i, j, kp) + self % bottom_temperature(i, j) +  &
+                &  - 6*self % temperature(i, j, k)                                 &
+                    )
+
                 ! top
-                self % new_temperature(i, j, nz1) = self % top_temperature(i, j)
+                k = nz1
+                km = k - 1
+                self % new_temperature(i, j, k) = self % temperature(i, j, k) + &
+                & coeff * ( & 
+                &   self % temperature(ip, j, k) + self % temperature(im, j, k) +  &
+                &   self % temperature(i, jp, k) + self % temperature(i, jm, k) +  &
+                &   self % top_temperature(i, j) + self % temperature(i, j, km) +  &
+                &  - 6*self % temperature(i, j, k)                                 &
+                    )
+
             enddo
         enddo
     
-        ! store the new solution across the entire domain
+        ! store the new solution
         do k = 1, nz1
             do j = 1, ny1
                 do i = 1, nx1

@@ -34,7 +34,7 @@ program ice
    call mpi_comm_rank(local_comm, comm_rank, kinfo)   
    print *, comp_name, ": Component ID: ", comp_id
 
-   call gc_new(component, 'oi_data/ice.nml', kinfo)
+   call gc_new(component, 'oi_data/model.nml', .FALSE., kinfo)
    call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
 
    nx1 = size(component % temperature, 1)
@@ -99,7 +99,16 @@ program ice
             component % temperature(i, j, k) = 0
          enddo
       enddo
-   enddo   
+   enddo
+
+   ! initial condition
+   do j = 1, ny1
+      do i = 1, nx1
+         component % top_temperature(i, j) = 0
+         component % bottom_temperature(i, j) = 0
+      enddo
+   enddo
+    
 
    call zero_fill(0, 6, str_n)
    call vtk_write_data(xs, ys, zs, component % temperature, 'field', 'ice'//trim(str_n)//'.vtk')
@@ -115,7 +124,7 @@ program ice
       if(kinfo<0) call oasis_abort(comp_id, comp_name, &
                   & "Error in oasis_put: ", rcode=kinfo)
 
-      print *,'==== done getting the bottom temperature date = ', date, ' chksum = ', sum(component % bottom_temperature)
+      ! print *,'==== done getting the bottom temperature date = ', date, ' chksum = ', sum(component % bottom_temperature)
 
 
       ! set the bottom temperature, either from the initial conditions or from the ocean

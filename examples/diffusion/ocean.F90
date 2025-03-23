@@ -35,7 +35,7 @@ program ocean
    call mpi_comm_rank(local_comm, comm_rank, kinfo)   
    print *, comp_name, ": Component ID: ", comp_id
 
-   call gc_new(component, 'oi_data/ocean.nml', kinfo)
+   call gc_new(component, 'oi_data/model.nml', .TRUE., kinfo)
    call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
 
    nx1 = size(component % temperature, 1)
@@ -114,29 +114,27 @@ program ocean
    ! set the bottom and upper layers
    do j = 1, ny1
       do i = 1, nx1
+         ! initial top temperature is the same as the initial ocean temperature
          component % top_temperature(i, j) = component % temperature(i, j, nz1)
-         component % bottom_temperature(i, j) = component % temperature(i, j, 1)
+         
+         ! bottom temperature will not change
+         component % bottom_temperature(i, j) = 0
       enddo
    enddo
 
    call zero_fill(0, 6, str_n)
    call vtk_write_data(xs, ys, zs, component % temperature, 'field', 'ocean'//trim(str_n)//'.vtk')
      
-   ! data is the number of seconds into the simulation 
+   ! evolve. data is the number of seconds into the simulation 
    date = 0
    do date = 0, component % num_steps
 
       ! Ocean exports first, advances and then imports. Order is important to avoid deadlocks
-
-      ! set the top temperature, either from the initial conditions or from the ice component
-      component % temperature(:, :, nz1) = component % top_temperature(:, :)
-
-      ! export the top temperature to ice
       call oasis_put(export_id, date, component % top_temperature, kinfo)
       if(kinfo<0) call oasis_abort(comp_id, comp_name, &
             & "Error in oasis_put: ", rcode=kinfo)
 
-      print *,'~~~~ done putting the top temperature date = ', date, ' chksum = ', sum(component % top_temperature)
+      ! print *,'~~~~ done putting the top temperature date = ', date, ' chksum = ', sum(component % top_temperature)
 
       ! advance by one time step
       call gc_step(component, kinfo)
@@ -144,6 +142,9 @@ program ocean
 
       call zero_fill(date, 6, str_n)
          call vtk_write_data(xs, ys, zs, component % temperature, 'field', 'ocean'//trim(str_n)//'.vtk')
+
+      ! set the top temperature after diffusion
+      component % bottom_temperature(:, :) = component % temperature(:, :, 1)
 
       ! import the temperature from ice
       call oasis_get(import_id, date, component % top_temperature, kinfo)
