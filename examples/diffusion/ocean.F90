@@ -13,12 +13,13 @@ program ocean
    integer :: local_comm, comm_size, comm_rank
    integer :: var_nodims(2)
 
-   integer :: nx, ny, nz
+   integer :: nx1, ny1, nz1, nz
    integer :: n_points     ! total number of points
 
    type(generic_component_type) :: component
    integer :: n_export, n_import
    real(8), allocatable :: xs(:), ys(:), zs(:)
+   integer :: ipert_beg, ipert_end, jpert_beg, jpert_end
 
    call mpi_init(kinfo)
 
@@ -37,23 +38,24 @@ program ocean
    call gc_new(component, 'oi_data/ocean.nml', kinfo)
    call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
 
-   nx = size(component % temperature, 1)
-   ny = size(component % temperature, 2)
-   nz = size(component % temperature, 3)
+   nx1 = size(component % temperature, 1)
+   ny1 = size(component % temperature, 2)
+   nz1 = size(component % temperature, 3)
+   nz = nz1 - 1
 
-   allocate(xs(nx+1), ys(ny+1), zs(nz+1))
-   do i = 1, nx+1
+   allocate(xs(nx1), ys(ny1), zs(nz1))
+   do i = 1, nx1
       xs(i) = real(i-1, 8)
    enddo
-   do j = 1, ny+1
+   do j = 1, ny1
       ys(j) = real(j-1, 8)
    enddo
-   do k = 1, nz+1
+   do k = 1, nz1
       zs(k) = real(-nz + k - 1, 8) ! ocean
    enddo
             
    ! number of points in the horizontal plane
-   n_points = nx*ny
+   n_points = nx1*ny1
 
    ! Domain decomposition
 
@@ -95,13 +97,27 @@ program ocean
       & "Error in oasis_enddef: ", rcode=kinfo)
 
    ! initialize the temperature of this component
-   do k = 1, size(component % temperature, 3)
-      component % temperature(:, :, k) = 0
+   do k = 1, nz1
+      do j = 1, ny1
+         do i = 1, nx1
+            component % temperature(i, j, k) = 0
+         enddo
+      enddo
    enddo
    ! perturbation
-   component % temperature(floor(real(nx, 8)/2.) + 1, floor(real(ny, 8)/3) + 1, nz) = 1
-   component % top_temperature = component % temperature(:, :, nz)
-   component % bottom_temperature = component % temperature(:, :, 1)
+   ipert_beg = max( floor(real(nx1, 8)/2.), 1 )
+   ipert_end = min( ipert_beg + 2, nx1 )
+   jpert_beg = max( floor(real(ny1, 8)/3.), 1 )
+   jpert_end = min( jpert_beg + 2, ny1 )
+   component % temperature(ipert_beg:ipert_end, jpert_beg:jpert_end, nz1) = 1
+   
+   ! set the bottom and upper layers
+   do j = 1, ny1
+      do i = 1, nx1
+         component % top_temperature(i, j) = component % temperature(i, j, nz1)
+         component % bottom_temperature(i, j) = component % temperature(i, j, 1)
+      enddo
+   enddo
 
    call zero_fill(0, 6, str_n)
    call vtk_write_data(xs, ys, zs, component % temperature, 'field', 'ocean'//trim(str_n)//'.vtk')
@@ -112,13 +128,15 @@ program ocean
 
       ! Ocean exports first, advances and then imports. Order is important to avoid deadlocks
 
-      ! set the top temperature
-      component % top_temperature = component % temperature(:, :, size(component % temperature, 3))
+      ! set the top temperature, either from the initial conditions or from the ice component
+      component % temperature(:, :, nz1) = component % top_temperature(:, :)
 
       ! export the top temperature to ice
       call oasis_put(export_id, date, component % top_temperature, kinfo)
       if(kinfo<0) call oasis_abort(comp_id, comp_name, &
             & "Error in oasis_put: ", rcode=kinfo)
+
+      print *,'~~~~ done putting the top temperature date = ', date, ' chksum = ', sum(component % top_temperature)
 
       ! advance by one time step
       call gc_step(component, kinfo)

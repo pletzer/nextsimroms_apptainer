@@ -13,7 +13,7 @@ program ice
    integer :: local_comm, comm_size, comm_rank
    integer :: var_nodims(2)
 
-   integer :: nx, ny, nz
+   integer :: nx1, ny1, nz1
    integer :: n_points     ! total number of points
 
    type(generic_component_type) :: component
@@ -37,19 +37,19 @@ program ice
    call gc_new(component, 'oi_data/ice.nml', kinfo)
    call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
 
-   nx = size(component % temperature, 1)
-   ny = size(component % temperature, 2)
-   nz = size(component % temperature, 3)
-   n_points = nx*ny
+   nx1 = size(component % temperature, 1)
+   ny1 = size(component % temperature, 2)
+   nz1 = size(component % temperature, 3)
+   n_points = nx1*ny1
 
-   allocate(xs(nx+1), ys(ny+1), zs(nz+1))
-   do i = 1, nx+1
+   allocate(xs(nx1), ys(ny1), zs(nz1))
+   do i = 1, nx1
       xs(i) = real(i-1, 8)
    enddo
-   do j = 1, ny+1
+   do j = 1, ny1
       ys(j) = real(j-1, 8)
    enddo
-   do k = 1, nz+1
+   do k = 1, nz1
       zs(k) = real(k-1, 8)
    enddo
 
@@ -92,9 +92,13 @@ program ice
    if(kinfo<0) call oasis_abort(comp_id, comp_name, &
       & "Error in oasis_enddef: ", rcode=kinfo)
 
-   ! initialize the temperature of this component to the the top temperature
-   do k = 1, nz
-      component % temperature(:, :, k) = 0
+   ! initialize the temperature of this component, zero
+   do k = 1, nz1
+      do j = 1, ny1
+         do i = 1, nx1
+            component % temperature(i, j, k) = 0
+         enddo
+      enddo
    enddo   
 
    call zero_fill(0, 6, str_n)
@@ -106,15 +110,16 @@ program ice
 
       ! Ice imports first, advances and then exports
 
-      ! set the top temperature
-      component % top_temperature = component % temperature(:, :, size(component % temperature, 3))
-
       ! import the bottom temperature from ocean
       call oasis_get(import_id, date, component % bottom_temperature, kinfo)
       if(kinfo<0) call oasis_abort(comp_id, comp_name, &
                   & "Error in oasis_put: ", rcode=kinfo)
 
-      print *,'ice at stpe ', date, ' : chksum recv data ', sum(component % bottom_temperature)
+      print *,'==== done getting the bottom temperature date = ', date, ' chksum = ', sum(component % bottom_temperature)
+
+
+      ! set the bottom temperature, either from the initial conditions or from the ocean
+      component % temperature(:, :, 1) = component % bottom_temperature(:, :)
             
       ! advance
       call gc_step(component, kinfo)
@@ -123,6 +128,8 @@ program ice
       call zero_fill(date, 6, str_n)
       call vtk_write_data(xs, ys, zs, component % temperature, 'field', 'ice'//trim(str_n)//'.vtk')
       
+      ! set the bottom temperature after diffusion
+      component % bottom_temperature(:, :) = component % temperature(:, :, 1)
 
       ! export the bottom temperature to ocean
       call oasis_put(export_id, date, component % bottom_temperature, kinfo)
