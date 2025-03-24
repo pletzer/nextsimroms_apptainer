@@ -1,9 +1,9 @@
 &dims
     num_export = 6
     num_import = 6 !7
-    run_time = 7200 ! 5929200 ! 21600 ! 63072000
+    run_time =  60
     ! model time step <= coupling time step
-    time_step = 600
+    time_step = 2
     nx_global = 157
     ny_global = 165
 /
