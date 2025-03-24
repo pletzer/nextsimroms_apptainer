@@ -37,6 +37,7 @@ ice: ice.F90  grid_mod.o generic_component_mod.o exception_mod.o tovtk_mod.o
 	rm -f grids.nc namcouple
 	ln -s ../common_data/grids.nc .
 	cp oi_data/namcouple.LAG namcouple
+	cp oi_data/*_restart.nc .
 	rm -f nout.?????? debug*
 	mpiexec -n 4 ocean : -n 2 ice
 
