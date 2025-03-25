@@ -1,0 +1,138 @@
+
+
+##############################################################################
+#
+#      Input file for OASIS3
+# 
+#      This version is for use with ECHAM5 fluxes and
+#      surface conditions computed in mpi-om.
+#
+#      The file will be edited in the run-script to update it for the 
+#      actual integration period and grid dimensions.
+#
+#      Modified : S. Legutke    DKRZ             29.12.02
+#                 - updated from 2.4.t version
+#
+###############################################################################
+#  
+#      Input delimiters have to occupy position 1 to 9 !
+#      No blank lines allowed !
+#      Length of input lines <= 80 !
+#
+###############################################################################
+#
+# NFIELDS : total number of fields being exchanged.
+#
+ $NFIELDS
+         15
+ $END
+#
+###############################################################################
+# 
+# RUNTIME (<I8)
+#         total simulated time for the actual run in seconds
+#         the value will be set before the actual integration
+#         the value has to be greated than the modle simulation time
+ $RUNTIME
+           86401
+ $END
+#
+###############################################################################
+#
+ $NLOGPRT
+   10  0
+ $END
+#
+###############################################################################
+#
+ $STRINGS
+#
+#
+############################################################################
+#                      OCEAN  --->>>  ICE
+#                      ------------------
+###############################################################################
+#
+#Sea_surface_temperature [K;K]
+O_SSTSST I_SST 1 14400  1 ocean_restart.nc EXPORTED
+157 165   157 165 tor2 tor2  SEQ=1 LAG=0
+P  2  P  2
+LOCTRANS
+AVERAGE
+#
+O_SSSal I_SSS 1 14400  1 ocean_restart.nc EXPORTED
+157 165   157 165 tor2 tor2  SEQ=1 LAG=0
+P  2  P  2
+LOCTRANS
+AVERAGE
+#
+O_OCurx1 I_Uocn 1 14400  1 ocean_restart.nc EXPORTED
+157 165   157 165 tor2 tor2  SEQ=1 LAG=0
+P  2  P  2
+LOCTRANS
+AVERAGE
+#
+O_OCury1 I_Vocn 1 14400  1 ocean_restart.nc EXPORTED
+157 165   157 165 tor2 tor2  SEQ=1 LAG=0
+P  2  P  2
+LOCTRANS
+AVERAGE
+#
+O_SSHght I_SSH 1 14400  1 ocean_restart.nc EXPORTED
+157 165   157 165 tor2 tor2  SEQ=1 LAG=0
+P  2  P  2
+LOCTRANS
+AVERAGE
+#
+O_FraQsr I_FrcQsr 1 14400  1 ocean_restart.nc EXPORTED
+157 165   157 165 tor2 tor2  SEQ=1 LAG=0
+P  2  P  2
+LOCTRANS
+AVERAGE
+#
+###############################################################################
+############################################################################
+#                      OCEAN  <<<---  ICE
+#                      ------------------
+###############################################################################
+#
+#
+I_taux O_OTaux1 1 14400  1 ice_restart.nc EXPORTED
+157 165   157 165 tor2 tor2  SEQ=1 LAG=0
+P  2  P  2
+LOCTRANS
+AVERAGE
+#
+I_tauy O_OTauy1 1 14400  1 ice_restart.nc EXPORTED
+157 165   157 165 tor2 tor2  SEQ=1 LAG=0
+P  2  P  2
+LOCTRANS
+AVERAGE
+#
+I_rsnos O_QnsOce 1 14400  1 ice_restart.nc EXPORTED
+157 165   157 165 tor2 tor2  SEQ=1 LAG=0
+P  2  P  2
+LOCTRANS
+AVERAGE
+#
+I_rsso O_QsrOce 1 14400  1 ice_restart.nc EXPORTED
+157 165   157 165 tor2 tor2  SEQ=1 LAG=0
+P  2  P  2
+LOCTRANS
+AVERAGE
+#
+I_sfi O_SFLX 1 14400  1 ice_restart.nc EXPORTED
+157 165   157 165 tor2 tor2  SEQ=1 LAG=0
+P  2  P  2
+LOCTRANS
+AVERAGE
+#
+I_taumod O_TauMod 1 14400  1 ice_restart.nc EXPORTED
+157 165   157 165 tor2 tor2  SEQ=1 LAG=0
+P  2  P  2
+LOCTRANS
+AVERAGE
+#
+##########################################################################
+ $END
+
