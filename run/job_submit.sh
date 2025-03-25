@@ -30,8 +30,10 @@ mkdir -p $dst/data
 export I_MPI_FABRICS=ofi
  
 # use the executable in the container
-exe=/usr/local/ifort/build/nocpl/nextsim/model/bin/nextsim.exec
+#exe=/usr/local/ifort/build/nocpl/nextsim/model/bin/nextsim.exec
+exe=/usr/local/ifort/build/oasis/nextsim/model/bin/nextsim.exec
+
 #apptainer exec -B $dst/data:/data,$dst/data:/mesh $sif mpiexec -n $SLURM_NTASKS $exe --config-files=nextsim.cfg
-srun apptainer exec -B $dst/data:/data,$dst/data:/mesh $sif $exe --config-files=nextsim.cfg
+srun apptainer exec -B $dst/data:/data,$dst/data:/mesh $sif $exe --config-files=input/nextsim.cfg : -n 1 ocean
 
 
