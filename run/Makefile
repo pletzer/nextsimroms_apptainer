@@ -5,34 +5,26 @@ OASIS_DIR=/usr/local/ifort/oasis3-mct/debug/
 NETCDF_LIBRARY = -L/usr/local/ifort/lib -lnetcdff -lnetcdf
 LIBS = -L$(OASIS_DIR)/lib -lpsmile.MPI1 -lscrip -lmct -lmpeu $(NETCDF_LIBRARY)
 
-all: ocean ice
+all: ocean 
 
 %.o: %.F90
 	${F90} -check all -g -O0 -traceback -I/usr/local/ifort/include -I $(OASIS_DIR)/include -c $<
+
 
 generic_component_mod.o: exception_mod.o
 
 ocean: ocean.F90 grid_mod.o  generic_component_mod.o exception_mod.o tovtk_mod.o
 	${F90} ocean.F90 ${FLAGS} -o ocean grid_mod.o generic_component_mod.o tovtk_mod.o exception_mod.o $(LIBS)
 
-ice: ice.F90  grid_mod.o generic_component_mod.o exception_mod.o tovtk_mod.o
-	${F90} ice.F90 ${FLAGS} -o ice grid_mod.o generic_component_mod.o tovtk_mod.o exception_mod.o $(LIBS)
-
-4x2:
+run:
 	rm -f grids.nc namcouple
 	ln -s ../common_data/grids.nc .
-	ln -s oi_data/namcouple .
+	ln -s input/namcouple .
 	rm -f nout.?????? debug*
-	mpiexec -n 4 ocean : -n 2 ice
+#	mpiexec -n 4 ocean : -n 2 
 
-1x1:
-	rm -f grids.nc namcouple
-	ln -s ../common_data/grids.nc .
-	ln -s oi_data/namcouple .
-	rm -f nout.?????? debug*
-	mpiexec -n 1 ocean : -n 1 ice
 
 clean:
-	rm -f ocean ice
+	rm -f ocean
 	rm -f *~
 	rm -fr work

@@ -1,12 +1,19 @@
 &dims
-    num_export = 0
-    num_import = 3
-    run_time = 21600
-    time_step = 7200
+    num_export = 6
+    num_import = 6
+    run_time = 7200 ! 5929200 ! 21600
+    ! model time step
+    time_step = 600
+    nx_global = 157
+    ny_global = 165
 /
 &values
-    grid_name = 'bggd'
+    export_field_name = 'I_taux', 'I_tauy', 'I_rsnos', 'I_rsso', 'I_sfi', 'I_taumod' ! ,'I_sic'
+    ! the export fields will be set to these values
+    export_field_value = 0, 0, 0, 0, 0, 0 ! , 0
 
-    import_field_name = 'i_sss', 'i_sst', 'i_u' 
-    import_field_value = 34, 293., 0.1
+
+    import_field_name = 'I_SST', 'I_SSS', 'I_Uocn', 'I_Vocn', 'I_SSH', 'I_FrcQsr' ! 'I_MLD'
+    ! initial values of the import fields
+    import_field_value = -1., 34, 0.1, 0.2, 0., 0. ! , 0.5
 /

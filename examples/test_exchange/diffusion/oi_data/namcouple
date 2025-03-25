@@ -1,0 +1,33 @@
+############################################
+$NFIELDS
+2
+$END
+############################################
+$RUNTIME
+# RUNTIME must be > model time (for some reason)
+666666
+$END
+############################################
+$NLOGPRT
+0 0
+$END
+############################################
+$STRINGS
+# O_SSTSST symbolic name of source field
+# I_SST symbolic name of receiving field
+# 1 unused
+# 6 coupling period 
+# 0 number of transformations
+# o2i.nc restart file
+# EXPOUT: exported, transformed and written to netcdf file (use EXPORTED if no file should be written)
+#
+# OCEAN --->> ICE
+O_SST_FROM_OCN I_SST_FROM_OCN 1 1 0 o2i.nc EXPOUT
+16 16 16 16 xxx xxx
+P 0 P 0
+#
+I_SST_FROM_ICE O_SST_FROM_ICE 1 1 0 i2o.nc EXPOUT
+16 16 16 16 xxx xxx
+P 0 P 0
+#
+$END
