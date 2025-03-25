@@ -105,6 +105,15 @@ program ocean
    date = 0
    do date = 0, component % run_time, component % time_step
 
+      if (n_export > 0) then
+         ! export the field
+         do k = 1, n_export
+            call oasis_put(component % export_field_id(k), date, bundle_export(:, k), kinfo, write_restart=.TRUE.)
+            if(kinfo<0) call oasis_abort(comp_id, comp_name, &
+               & "Error in oasis_put: ", rcode=kinfo)
+         enddo
+      endif
+
       ! import first then export
       if (n_import > 0) then
          ! import
@@ -115,15 +124,7 @@ program ocean
          enddo
       endif
 
-      if (n_export > 0) then
-         ! export the field
-         do k = 1, n_export
-            call oasis_put(component % export_field_id(k), date, bundle_export(:, k), kinfo, write_restart=.TRUE.)
-            if(kinfo<0) call oasis_abort(comp_id, comp_name, &
-               & "Error in oasis_put: ", rcode=kinfo)
-         enddo
-      endif
-
+         
    enddo
 
    ! clean up

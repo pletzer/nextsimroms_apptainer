@@ -111,7 +111,7 @@ program ice
       date = 0
       do date = 0, component % run_time, component % time_step
 
-         ! must import first as ocean sends first 
+         ! imports first and then exports 
          if (n_import > 0) then
             do k = 1, n_import
                ! import the field
@@ -124,7 +124,7 @@ program ice
          if (n_export > 0) then
             do k = 1, n_export
                ! export the field
-               call oasis_put(component % export_field_id(k), date, bundle_export(:, :, k), kinfo)
+               call oasis_put(component % export_field_id(k), date, bundle_export(:, :, k), kinfo, write_restart=.TRUE.)
                if(kinfo<0) call oasis_abort(comp_id, comp_name, &
                   & "Error in oasis_get: ", rcode=kinfo)
             enddo
