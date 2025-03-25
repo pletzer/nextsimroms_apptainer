@@ -1,14 +1,14 @@
 include /usr/local/ifort/build/oasis3-mct/util/make_dir/make.inc
 FLAGS=$(F90FLAGS) -L$(ARCHDIR)/lib
 
-OASIS_DIR=/usr/local/ifort/oasis3-mct/debug/
+OASIS_DIR=/usr/local/ifort/oasis3-mct/opt/
 NETCDF_LIBRARY = -L/usr/local/ifort/lib -lnetcdff -lnetcdf
 LIBS = -L$(OASIS_DIR)/lib -lpsmile.MPI1 -lscrip -lmct -lmpeu $(NETCDF_LIBRARY)
 
 all: ocean 
 
 %.o: %.F90
-	${F90} -check all -g -O0 -traceback -I/usr/local/ifort/include -I $(OASIS_DIR)/include -c $<
+	${F90} -check all -g -O2 -traceback -I/usr/local/ifort/include -I $(OASIS_DIR)/include -c $<
 
 
 generic_component_mod.o: exception_mod.o
@@ -25,6 +25,6 @@ run:
 
 
 clean:
-	rm -f ocean
+	rm -f ocean *.o *.mod
 	rm -f *~
 	rm -fr work
