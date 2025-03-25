@@ -2,12 +2,29 @@
 
 This is a template repo and contains input files and scripts to run nextsim with a fake_ocean (ocean.F90). 
 
-## Steps
+## Step 1
 
-    1. Edit job_submit.sh. Variable `dst` should point to the directory containing the input data, e.g. `dst=$PWD`
-    2. You might to change the slurm account
-    3. You might want to adjust the maximum time and the number of processes
-    4. The sif file is an Apptainer image that contains the nextsim executable and the OASIS3-MCT libraries. Ajust the location of the sif file as needed
-    5. Build the fake ocean code: `make clean; make`
-    5. When ready, submit with `sbatch job_submit.sh`
+You will need to build the fake ocean model within the Apptainer environment. Adjust the path to the sif file as needed.
+```bash
+ml purge
+ml Apptainer
+apptainer shell /nesi/nobackup/pletzera/nextsim.sif
+Apptainer> make clean
+Apptainer> make
+```
 
+## Step 2
+
+Edit the `job_submit.sh' slurm submission file. You might to change the slurm account. You want to adjust the maximum time and the number of processes.
+
+## Step 3
+
+Submit with
+```bash
+sbatch job_submit.sh
+```
+
+Note: you can pass slurm options to override the settings in the slurm script, e.g.
+```bash
+sbatch -A nesi99999 job_submit.sh
+```
