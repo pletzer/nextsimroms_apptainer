@@ -24,14 +24,8 @@ ice: ice.F90  grid_mod.o generic_component_mod.o exception_mod.o tovtk_mod.o
 	ln -s ../common_data/grids.nc .
 	cp oi_data/namcouple .
 	rm -f nout.?????? debug*
+	echo "this will hang... run 4x2lag to overcome the deadlock"
 	mpiexec -n 4 ocean : -n 2 ice
-
-1x1:
-	rm -f grids.nc namcouple
-	ln -s ../common_data/grids.nc .
-	cp oi_data/namcouple .
-	rm -f nout.?????? debug*
-	mpiexec -n 1 ocean : -n 1 ice
 
 4x2lag:
 	rm -f grids.nc namcouple
