@@ -1,7 +1,12 @@
 #!/bin/bash -e
-#SBATCH --job-name=mpmd_mpi_example
-#SBATCH --ntasks=3
-#SBATCH --time=00:05:00
+#SBATCH --job-name=nextsim-ocean
+#SBATCH --time=00:30:00
+#SBATCH --ntasks=4 # nextsim
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=5g
+#SBATCH hetjob
+#SBATCH --ntasks=1 # ocean
+#SBATCH --mem=1g
 
 # Load necessary modules
 ml purge
@@ -20,4 +25,8 @@ mkdir -p ${NEXTSIM_MESH_DIR}/data
 #export I_MPI_FABRICS=shm
 export I_MPI_FABRICS=ofi
 
-srun --ntasks=2 ./nextsim.sh : --ntasks=1 ./ocean.sh
+# make sure to use the version compiled with oasis
+export NEXTSIMEXE=/usr/local/ifort/build/oasis/nextsim/model/bin/nextsim.exec
+
+srun ./nextsim.sh : ./ocean.sh
+
