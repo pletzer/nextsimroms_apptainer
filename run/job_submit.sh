@@ -1,13 +1,11 @@
 #!/bin/bash -e
 #SBATCH --job-name=nextsim-ocean
 #SBATCH --time=00:30:00
-#SBATCH --ntasks=4 # nextsim
+#SBATCH --ntasks=5 #  total nextsim + ocean
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=5g
-#SBATCH hetjob
-#SBATCH --ntasks=1 # ocean
-#SBATCH --mem=1g
 
+unset PYTHONPATH
 # Load necessary modules
 ml purge
 ml Apptainer intel
@@ -28,5 +26,15 @@ export I_MPI_FABRICS=ofi
 # make sure to use the version compiled with oasis
 export NEXTSIMEXE=/usr/local/ifort/build/oasis/nextsim/model/bin/nextsim.exec
 
-srun ./nextsim.sh : ./ocean.sh
+srun -n 4 apptainer exec -B ${NEXTSIM_DATA_DIR}/data:/data,${NEXTSIM_MESH_DIR}/data:/mesh $SIFFILE $NEXTSIMEXE --config-files=input/nextsim.cfg : -n 1 apptainer exec $SIFFILE ./ocean
+# this does not work
+#srun ./nextsim.sh : ./ocean.sh
+
+#srun --het-group=0 ./nextsim.sh &
+#srun --het-group=1 ./ocean.sh &
+
+#srun --het-group=1 apptainer exec $SIFFILE ./ocean &
+#srun --het-group=0 apptainer exec -B ${NEXTSIM_DATA_DIR}/data:/data,${NEXTSIM_MESH_DIR}/data:/mesh $SIFFILE $NEXTSIMEXE --config-files=input/nextsim.cfg &
+#srun --het-group=1 apptainer exec $SIFFILE ./ocean &
+#wait
 
