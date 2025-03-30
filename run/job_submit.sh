@@ -22,19 +22,15 @@ mkdir -p ${NEXTSIM_MESH_DIR}/data
 # default is shm:ofi which causes an MPI init error on mahuika/milan
 #export I_MPI_FABRICS=shm
 export I_MPI_FABRICS=ofi
+# to avoid srun: error: net_stream_listen_ports: all ports in range (40000, 45000) exhausted, cannot establish listening port
+export SLURM_SRUN_PORT_MIN=50000
+export SLURM_SRUN_PORT_MAX=55000
 
 # make sure to use the version compiled with oasis
 export NEXTSIMEXE=/usr/local/ifort/build/oasis/nextsim/model/bin/nextsim.exec
+n_ice="$(expr $SLURM_NTASKS - 1)"
+n_ocn="1"
+echo "neXtSIM running with $n_ice and ocean running with $n_ocn procs"
+srun -n ${n_ice} apptainer exec -B ${NEXTSIM_DATA_DIR}/data:/data,${NEXTSIM_MESH_DIR}/data:/mesh $SIFFILE $NEXTSIMEXE --config-files=input/nextsim.cfg : -n ${n_ocn} apptainer exec $SIFFILE ./ocean
 
-srun -n 4 apptainer exec -B ${NEXTSIM_DATA_DIR}/data:/data,${NEXTSIM_MESH_DIR}/data:/mesh $SIFFILE $NEXTSIMEXE --config-files=input/nextsim.cfg : -n 1 apptainer exec $SIFFILE ./ocean
-# this does not work
-#srun ./nextsim.sh : ./ocean.sh
-
-#srun --het-group=0 ./nextsim.sh &
-#srun --het-group=1 ./ocean.sh &
-
-#srun --het-group=1 apptainer exec $SIFFILE ./ocean &
-#srun --het-group=0 apptainer exec -B ${NEXTSIM_DATA_DIR}/data:/data,${NEXTSIM_MESH_DIR}/data:/mesh $SIFFILE $NEXTSIMEXE --config-files=input/nextsim.cfg &
-#srun --het-group=1 apptainer exec $SIFFILE ./ocean &
-#wait
 
