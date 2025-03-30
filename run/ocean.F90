@@ -34,7 +34,8 @@ program ocean
    call mpi_comm_rank(local_comm, comm_rank, kinfo)   
    print *, comp_name, ": Component ID: ", comp_id
 
-   call gc_new(component, 'oi_data/ocean.nml', kinfo)
+   print *, 'ocean will read file ', 'input/ocean.nml'
+   call gc_new(component, 'input/ocean.nml', kinfo)
       call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
 
    nx_global = component % nx_global

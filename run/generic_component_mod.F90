@@ -49,6 +49,7 @@ module generic_component_mod
         nx_global = 0
         ny_global = 0
 
+        print *,'now opening file ', namelist_file, '<'
         open(newunit=iu, file=namelist_file, status='old', iostat=ier); 
         if (ier /= 0) call check_err_generic(ier, __FILE__, __LINE__)
         read(unit=iu, nml=dims, iostat=ier); 
