@@ -22,10 +22,12 @@ program ocean
 
    call mpi_init(kinfo)
 
+   ! initialization of the component, comp_id is returned
    call oasis_init_comp(comp_id, comp_name, kinfo)
    if(kinfo<0) call oasis_abort(comp_id, comp_name, &
       & "Error in oasis_init_comp: ", rcode=kinfo)
 
+   ! get the local communicator, use local_comm to get the mpi rank eg
    call oasis_get_localcomm(local_comm, kinfo)
    if(kinfo<0) call oasis_abort(comp_id, comp_name, &
       & "Error in oasis_get_localcomm: ", rcode=kinfo)
@@ -35,6 +37,7 @@ program ocean
    print *, comp_name, ": Component ID: ", comp_id
 
    print *, 'ocean will read file ', 'input/ocean.nml'
+   ! create a generic component
    call gc_new(component, 'input/ocean.nml', kinfo)
       call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
 
@@ -63,12 +66,17 @@ program ocean
    n_export = size(component % export_field_value)
    n_import = size(component % import_field_value)
 
+   ! Define the export and import fields for this component
+
+   ! only the second number is used, it represents the number of fields in
+   ! the bundle. Here we're sending one field at the time.
    var_nodims=[1, 1]
    
    if (n_export > 0) then
       do k = 1, n_export
-         call oasis_def_var(component % export_field_id(k), component % export_field_name(k), &
-            &               part_id, var_nodims, OASIS_OUT, &
+         call oasis_def_var(component % export_field_id(k), & ! field id (out)
+            &               component % export_field_name(k), & ! field name, eg O_SSTSST (in)
+            &               part_id, var_nodims, OASIS_OUT, & ! export field (in)
             &               OASIS_DOUBLE, kinfo)
          if(kinfo<0 .or. component % export_field_id(k) < 0) &
             & call oasis_abort(comp_id, comp_name, &
@@ -78,8 +86,9 @@ program ocean
 
    if (n_import > 0) then
       do k = 1, n_import
-         call oasis_def_var(component % import_field_id(k), component % import_field_name(k), &
-            &               part_id, var_nodims, OASIS_IN, &
+         call oasis_def_var(component % import_field_id(k), & ! field id (out)
+            &               component % import_field_name(k), & ! eg O_OTaux1 (in)
+            &               part_id, var_nodims, OASIS_IN, &    ! import field
           &                 OASIS_DOUBLE, kinfo)
          if(kinfo<0 .or. component % import_field_id(k) < 0) &
             & call oasis_abort(comp_id, comp_name, &
@@ -87,10 +96,14 @@ program ocean
       enddo
    endif
    
+   ! done with defining the fields to exchange
    call oasis_enddef(kinfo)
    if(kinfo<0) call oasis_abort(comp_id, comp_name, &
       & "Error in oasis_enddef: ", rcode=kinfo)
 
+   ! each exchange field is stored in either bundle_export or bundle_import.
+   ! The first dimension is the number of elements local to the process. 
+   ! each field is 2d but we treat it as a 1d array
    allocate(bundle_export(local_size, n_export), bundle_import(local_size, n_import))
 
    ! set the values of the export bundle
@@ -98,14 +111,24 @@ program ocean
       bundle_export(:, k) = component % export_field_value(k)
    enddo
 
+   ! initialize the import fields
    do k = 1, n_import
       bundle_import(:, k) = component % import_field_value(k)
    enddo
+
+   ! Now the component is advancing in time
   
-   ! data is the number of seconds into the simulation 
+   ! date is the number of seconds into the simulation
+   ! oasis_put and oasis_get are called at every component
+   ! time step. But the calls will only happen when the 
+   ! time step takes the value of the coupling period defined
+   ! in namcouple.  
    date = 0
    do date = 0, component % run_time, component % time_step
 
+      ! Note: ocean puts first and then gets. To avoid a deadlock, ice should 
+      ! get first and then put. Put and get have to match. 
+   
       if (n_export > 0) then
          ! export the field
          do k = 1, n_export
@@ -124,12 +147,15 @@ program ocean
          enddo
       endif
 
+      ! Now advance the model. To implement
+
    enddo
 
-   ! clean up
+   ! clean up in reverse order to initialization
    call gc_del(component, kinfo)
       call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
 
+   ! clean up oasis
    call oasis_terminate(kinfo)
    if(kinfo<0) call oasis_abort(comp_id, comp_name, &
       & "Error in oasis_terminate: ", rcode=kinfo)
