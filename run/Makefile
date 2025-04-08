@@ -21,6 +21,7 @@ all: ocean
 %.o: %.F90
 	${F90} -check all -g -O2 -traceback -I/usr/local/ifort/include -I $(OASIS_DIR)/include -c $<
 
+ocean.o: generic_component_mod.o
 
 generic_component_mod.o: exception_mod.o
 
