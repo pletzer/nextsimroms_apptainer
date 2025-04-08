@@ -5,6 +5,10 @@
 #SBATCH hetjob
 #SBATCH --ntasks=2 # ice
 
-srun --het-group=0 ./ocean &
-srun --het-group=1 ./ice &
+ml purge
+ml Apptainer intel
+SIFFILE=/nesi/nobackup/pletzera/nextsim.sif
+
+srun --het-group=0 apptainer exec $SIFFILE ./ocean &
+srun --het-group=1 apptainer exec $SIFFILE ./ice &
 wait
