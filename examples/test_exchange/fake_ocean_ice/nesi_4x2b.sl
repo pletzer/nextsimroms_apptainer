@@ -7,6 +7,9 @@ ml purge
 ml Apptainer intel
 SIFFILE=/nesi/nobackup/pletzera/nextsim.sif
 
+# required to avoid an pm2 error at MPI initialization
+export I_MPI_FABRICS=ofi
+
 nice="2"
 nocean=$(expr ${SLURM_NTASKS} - ${nice})
 echo "Running ocean with $nocean and ice with $nice procs"

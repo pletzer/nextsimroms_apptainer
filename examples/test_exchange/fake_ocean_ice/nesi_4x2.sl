@@ -9,6 +9,9 @@ ml purge
 ml Apptainer intel
 SIFFILE=/nesi/nobackup/pletzera/nextsim.sif
 
+# required to avoid an pm2 error at MPI initialization
+export I_MPI_FABRICS=ofi
+
 srun --het-group=0 apptainer exec $SIFFILE ./ocean &
 srun --het-group=1 apptainer exec $SIFFILE ./ice &
 wait
