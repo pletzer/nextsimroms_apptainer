@@ -1,0 +1,9 @@
+&model
+nx = 16
+ny = 16
+nz = 4
+kappa = 1.0
+dx = 0.1
+num_steps = 10
+dt = 0.01
+/

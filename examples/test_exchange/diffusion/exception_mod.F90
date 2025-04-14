@@ -13,18 +13,4 @@ module exception_mod
          & "OASIS error: ", rcode=kinfo)
       endif
    end subroutine check_err
-
-   subroutine check_err_generic(kinfo, filename, line)
-      use mpi
-      implicit none
-      integer, intent(in) :: kinfo
-      character(len=*), intent(in) :: filename
-      integer, intent(in) :: line
-      integer :: ier
-      if (kinfo /= 0) then
-         write(0, *), 'ERROR in file ', filename, ' at line ', line
-         call mpi_abort(MPI_COMM_WORLD, kinfo, ier)
-      endif
-   end subroutine check_err_generic
-
 end module exception_mod

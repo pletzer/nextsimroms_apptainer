@@ -13,19 +13,20 @@ program ice
    integer :: part_params(OASIS_Serial_Params)
    integer :: local_comm, comm_size, comm_rank
    integer :: var_nodims(2)
-   real(kind=8) :: error, epsilon
-   integer :: nx_global, ny_global
+   real(kind=8) :: total
    real(kind=8), allocatable ::  bundle_export(:, :, :), bundle_import(:, :, :)
-   real(kind=8), allocatable ::  expected(:, :, :)
-   integer :: n_points
    integer :: ncid, varid
    real(kind=8), allocatable :: lon(:, :), lat(:, :)
    integer, allocatable :: imsk(:, :)
    real(kind=8) :: dp_conv
-   logical :: success
+
+   integer :: nx_global, ny_global
+   integer :: n_points
 
    type(generic_component_type) :: component
    integer :: n_export, n_import
+
+   call mpi_init(kinfo)
 
    call oasis_init_comp(comp_id, comp_name, kinfo)
    if(kinfo<0) call oasis_abort(comp_id, comp_name, &
@@ -39,7 +40,11 @@ program ice
    call mpi_comm_rank(local_comm, comm_rank, kinfo)
    print *, comp_name, ": Component ID: ", comp_id
 
-   call read_dims('grids.nc', 'bggd', nx_global, ny_global)
+   call gc_new(component, 'oi_data/ice.nml', kinfo)
+   call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
+
+   nx_global = component % nx_global
+   ny_global = component % ny_global
    n_points = nx_global*ny_global
    write(0, *) 'ICE DEBUG nx_global, ny_global = ', nx_global, ny_global
    allocate(lon(nx_global,ny_global), lat(nx_global,ny_global))
@@ -60,8 +65,6 @@ program ice
          & "Error in oasis_def_partition: ", rcode=kinfo)
    endif
 
-   call gc_new(component, 'oi_data/ice.nml', kinfo)
-   call check_err(kinfo, comp_id, comp_name, __FILE__, __LINE__)
 
    ! debug 
    call gc_print(component, kinfo)
@@ -100,14 +103,15 @@ program ice
       & "Error in oasis_enddef: ", rcode=kinfo)
 
 
-   if (n_import > 0 .and. comm_rank == 0) then
+   if (comm_rank == 0) then
 
       allocate(bundle_import(nx_global, ny_global, n_import), &
-         & bundle_export(nx_global, ny_global, n_export))
-      allocate(expected(nx_global, ny_global, n_import))
+             & bundle_export(nx_global, ny_global, n_export))
          
       date = 0
-      do date = 0, component % run_time -1, component % time_step
+      do date = 0, component % run_time, component % time_step
+
+         ! must import first as ocean sends first 
          if (n_import > 0) then
             do k = 1, n_import
                ! import the field
@@ -116,6 +120,16 @@ program ice
                   & "Error in oasis_get: ", rcode=kinfo)
             enddo
          endif
+
+         if (n_export > 0) then
+            do k = 1, n_export
+               ! export the field
+               call oasis_put(component % export_field_id(k), date, bundle_export(:, :, k), kinfo)
+               if(kinfo<0) call oasis_abort(comp_id, comp_name, &
+                  & "Error in oasis_get: ", rcode=kinfo)
+            enddo
+         endif
+
       enddo
 
       do k = 1, n_import
@@ -124,49 +138,26 @@ program ice
             & trim(component % import_field_name(k)) // '.vtk')
       enddo
 
-      ! exact field
-      dp_conv = atan(1.)/45.0
+      ! compute the average values of the imported fields
       do k = 1, n_import
-         do j = 1, ny_global
-            do i = 1, nx_global
-               expected(i,j,k) = k * ( &
-                  & 2.0 + (sin(2.*lat(i,j)*dp_conv))**4 * &
-                  & cos(4.*lon(i,j)*dp_conv) &
-                  & )
-            enddo
-         enddo
-      enddo
-
-      epsilon=1.e-3
-      success = .true.
-      do k = 1, n_import
-         error=0.
+         total = 0.
          do j = 1, ny_global
             do i = 1, nx_global
                ! imsk = 0 means valid
                if (imsk(i,j) == 0) &
-                  & error = error + abs((bundle_import(i,j,k)-expected(i,j,k))/expected(i,j,k))
+                  & total = total + bundle_import(i,j,k)
             end do
          end do
-         success = success .and. (error/dble(n_points) < epsilon)
-         print '(A,A, E20.10)', comp_name, ": Average regridding error: ", error/dble(n_points)
-         if (success) then
-            print '(A,A,I0,A)', comp_name, ": Data for bundle_import ",k," is ok"
-         else
-            print '(A,A,I0,A,E12.5)', comp_name, ": Error for bundle_import ",k," is ",error
-         end if
+         print *, comp_name, ": Average imported field value for ", &
+           &         component % import_field_name(k),  " is ", total/dble(n_points)
       end do
-
-      if(success) then
-         print '(A)', "ice: Data received successfully"
-      else
-         print *, 'ice: FAILURE!!!'
-      endif
    
-   endif
+      endif
 
    call oasis_terminate(kinfo)
    if(kinfo<0) call oasis_abort(comp_id, comp_name, &
       & "Error in oasis_terminate: ", rcode=kinfo)
       
+   call mpi_finalize(kinfo)
+
 end program ice
