@@ -120,11 +120,13 @@ On any locally mounted directory,
 Apptainer>  git clone -b OASIS3-MCT_5.2  https://gitlab.com/cerfacs/oasis3-mct.git
 ```
 
-### Edit the Makefile 
+### Edit the Makefile
+
 ```
 Apptainer> cd oasis3-mct/examples/tutorial_communication
 ```
-and replace the lines
+
+Edit file "Makefile" by replacing the lines
 ```
 include ../../util/make_dir/make.inc
 ```
@@ -135,7 +137,7 @@ all: oasis3_psmile ocean atmos
 
 with
 ```
-include $(COUPLE)/util/make_dir/make.gcc
+include $(COUPLE)/util/make_dir/make.inc
 ```
 and
 ```
